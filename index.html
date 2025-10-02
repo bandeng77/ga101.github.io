@@ -1,0 +1,2040 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi General Affair Modern</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+    <!-- Optional: Firebase Firestore SDK if you plan to use it for persistent data -->
+    <!-- <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script> -->
+
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --secondary: #64748b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --light: #f8fafc;
+            --dark: #1e293b;
+            --gray: #94a3b8;
+            --border: #e2e8f0;
+            --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --gradient-primary: linear-gradient(135deg, #3b82f6, #6366f1);
+            --gradient-success: linear-gradient(135deg, #10b981, #14b8a6);
+            --gradient-warning: linear-gradient(135deg, #f59e0b, #f97316);
+            --header-height: 80px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f1f5f9;
+            color: var(--dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* HEADER MODERN YANG LEBIH BAGUS */
+        header {
+            background: var(--gradient-primary);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            padding: 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            height: var(--header-height);
+            padding-bottom: 2rem; /* Menambahkan jarak di bawah header menjadi 2rem */
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 100%;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: white;
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        .logo-icon {
+            background: rgba(255, 255, 255, 0.2);
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .logo-icon:hover {
+            transform: rotate(10deg);
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo-main {
+            font-size: 1.5rem;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .logo-sub {
+            font-size: 0.8rem;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        /* Navigasi di header dihapus, jadi bagian ini tidak lagi relevan untuk header */
+        /* nav ul {
+            display: flex;
+            list-style: none;
+            gap: 5px;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 500;
+            padding: 10px 15px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+        }
+
+        nav a:hover, nav a.active {
+            background-color: rgba(255, 255, 255, 0.15);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        nav a i {
+            font-size: 1rem;
+        } */
+
+        .hamburger {
+            display: none; /* Hamburger juga tidak diperlukan jika tidak ada nav menu */
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+        }
+
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background-color: white;
+            transition: all 0.3s;
+            border-radius: 2px;
+        }
+
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(45deg) translate(6px, 6px);
+        }
+
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(6px, -6px);
+        }
+
+        /* JARAK ANTARA HEADER DAN CARD */
+        main {
+            padding: 2rem 0;
+            min-height: calc(100vh - var(--header-height) - 100px);
+            margin-top: 2rem; /* Tambahan jarak dari header menjadi 2rem */
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px; /* Tambahan jarak antar card */
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            padding: 1.8rem;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(59, 130, 246, 0.1);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: var(--gradient-primary);
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.08);
+        }
+
+        .card-icon {
+            width: 70px;
+            height: 70px;
+            background: var(--gradient-primary);
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.2rem;
+            color: white;
+            font-size: 1.8rem;
+            transition: transform 0.3s ease;
+            box-shadow: 0 6px 12px rgba(59, 130, 246, 0.25);
+        }
+
+        .card:hover .card-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+
+        .card-desc {
+            color: var(--secondary);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        /* FORM SECTION STYLING */
+        .form-section {
+            display: none;
+            background-color: white;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            animation: fadeIn 0.5s ease;
+            margin-top: 20px; /* Jarak dari header */
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-section.active {
+            display: block;
+        }
+
+        .form-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .form-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-tab {
+            padding: 0.75rem 1.5rem;
+            background: #f8fafc;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .form-tab.active {
+            background: var(--gradient-primary);
+            color: white;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 0.85rem;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .btn {
+            padding: 0.85rem 1.8rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #475569;
+        }
+
+        .confirmation {
+            display: none;
+            padding: 2rem;
+            background: var(--gradient-success);
+            border-radius: 1rem;
+            margin-top: 1.5rem;
+            text-align: center;
+            color: white;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .confirmation.active {
+            display: block;
+        }
+
+        .confirmation-icon {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            animation: bounce 1s infinite alternate;
+        }
+
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-10px); }
+        }
+
+        .requests-list {
+            margin-top: 2rem;
+            border-top: 2px solid var(--border);
+            padding-top: 1.5rem;
+            display: none;
+        }
+
+        .requests-list.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .requests-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .requests-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .request-item {
+            background: #f8fafc;
+            border-radius: 0.75rem;
+            padding: 1.2rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.3s;
+            animation: slideInItem 0.4s ease;
+        }
+
+        @keyframes slideInItem {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .request-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .request-info {
+            flex: 1;
+        }
+
+        .request-title {
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+            color: var(--dark);
+        }
+
+        .request-details {
+            color: var(--secondary);
+            font-size: 0.9rem;
+        }
+
+        .request-status {
+            padding: 0.4rem 0.8rem;
+            border-radius: 2rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-pending {
+            background-color: #fef3c7;
+            color: #d97706;
+        }
+
+        .status-approved {
+            background-color: #d1fae5;
+            color: #059669;
+        }
+
+        .status-rejected {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: var(--secondary);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--gray);
+        }
+
+        footer {
+            background-color: var(--dark);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            margin-top: 40px; /* Tambahan jarak dari konten */
+        }
+
+        .footer-content {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: var(--gray);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            /* Navigasi di header dihapus, jadi bagian ini tidak lagi relevan untuk header */
+            /* nav ul {
+                display: none;
+                position: absolute;
+                top: var(--header-height);
+                left: 0;
+                right: 0;
+                background-color: white;
+                flex-direction: column;
+                padding: 1rem;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            }
+            
+            nav ul.show {
+                display: flex;
+            }
+            
+            nav a {
+                color: var(--dark);
+                padding: 12px 15px;
+            }
+            
+            nav a:hover, nav a.active {
+                background-color: #f1f5f9;
+                color: var(--primary);
+            } */
+            
+            .hamburger {
+                display: none; /* Hamburger juga tidak diperlukan jika tidak ada nav menu */
+            }
+            
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .request-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            
+            .request-status {
+                align-self: flex-start;
+            }
+            
+            .logo-text {
+                display: none;
+            }
+        }
+
+        /* Animations */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease;
+        }
+
+        .slide-in-left {
+            animation: slideInLeft 0.6s ease;
+        }
+
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Tambahan untuk tombol kecil di approved-by */
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.3);
+        }
+
+        /* Login Page Styling */
+        .login-container {
+            display: none; /* Hidden by default */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .login-container.active {
+            display: flex;
+        }
+
+        .login-card {
+            background-color: white;
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .login-card .logo {
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            color: var(--primary); /* Ubah warna logo di login card */
+        }
+
+        .login-card .logo-icon {
+            background: var(--gradient-primary);
+        }
+
+        .login-card h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 1.5rem;
+        }
+
+        .login-card .form-group {
+            margin-bottom: 1rem;
+            text-align: left;
+        }
+
+        .login-card .btn {
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .login-card .btn-secondary {
+            background-color: var(--gray);
+        }
+
+        .login-card .btn-secondary:hover {
+            background-color: #475569;
+        }
+
+        .error-message {
+            color: var(--danger);
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        /* Hide main content and header when login page is active */
+        body.login-active header,
+        body.login-active main,
+        body.login-active footer {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Page -->
+    <div id="login-page" class="login-container active">
+        <div class="login-card">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-building"></i>
+                </div>
+                <div class="logo-text">
+                    <span class="logo-main">GA System</span>
+                    <span class="logo-sub">General Affair</span>
+                </div>
+            </div>
+            <h2>Login ke Aplikasi</h2>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="login-email">Email</label>
+                    <input type="email" id="login-email" placeholder="Masukkan email Anda" required>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" placeholder="Masukkan password Anda" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Login</button>
+                <button type="button" id="guest-login-btn" class="btn btn-secondary">Masuk Sebagai Tamu</button>
+                <p class="error-message" id="login-error"></p>
+            </form>
+        </div>
+    </div>
+
+    <header>
+        <div class="container header-content">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-building"></i>
+                </div>
+                <div class="logo-text">
+                    <span class="logo-main">GA System</span>
+                    <span class="logo-sub">General Affair</span>
+                </div>
+            </div>
+            <button id="logout-btn" class="btn btn-secondary" style="display: none;"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            <!-- Navigasi di header dihapus karena sudah ada di dashboard -->
+            <!-- <nav>
+                <ul id="navMenu">
+                    <li><a href="#" class="nav-link active" data-target="dashboard"><i class="fas fa-home"></i> Beranda</a></li>
+                    <li><a href="#" class="nav-link" data-target="form-atk"><i class="fas fa-pencil-alt"></i> Form ATK</a></li>
+                    <li><a href="#" class="nav-link" data-target="form-idcard"><i class="fas fa-address-card"></i> Form ID Card</a></li>
+                    <li><a href="#" class="nav-link" data-target="form-konsumsi"><i class="fas fa-utensils"></i> Form Konsumsi</a></li>
+                    <li><a href="#" class="nav-link" data-target="form-laptop"><i class="fas fa-laptop"></i> Form Laptop</a></li>
+                    <li><a href="#" class="nav-link" data-target="form-kartu-nama"><i class="fas fa-address-book"></i> Form Kartu Nama</a></li>
+                    <li><a href="#" class="nav-link" data-target="form-booking"><i class="fas fa-calendar-alt"></i> Booking Ruang</a></li>
+                </ul>
+                <div class="hamburger" id="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </nav> -->
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="dashboard active">
+            <div class="card" data-target="form-atk">
+                <div class="card-icon"><i class="fas fa-pencil-alt"></i></div>
+                <h3 class="card-title">Form Request ATK</h3>
+                <p class="card-desc">Ajukan permintaan alat tulis kantor untuk kebutuhan pekerjaan</p>
+            </div>
+            
+            <div class="card" data-target="form-idcard">
+                <div class="card-icon"><i class="fas fa-address-card"></i></div>
+                <h3 class="card-title">Form Request ID Card</h3>
+                <p class="card-desc">Ajukan pembuatan atau penggantian kartu identitas karyawan</p>
+            </div>
+            
+            <div class="card" data-target="form-konsumsi">
+                <div class="card-icon"><i class="fas fa-utensils"></i></div>
+                <h3 class="card-title">Form Request Konsumsi</h3>
+                <p class="card-desc">Ajukan kebutuhan konsumsi untuk meeting atau acara perusahaan</p>
+            </div>
+            
+            <div class="card" data-target="form-laptop">
+                <div class="card-icon"><i class="fas fa-laptop"></i></div>
+                <h3 class="card-title">Form Request Laptop</h3>
+                <p class="card-desc">Ajukan permintaan atau perbaikan perangkat laptop</p>
+            </div>
+            
+            <div class="card" data-target="form-kartu-nama">
+                <div class="card-icon"><i class="fas fa-address-book"></i></div>
+                <h3 class="card-title">Form Request Kartu Nama</h3>
+                <p class="card-desc">Ajukan pembuatan atau permintaan kartu nama perusahaan</p>
+            </div>
+            
+            <div class="card" data-target="form-booking">
+                <div class="card-icon"><i class="fas fa-calendar-alt"></i></div>
+                <h3 class="card-title">Booking Ruang Meeting</h3>
+                <p class="card-desc">Reservasi ruang meeting untuk keperluan rapat atau presentasi</p>
+            </div>
+        </section>
+
+        <!-- Form Request ATK -->
+        <section id="form-atk" class="form-section">
+            <div class="form-header">
+                <h2 class="form-title"><i class="fas fa-pencil-alt"></i> Form Request Alat Tulis Kantor (ATK)</h2>
+            </div>
+            
+            <div class="form-tabs">
+                <div class="form-tab active" data-tab="form">Form Request</div>
+                <div class="form-tab" data-tab="requests">Daftar Request</div>
+            </div>
+            
+            <div class="form-content">
+                <form id="atkForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="atk-nama">Nama Pemohon</label>
+                            <input type="text" id="atk-nama" name="nama" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="atk-department">Department</label>
+                            <input type="text" id="atk-department" name="department" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="atk-tanggal">Tanggal Permintaan</label>
+                            <input type="date" id="atk-tanggal" name="tanggal" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="atk-jenis">Jenis ATK</label>
+                            <select id="atk-jenis" name="jenis" required>
+                                <option value="">Pilih Jenis ATK</option>
+                                <option value="Kertas">Kertas</option>
+                                <option value="Pena/Pensil">Pena/Pensil</option>
+                                <option value="Binder/Map">Binder/Map</option>
+                                <option value="Stationery Lainnya">Stationery Lainnya</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="atk-detail">Detail Permintaan</label>
+                        <textarea id="atk-detail" name="detail" placeholder="Jelaskan detail ATK yang diperlukan, termasuk jumlah dan spesifikasi" required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="atk-alasan">Alasan Kebutuhan</label>
+                        <textarea id="atk-alasan" name="alasan" placeholder="Jelaskan alasan dan urgensi kebutuhan ATK ini" required></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Ajukan Permintaan</button>
+                    <button type="button" class="btn btn-secondary back-button"><i class="fas fa-arrow-left"></i> Kembali ke Beranda</button>
+                </form>
+                
+                <div id="atk-confirmation" class="confirmation">
+                    <div class="confirmation-icon"><i class="fas fa-check-circle"></i></div>
+                    <h3>Permintaan ATK Berhasil Diajukan!</h3>
+                    <p>Terima kasih telah mengajukan permintaan ATK. Tim General Affair akan segera memproses permintaan Anda.</p>
+                </div>
+                
+                <div id="atk-requests" class="requests-list">
+                    <div class="requests-header">
+                        <h3 class="requests-title">Daftar Request ATK</h3>
+                        <button class="btn btn-primary" id="refresh-atk"><i class="fas fa-sync-alt"></i> Refresh</button>
+                    </div>
+                    
+                    <div id="atk-requests-list">
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <p>Belum ada request ATK</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Form Request ID Card -->
+        <section id="form-idcard" class="form-section">
+            <div class="form-header">
+                <h2 class="form-title"><i class="fas fa-address-card"></i> Form Request ID Card</h2>
+            </div>
+            
+            <div class="form-tabs">
+                <div class="form-tab active" data-tab="form">Form Request</div>
+                <div class="form-tab" data-tab="requests">Daftar Request</div>
+            </div>
+            
+            <div class="form-content">
+                <form id="idcardForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="idcard-nama">Nama Lengkap</label>
+                            <input type="text" id="idcard-nama" name="nama" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="idcard-nik">NIK</label>
+                            <input type="text" id="idcard-nik" name="nik" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="idcard-department">Department</label>
+                            <input type="text" id="idcard-department" name="department" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="idcard-posisi">Posisi</label>
+                            <input type="text" id="idcard-posisi" name="posisi" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="idcard-tanggal-bergabung">Tanggal Bergabung</label>
+                            <input type="date" id="idcard-tanggal-bergabung" name="tanggal-bergabung" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="idcard-jenis-request">Jenis Request</label>
+                            <select id="idcard-jenis-request" name="jenis-request" required>
+                                <option value="">Pilih Jenis Request</option>
+                                <option value="Baru">Baru</option>
+                                <option value="Penggantian (Hilang/Rusak)">Penggantian (Hilang/Rusak)</option>
+                                <option value="Perubahan Data">Perubahan Data</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="idcard-keterangan">Keterangan Tambahan</label>
+                        <textarea id="idcard-keterangan" name="keterangan" placeholder="Jelaskan alasan penggantian atau perubahan data jika ada"></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Ajukan Permintaan</button>
+                    <button type="button" class="btn btn-secondary back-button"><i class="fas fa-arrow-left"></i> Kembali ke Beranda</button>
+                </form>
+                
+                <div id="idcard-confirmation" class="confirmation">
+                    <div class="confirmation-icon"><i class="fas fa-check-circle"></i></div>
+                    <h3>Permintaan ID Card Berhasil Diajukan!</h3>
+                    <p>Tim General Affair akan segera memproses permintaan ID Card Anda.</p>
+                </div>
+                
+                <div id="idcard-requests" class="requests-list">
+                    <div class="requests-header">
+                        <h3 class="requests-title">Daftar Request ID Card</h3>
+                        <button class="btn btn-primary" id="refresh-idcard"><i class="fas fa-sync-alt"></i> Refresh</button>
+                    </div>
+                    
+                    <div id="idcard-requests-list">
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <p>Belum ada request ID Card</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Form Request Konsumsi -->
+        <section id="form-konsumsi" class="form-section">
+            <div class="form-header">
+                <h2 class="form-title"><i class="fas fa-utensils"></i> Form Request Konsumsi</h2>
+            </div>
+            
+            <div class="form-tabs">
+                <div class="form-tab active" data-tab="form">Form Request</div>
+                <div class="form-tab" data-tab="requests">Daftar Request</div>
+            </div>
+            
+            <div class="form-content">
+                <form id="konsumsiForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="konsumsi-nama">Nama Pemohon</label>
+                            <input type="text" id="konsumsi-nama" name="nama" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="konsumsi-department">Department</label>
+                            <input type="text" id="konsumsi-department" name="department" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="konsumsi-tanggal">Tanggal Acara</label>
+                            <input type="date" id="konsumsi-tanggal" name="tanggal" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="konsumsi-waktu">Waktu Acara</label>
+                            <input type="time" id="konsumsi-waktu" name="waktu" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="konsumsi-acara">Nama Acara/Kegiatan</label>
+                            <input type="text" id="konsumsi-acara" name="acara" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="konsumsi-jumlah-peserta">Jumlah Peserta</label>
+                            <input type="number" id="konsumsi-jumlah-peserta" name="jumlah-peserta" min="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="konsumsi-jenis">Jenis Konsumsi</label>
+                            <select id="konsumsi-jenis" name="jenis" required>
+                                <option value="">Pilih Jenis Konsumsi</option>
+                                <option value="Snack Box">Snack Box</option>
+                                <option value="Makan Siang">Makan Siang</option>
+                                <option value="Makan Malam">Makan Malam</option>
+                                <option value="Kopi/Teh">Kopi/Teh</option>
+                                <option value="Lainnya">Lainnya</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="konsumsi-budget">Estimasi Budget per Orang (Opsional)</label>
+                            <input type="number" id="konsumsi-budget" name="budget" min="0">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="konsumsi-detail">Detail Konsumsi & Keterangan</label>
+                        <textarea id="konsumsi-detail" name="detail" placeholder="Jelaskan detail menu, preferensi, atau alergi jika ada"></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Ajukan Permintaan</button>
+                    <button type="button" class="btn btn-secondary back-button"><i class="fas fa-arrow-left"></i> Kembali ke Beranda</button>
+                </form>
+                
+                <div id="konsumsi-confirmation" class="confirmation">
+                    <div class="confirmation-icon"><i class="fas fa-check-circle"></i></div>
+                    <h3>Permintaan Konsumsi Berhasil Diajukan!</h3>
+                    <p>Tim General Affair akan segera menyiapkan konsumsi untuk acara Anda.</p>
+                </div>
+                
+                <div id="konsumsi-requests" class="requests-list">
+                    <div class="requests-header">
+                        <h3 class="requests-title">Daftar Request Konsumsi</h3>
+                        <button class="btn btn-primary" id="refresh-konsumsi"><i class="fas fa-sync-alt"></i> Refresh</button>
+                    </div>
+                    
+                    <div id="konsumsi-requests-list">
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <p>Belum ada request Konsumsi</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Form Request Laptop -->
+        <section id="form-laptop" class="form-section">
+            <div class="form-header">
+                <h2 class="form-title"><i class="fas fa-laptop"></i> Form Request Laptop</h2>
+            </div>
+            
+            <div class="form-tabs">
+                <div class="form-tab active" data-tab="form">Form Request</div>
+                <div class="form-tab" data-tab="requests">Daftar Request</div>
+                <div class="form-tab" data-tab="approved-by">Approved By</div> <!-- Tab baru -->
+            </div>
+            
+            <div class="form-content">
+                <form id="laptopForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="laptop-nama">Nama Pemohon</label>
+                            <input type="text" id="laptop-nama" name="nama" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="laptop-department">Department</label>
+                            <input type="text" id="laptop-department" name="department" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="laptop-tanggal">Tanggal Permintaan</label>
+                            <input type="date" id="laptop-tanggal" name="tanggal" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="laptop-jenis-request">Jenis Request</label>
+                            <select id="laptop-jenis-request" name="jenis-request" required>
+                                <option value="">Pilih Jenis Request</option>
+                                <option value="Pengadaan Baru">Pengadaan Baru</option>
+                                <option value="Perbaikan">Perbaikan</option>
+                                <option value="Upgrade">Upgrade</option>
+                                <option value="Penggantian">Penggantian</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="laptop-spesifikasi">Spesifikasi Diinginkan (untuk pengadaan/upgrade)</label>
+                            <input type="text" id="laptop-spesifikasi" name="spesifikasi" placeholder="Contoh: Core i7, RAM 16GB, SSD 512GB">
+                        </div>
+                        <div class="form-group">
+                            <label for="laptop-merk-model">Merk/Model Laptop (untuk perbaikan/penggantian)</label>
+                            <input type="text" id="laptop-merk-model" name="merk-model" placeholder="Contoh: Dell Latitude 7420">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="laptop-masalah-kebutuhan">Deskripsi Masalah / Kebutuhan</label>
+                        <textarea id="laptop-masalah-kebutuhan" name="masalah-kebutuhan" placeholder="Jelaskan masalah yang terjadi atau kebutuhan spesifik Anda" required></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Ajukan Permintaan</button>
+                    <button type="button" class="btn btn-secondary back-button"><i class="fas fa-arrow-left"></i> Kembali ke Beranda</button>
+                </form>
+                
+                <div id="laptop-confirmation" class="confirmation">
+                    <div class="confirmation-icon"><i class="fas fa-check-circle"></i></div>
+                    <h3>Permintaan Laptop Berhasil Diajukan!</h3>
+                    <p>Tim General Affair akan segera menindaklanjuti permintaan laptop Anda.</p>
+                </div>
+                
+                <div id="laptop-requests" class="requests-list">
+                    <div class="requests-header">
+                        <h3 class="requests-title">Daftar Request Laptop</h3>
+                        <button class="btn btn-primary" id="refresh-laptop"><i class="fas fa-sync-alt"></i> Refresh</button>
+                    </div>
+                    
+                    <div id="laptop-requests-list">
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <p>Belum ada request Laptop</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="laptop-approved-by" class="requests-list">
+                    <div class="requests-header">
+                        <h3 class="requests-title">Persetujuan Request Laptop</h3>
+                        <button class="btn btn-primary" id="refresh-laptop-approved"><i class="fas fa-sync-alt"></i> Refresh</button>
+                    </div>
+                    <div id="laptop-approved-by-list">
+                        <div class="empty-state">
+                            <i class="fas fa-check-double"></i>
+                            <p>Belum ada request laptop untuk disetujui</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Form Request Kartu Nama -->
+        <section id="form-kartu-nama" class="form-section">
+            <div class="form-header">
+                <h2 class="form-title"><i class="fas fa-address-book"></i> Form Request Kartu Nama</h2>
+            </div>
+            
+            <div class="form-tabs">
+                <div class="form-tab active" data-tab="form">Form Request</div>
+                <div class="form-tab" data-tab="requests">Daftar Request</div>
+            </div>
+            
+            <div class="form-content">
+                <form id="kartunamaForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="kartunama-nama">Nama Lengkap</label>
+                            <input type="text" id="kartunama-nama" name="nama" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="kartunama-department">Department</label>
+                            <input type="text" id="kartunama-department" name="department" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="kartunama-posisi">Posisi</label>
+                            <input type="text" id="kartunama-posisi" name="posisi" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="kartunama-email">Email Kantor</label>
+                            <input type="email" id="kartunama-email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="kartunama-telepon">Nomor Telepon Kantor</label>
+                            <input type="tel" id="kartunama-telepon" name="telepon" placeholder="Contoh: +6281234567890">
+                        </div>
+                        <div class="form-group">
+                            <label for="kartunama-jumlah">Jumlah Kartu Nama</label>
+                            <input type="number" id="kartunama-jumlah" name="jumlah" min="1" value="100" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="kartunama-keterangan">Keterangan Tambahan (misal: desain khusus, informasi tambahan)</label>
+                        <textarea id="kartunama-keterangan" name="keterangan" placeholder=""></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Ajukan Permintaan</button>
+                    <button type="button" class="btn btn-secondary back-button"><i class="fas fa-arrow-left"></i> Kembali ke Beranda</button>
+                </form>
+                
+                <div id="kartunama-confirmation" class="confirmation">
+                    <div class="confirmation-icon"><i class="fas fa-check-circle"></i></div>
+                    <h3>Permintaan Kartu Nama Berhasil Diajukan!</h3>
+                    <p>Tim General Affair akan segera memproses pencetakan kartu nama Anda.</p>
+                </div>
+                
+                <div id="kartunama-requests" class="requests-list">
+                    <div class="requests-header">
+                        <h3 class="requests-title">Daftar Request Kartu Nama</h3>
+                        <button class="btn btn-primary" id="refresh-kartunama"><i class="fas fa-sync-alt"></i> Refresh</button>
+                    </div>
+                    
+                    <div id="kartunama-requests-list">
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <p>Belum ada request Kartu Nama</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Form Booking Ruang Meeting -->
+        <section id="form-booking" class="form-section">
+            <div class="form-header">
+                <h2 class="form-title"><i class="fas fa-calendar-alt"></i> Form Booking Ruang Meeting</h2>
+            </div>
+            
+            <div class="form-tabs">
+                <div class="form-tab active" data-tab="form">Form Booking</div>
+                <div class="form-tab" data-tab="requests">Daftar Booking</div>
+            </div>
+            
+            <div class="form-content">
+                <form id="bookingForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="booking-nama">Nama Pemohon</label>
+                            <input type="text" id="booking-nama" name="nama" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="booking-department">Department</label>
+                            <input type="text" id="booking-department" name="department" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="booking-tanggal">Tanggal Booking</label>
+                            <input type="date" id="booking-tanggal" name="tanggal" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="booking-ruang">Pilih Ruang Meeting</label>
+                            <select id="booking-ruang" name="ruang" required>
+                                <option value="">Pilih Ruang</option>
+                                <option value="Ruang Meeting A">Ruang Meeting A (Kapasitas 10)</option>
+                                <option value="Ruang Meeting B">Ruang Meeting B (Kapasitas 20)</option>
+                                <option value="Auditorium">Auditorium (Kapasitas 50+)</option>
+                                <option value="Ruang Diskusi Kecil">Ruang Diskusi Kecil (Kapasitas 4)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="booking-waktu-mulai">Waktu Mulai</label>
+                            <input type="time" id="booking-waktu-mulai" name="waktu-mulai" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="booking-waktu-selesai">Waktu Selesai</label>
+                            <input type="time" id="booking-waktu-selesai" name="waktu-selesai" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="booking-acara">Nama Acara/Rapat</label>
+                            <input type="text" id="booking-acara" name="acara" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="booking-jumlah-peserta">Estimasi Jumlah Peserta</label>
+                            <input type="number" id="booking-jumlah-peserta" name="jumlah-peserta" min="1" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="booking-fasilitas">Fasilitas Tambahan yang Dibutuhkan</label>
+                        <textarea id="booking-fasilitas" name="fasilitas" placeholder="Contoh: Proyektor, Whiteboard, Sound System, Video Conference"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="booking-keterangan">Keterangan Lainnya</label>
+                        <textarea id="booking-keterangan" name="keterangan" placeholder=""></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Ajukan Booking</button>
+                    <button type="button" class="btn btn-secondary back-button"><i class="fas fa-arrow-left"></i> Kembali ke Beranda</button>
+                </form>
+                
+                <div id="booking-confirmation" class="confirmation">
+                    <div class="confirmation-icon"><i class="fas fa-check-circle"></i></div>
+                    <h3>Booking Ruang Meeting Berhasil Diajukan!</h3>
+                    <p>Permintaan booking ruang Anda akan segera diverifikasi oleh tim General Affair.</p>
+                </div>
+                
+                <div id="booking-requests" class="requests-list">
+                    <div class="requests-header">
+                        <h3 class="requests-title">Daftar Booking Ruang Meeting</h3>
+                        <button class="btn btn-primary" id="refresh-booking"><i class="fas fa-sync-alt"></i> Refresh</button>
+                    </div>
+                    
+                    <div id="booking-requests-list">
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <p>Belum ada booking ruang meeting</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        <div class="container footer-content">
+            <div class="logo">
+                <i class="fas fa-building"></i>
+                <span>General Affair System</span>
+            </div>
+            <div class="footer-links">
+                <a href="#">Kebijakan Privasi</a>
+                <a href="#">Syarat & Ketentuan</a>
+                <a href="#">Bantuan</a>
+                <a href="#">Kontak</a>
+            </div>
+            <p>&copy; 2023 General Affair System - Aplikasi Manajemen Kebutuhan Perusahaan</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Firebase Configuration
+            const firebaseConfig = {
+                apiKey: "AIzaSyDihA-hrOGbYojWc9WLwYFi207XoOtfjuU",
+                authDomain: "generalaffair-d18ce.firebaseapp.com",
+                projectId: "generalaffair-d18ce",
+                storageBucket: "generalaffair-d18ce.firebasestorage.app",
+                messagingSenderId: "726107738231",
+                appId: "1:726107738231:web:8385b1fa08994a2a06f672"
+            };
+
+            // Initialize Firebase
+            firebase.initializeApp(firebaseConfig);
+            const auth = firebase.auth();
+            // const db = firebase.firestore(); // Uncomment if using Firestore
+
+            // Navigation handling
+            // const navLinks = document.querySelectorAll('.nav-link'); // Tidak lagi digunakan
+            const cards = document.querySelectorAll('.card');
+            const sections = document.querySelectorAll('section');
+            const backButtons = document.querySelectorAll('.back-button');
+            // const hamburger = document.getElementById('hamburger'); // Tidak lagi digunakan
+            // const navMenu = document.getElementById('navMenu'); // Tidak lagi digunakan
+            
+            // Form elements
+            const forms = {
+                atk: document.getElementById('atkForm'),
+                idcard: document.getElementById('idcardForm'),
+                konsumsi: document.getElementById('konsumsiForm'),
+                laptop: document.getElementById('laptopForm'),
+                kartunama: document.getElementById('kartunamaForm'),
+                booking: document.getElementById('bookingForm')
+            };
+            
+            // Confirmation messages
+            const confirmations = {
+                atk: document.getElementById('atk-confirmation'),
+                idcard: document.getElementById('idcard-confirmation'),
+                konsumsi: document.getElementById('konsumsi-confirmation'),
+                laptop: document.getElementById('laptop-confirmation'),
+                kartunama: document.getElementById('kartunama-confirmation'),
+                booking: document.getElementById('booking-confirmation')
+            };
+            
+            // Requests lists
+            const requestsLists = {
+                atk: document.getElementById('atk-requests'),
+                idcard: document.getElementById('idcard-requests'),
+                konsumsi: document.getElementById('konsumsi-requests'),
+                laptop: document.getElementById('laptop-requests'),
+                kartunama: document.getElementById('kartunama-requests'),
+                booking: document.getElementById('booking-requests'),
+                'laptop-approved-by': document.getElementById('laptop-approved-by') // Tambahkan ini
+            };
+
+            // Get all form tabs
+            const allFormTabs = document.querySelectorAll('.form-section .form-tab');
+
+            // Login elements
+            const loginPage = document.getElementById('login-page');
+            const loginForm = document.getElementById('login-form');
+            const loginEmail = document.getElementById('login-email');
+            const loginPassword = document.getElementById('login-password');
+            const guestLoginBtn = document.getElementById('guest-login-btn');
+            const loginError = document.getElementById('login-error');
+            const logoutBtn = document.getElementById('logout-btn');
+            
+            // Function to show/hide login page and main content
+            function toggleLoginState(isLoggedIn) {
+                if (isLoggedIn) {
+                    loginPage.classList.remove('active');
+                    document.body.classList.remove('login-active');
+                    logoutBtn.style.display = 'inline-flex';
+                    showSection('dashboard'); // Show dashboard after login
+                } else {
+                    loginPage.classList.add('active');
+                    document.body.classList.add('login-active');
+                    logoutBtn.style.display = 'none';
+                }
+            }
+
+            // Check authentication state
+            auth.onAuthStateChanged(user => {
+                if (user) {
+                    console.log("User logged in:", user.email || "Guest");
+                    toggleLoginState(true);
+                } else {
+                    console.log("User logged out");
+                    toggleLoginState(false);
+                }
+            });
+
+            // Handle email/password login
+            if (loginForm) {
+                loginForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const email = loginEmail.value;
+                    const password = loginPassword.value;
+
+                    const allowedLoginEmails = [
+                        "crenata@genetek.co.id",
+                        "rossiana.yl@genetek.co.id",
+                        "galih@genetek.co.id",
+                        "maida@genetek.co.id"
+                    ];
+
+                    if (!allowedLoginEmails.includes(email)) {
+                        loginError.textContent = "Email tidak terdaftar sebagai approver yang diizinkan.";
+                        loginError.style.display = 'block';
+                        return; // Stop login attempt
+                    }
+
+                    auth.signInWithEmailAndPassword(email, password)
+                        .then((userCredential) => {
+                            // Signed in
+                            const user = userCredential.user;
+                            console.log("Login successful:", user.email);
+                            loginError.style.display = 'none';
+                        })
+                        .catch((error) => {
+                            const errorCode = error.code;
+                            const errorMessage = error.message;
+                            console.error("Login failed:", errorCode, errorMessage);
+                            loginError.textContent = "Login gagal: " + errorMessage;
+                            loginError.style.display = 'block';
+                        });
+                });
+            }
+
+            // Handle guest login
+            if (guestLoginBtn) {
+                guestLoginBtn.addEventListener('click', function() {
+                    auth.signInAnonymously()
+                        .then(() => {
+                            console.log("Signed in as guest");
+                            loginError.style.display = 'none';
+                        })
+                        .catch((error) => {
+                            const errorCode = error.code;
+                            const errorMessage = error.message;
+                            console.error("Guest login failed:", errorCode, errorMessage);
+                            loginError.textContent = "Gagal masuk sebagai tamu: " + errorMessage;
+                            loginError.style.display = 'block';
+                        });
+                });
+            }
+
+            // Handle logout
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function() {
+                    auth.signOut().then(() => {
+                        console.log("User signed out");
+                        // UI will be updated by onAuthStateChanged listener
+                    }).catch((error) => {
+                        console.error("Logout failed:", error);
+                    });
+                });
+            }
+
+            // Optional: Function to create a new user (for testing purposes)
+            // You can call this from the browser console: createUser('test@example.com', 'password123');
+            window.createUser = function(email, password) {
+                auth.createUserWithEmailAndPassword(email, password)
+                    .then((userCredential) => {
+                        console.log("User created:", userCredential.user.email);
+                    })
+                    .catch((error) => {
+                        console.error("Error creating user:", error.message);
+                    });
+            };
+            
+            // Show section based on target
+            function showSection(targetId) {
+                sections.forEach(section => {
+                    section.classList.remove('active');
+                });
+                
+                document.getElementById(targetId).classList.add('active');
+                
+                // Update active nav link (tidak lagi relevan karena nav menu dihapus)
+                // navLinks.forEach(link => {
+                //     link.classList.remove('active');
+                //     if (link.dataset.target === targetId) {
+                //         link.classList.add('active');
+                //     }
+                // });
+                
+                // Close mobile menu if open (tidak lagi relevan karena nav menu dihapus)
+                // navMenu.classList.remove('show');
+                // hamburger.classList.remove('active');
+                
+                // Show form tab by default when navigating to a form
+                if (targetId !== 'dashboard') {
+                    showFormTab(targetId.replace('form-', ''), 'form');
+                }
+            }
+            
+            // Show the appropriate tab (form or requests)
+            function showFormTab(formType, tabType) {
+                const currentFormSection = document.getElementById(`form-${formType}`);
+                if (!currentFormSection) return;
+
+                const formElement = currentFormSection.querySelector('form');
+                const confirmationElement = confirmations[formType];
+                const requestsElement = requestsLists[formType];
+                const approvedByElement = document.getElementById(`${formType}-approved-by`); // Dapatkan elemen approved-by
+                
+                // Update active tab
+                currentFormSection.querySelectorAll('.form-tab').forEach(tab => {
+                    tab.classList.remove('active');
+                    if (tab.dataset.tab === tabType) {
+                        tab.classList.add('active');
+                    }
+                });
+                
+                // Sembunyikan semua konten tab terlebih dahulu
+                if (formElement) formElement.style.display = 'none';
+                if (confirmationElement) confirmationElement.style.display = 'none';
+                if (requestsElement) requestsElement.style.display = 'none';
+                if (approvedByElement) approvedByElement.style.display = 'none'; // Sembunyikan juga approved-by
+
+                if (tabType === 'form') {
+                    if (formElement) formElement.style.display = 'block';
+                } else if (tabType === 'requests') {
+                    if (requestsElement) {
+                        requestsElement.style.display = 'block';
+                        loadRequests(formType);
+                    }
+                } else if (tabType === 'approved-by' && formType === 'laptop') { // Hanya untuk laptop
+                    if (approvedByElement) {
+                        approvedByElement.style.display = 'block';
+                        loadApprovedByRequests(formType); // Fungsi baru untuk memuat daftar persetujuan
+                    }
+                }
+            }
+            
+            // Load requests for a specific form type
+            function loadRequests(formType) {
+                const requestsListContainer = document.getElementById(`${formType}-requests-list`);
+                const requests = JSON.parse(localStorage.getItem(`requests_${formType}`) || '[]');
+                
+                if (!requestsListContainer) return;
+
+                if (requests.length === 0) {
+                    requestsListContainer.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <p>Belum ada request ${getFormTitle(formType)}</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                requestsListContainer.innerHTML = '';
+                requests.forEach((request, index) => {
+                    const statusClass = getStatusClass(request.status);
+                    const statusText = getStatusText(request.status);
+                    
+                    const requestElement = document.createElement('div');
+                    requestElement.className = 'request-item';
+                    requestElement.innerHTML = `
+                        <div class="request-info">
+                            <div class="request-title">${request.judul || getRequestTitle(formType, request)}</div>
+                            <div class="request-details">
+                                <div>Oleh: ${request.nama} • ${request.department}</div>
+                                <div>Tanggal: ${request.tanggal} ${request.waktu ? '• ' + request.waktu : ''} ${formType === 'booking' && request.ruang ? '• Ruang: ' + request.ruang : ''}</div>
+                                ${request.approvedBy && request.approvedBy.length > 0 ? `<div>Disetujui oleh: ${request.approvedBy.join(', ')}</div>` : ''}
+                            </div>
+                        </div>
+                        <div class="request-status ${statusClass}">${statusText}</div>
+                    `;
+                    
+                    // Add animation delay based on index
+                    requestElement.style.animationDelay = `${index * 0.1}s`;
+                    requestsListContainer.appendChild(requestElement);
+                });
+            }
+
+            // Fungsi baru untuk memuat daftar request yang perlu disetujui
+            function loadApprovedByRequests(formType) {
+                const approvedByListContainer = document.getElementById(`${formType}-approved-by-list`);
+                const requests = JSON.parse(localStorage.getItem(`requests_${formType}`) || '[]');
+
+                if (!approvedByListContainer) return;
+
+                const pendingRequests = requests.filter(req => req.status === 'pending');
+
+                if (pendingRequests.length === 0) {
+                    approvedByListContainer.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-check-double"></i>
+                            <p>Tidak ada request ${getFormTitle(formType)} yang menunggu persetujuan.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                approvedByListContainer.innerHTML = '';
+                const approvers = ['Renata', 'Rossiana', 'Galih', 'Maida'];
+                const currentUserEmail = auth.currentUser ? auth.currentUser.email : null;
+
+                // Mapping nama ke email
+                const approverEmailMap = {
+                    'Renata': 'crenata@genetek.co.id',
+                    'Rossiana': 'rossiana.yl@genetek.co.id',
+                    'Galih': 'galih@genetek.co.id',
+                    'Maida': 'maida@genetek.co.id'
+                };
+
+                pendingRequests.forEach((request, index) => {
+                    const requestElement = document.createElement('div');
+                    requestElement.className = 'request-item';
+                    requestElement.style.flexDirection = 'column'; // Ubah layout untuk ceklis
+                    requestElement.style.alignItems = 'flex-start';
+                    requestElement.style.gap = '10px';
+                    requestElement.innerHTML = `
+                        <div class="request-info" style="width: 100%;">
+                            <div class="request-title">${request.judul || getRequestTitle(formType, request)}</div>
+                            <div class="request-details">
+                                <div>Oleh: ${request.nama} • ${request.department}</div>
+                                <div>Tanggal: ${request.tanggal} ${request.waktu ? '• ' + request.waktu : ''}</div>
+                                <div>Jenis Request: ${request['jenis-request']}</div>
+                                ${request.spesifikasi ? `<div>Spesifikasi: ${request.spesifikasi}</div>` : ''}
+                                ${request['merk-model'] ? `<div>Merk/Model: ${request['merk-model']}</div>` : ''}
+                                <div>Deskripsi: ${request['masalah-kebutuhan']}</div>
+                            </div>
+                        </div>
+                        <div class="approved-by-options" style="width: 100%; border-top: 1px solid var(--border); padding-top: 10px; margin-top: 10px;">
+                            <label style="font-weight: 600; margin-bottom: 5px;">Disetujui Oleh:</label>
+                            <div class="approver-checkboxes" style="display: flex; flex-wrap: wrap; gap: 15px;">
+                                ${approvers.map(approver => {
+                                    const approverEmail = approverEmailMap[approver];
+                                    const isCurrentUserApprover = (currentUserEmail === approverEmail);
+                                    const isChecked = request.approvedBy && request.approvedBy.includes(approver);
+                                    const isDisabled = !isCurrentUserApprover; // Nonaktifkan jika bukan pengguna yang login
+
+                                    return `
+                                        <div style="display: flex; align-items: center; gap: 5px;">
+                                            <input type="checkbox" id="approve-${request.id}-${approver}"
+                                                data-request-id="${request.id}"
+                                                data-approver="${approver}"
+                                                ${isChecked ? 'checked' : ''}
+                                                ${isDisabled ? 'disabled' : ''}>
+                                            <label for="approve-${request.id}-${approver}" style="margin-bottom: 0;">${approver}</label>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                            <div style="margin-top: 15px; display: flex; gap: 10px;">
+                                <!-- Tombol Setujui/Tolak hanya aktif jika pengguna adalah salah satu approver yang diizinkan -->
+                                <button class="btn btn-primary btn-sm approve-btn" data-request-id="${request.id}" data-status="approved" ${currentUserEmail && Object.values(approverEmailMap).includes(currentUserEmail) ? '' : 'disabled'}><i class="fas fa-check"></i> Setujui</button>
+                                <button class="btn btn-danger btn-sm reject-btn" data-request-id="${request.id}" data-status="rejected" ${currentUserEmail && Object.values(approverEmailMap).includes(currentUserEmail) ? '' : 'disabled'}><i class="fas fa-times"></i> Tolak</button>
+                            </div>
+                        </div>
+                    `;
+
+                    // Add animation delay based on index
+                    requestElement.style.animationDelay = `${index * 0.1}s`;
+                    approvedByListContainer.appendChild(requestElement);
+                });
+
+                // Event listener untuk checkbox
+                approvedByListContainer.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                    checkbox.addEventListener('change', function() {
+                        const requestId = parseInt(this.dataset.requestId);
+                        const approverName = this.dataset.approver; // Nama approver dari data-approver
+                        const approverEmail = approverEmailMap[approverName]; // Dapatkan email dari nama
+
+                        // Pastikan hanya pengguna yang login yang dapat mengubah checkbox mereka sendiri
+                        if (auth.currentUser && auth.currentUser.email === approverEmail) {
+                            const currentRequests = JSON.parse(localStorage.getItem(`requests_${formType}`) || '[]');
+                            const requestIndex = currentRequests.findIndex(req => req.id === requestId);
+
+                            if (requestIndex > -1) {
+                                if (!currentRequests[requestIndex].approvedBy) {
+                                    currentRequests[requestIndex].approvedBy = [];
+                                }
+                                if (this.checked) {
+                                    if (!currentRequests[requestIndex].approvedBy.includes(approverName)) {
+                                        currentRequests[requestIndex].approvedBy.push(approverName);
+                                    }
+                                } else {
+                                    currentRequests[requestIndex].approvedBy = currentRequests[requestIndex].approvedBy.filter(a => a !== approverName);
+                                }
+                                localStorage.setItem(`requests_${formType}`, JSON.stringify(currentRequests));
+                                // TODO: Update Firestore here if you're using it for real-time data
+                                // db.collection('requests_laptop').doc(requestId).update({ approvedBy: currentRequests[requestIndex].approvedBy });
+                            }
+                        } else {
+                            // Jika ada upaya untuk mengubah checkbox yang bukan miliknya, kembalikan ke status semula
+                            this.checked = !this.checked;
+                            alert("Anda hanya dapat mengubah status persetujuan Anda sendiri.");
+                        }
+                    });
+                });
+
+                // Event listener untuk tombol Setujui/Tolak
+                approvedByListContainer.querySelectorAll('.approve-btn, .reject-btn').forEach(button => {
+                    button.addEventListener('click', function() {
+                        // Hanya izinkan jika pengguna yang login adalah salah satu approver yang diizinkan
+                        const currentUserEmail = auth.currentUser ? auth.currentUser.email : null;
+                        const isAllowedToApprove = Object.values(approverEmailMap).includes(currentUserEmail);
+
+                        if (isAllowedToApprove) {
+                            const requestId = parseInt(this.dataset.requestId);
+                            const newStatus = this.dataset.status;
+                            updateRequestStatus(formType, requestId, newStatus);
+                            // TODO: Update Firestore here if you're using it for real-time data
+                            // db.collection('requests_laptop').doc(requestId).update({ status: newStatus });
+                        } else {
+                            alert("Anda tidak memiliki izin untuk menyetujui atau menolak request.");
+                        }
+                    });
+                });
+            }
+
+            // Fungsi untuk memperbarui status request
+            function updateRequestStatus(formType, requestId, newStatus) {
+                let currentRequests = JSON.parse(localStorage.getItem(`requests_${formType}`) || '[]');
+                const requestIndex = currentRequests.findIndex(req => req.id === requestId);
+
+                if (requestIndex > -1) {
+                    currentRequests[requestIndex].status = newStatus;
+                    localStorage.setItem(`requests_${formType}`, JSON.stringify(currentRequests));
+                    loadApprovedByRequests(formType); // Muat ulang daftar setelah perubahan
+                    loadRequests(formType); // Muat ulang juga daftar request utama
+                }
+            }
+            
+            // Helper function to get form title
+            function getFormTitle(formType) {
+                const titles = {
+                    atk: 'ATK',
+                    idcard: 'ID Card',
+                    konsumsi: 'Konsumsi',
+                    laptop: 'Laptop',
+                    kartunama: 'Kartu Nama',
+                    booking: 'Booking Ruang'
+                };
+                return titles[formType] || '';
+            }
+            
+            // Helper function to generate request title
+            function getRequestTitle(formType, request) {
+                switch(formType) {
+                    case 'atk': return `Permintaan ${request.jenis}`;
+                    case 'idcard': return `Permintaan ID Card - ${request.nama}`;
+                    case 'konsumsi': return `Konsumsi ${request.acara}`;
+                    case 'laptop': return `Permintaan ${request['jenis-request']} Laptop`;
+                    case 'kartunama': return `Permintaan Kartu Nama - ${request.nama}`;
+                    case 'booking': return `Booking ${request.ruang} - ${request.acara}`;
+                    default: return 'Permintaan';
+                }
+            }
+            
+            // Helper function to get status class
+            function getStatusClass(status) {
+                switch(status) {
+                    case 'approved': return 'status-approved';
+                    case 'rejected': return 'status-rejected';
+                    default: return 'status-pending';
+                }
+            }
+            
+            // Helper function to get status text
+            function getStatusText(status) {
+                switch(status) {
+                    case 'approved': return 'Disetujui';
+                    case 'rejected': return 'Ditolak';
+                    default: return 'Menunggu';
+                }
+            }
+            
+            // Navigation event listeners (hanya untuk cards, nav links di header dihapus)
+            // navLinks.forEach(link => { // Tidak lagi digunakan
+            //     link.addEventListener('click', function(e) {
+            //         e.preventDefault();
+            //         showSection(this.dataset.target);
+            //     });
+            // });
+            
+            // Card event listeners
+            cards.forEach(card => {
+                card.addEventListener('click', function() {
+                    showSection(this.dataset.target);
+                });
+            });
+            
+            // Back button event listeners
+            backButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    showSection('dashboard');
+                });
+            });
+            
+            // Form tab event listeners
+            allFormTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const formId = this.closest('.form-section').id.replace('form-', '');
+                    showFormTab(formId, this.dataset.tab);
+                });
+            });
+            
+            // Hamburger menu toggle (tidak lagi diperlukan)
+            // hamburger.addEventListener('click', function() {
+            //     navMenu.classList.toggle('show');
+            //     this.classList.toggle('active');
+            // });
+            
+            // Form submission handlers
+            Object.keys(forms).forEach(formKey => {
+                if (forms[formKey]) {
+                    forms[formKey].addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        
+                        // Create form data object
+                        const formData = new FormData(this);
+                        const formObject = {
+                            id: Date.now(),
+                            status: 'pending',
+                            tanggal: new Date().toLocaleDateString('id-ID'),
+                            waktu: new Date().toLocaleTimeString('id-ID')
+                        };
+                        
+                        // Add form-specific data
+                        formData.forEach((value, key) => {
+                            formObject[key] = value;
+                        });
+                        
+                        // Add judul for the request
+                        formObject.judul = getRequestTitle(formKey, formObject);
+                        
+                        // Store form data
+                        const existingRequests = JSON.parse(localStorage.getItem(`requests_${formKey}`) || '[]');
+                        existingRequests.unshift(formObject); // Add to the beginning
+                        localStorage.setItem(`requests_${formKey}`, JSON.stringify(existingRequests));
+                        
+                        // Hide form and show confirmation
+                        this.style.display = 'none';
+                        confirmations[formKey].classList.add('active');
+                        
+                        // Reset form fields
+                        this.reset();
+
+                        // Auto hide confirmation after 3 seconds and show requests
+                        setTimeout(() => {
+                            showFormTab(formKey, 'requests');
+                        }, 3000);
+                    });
+                }
+            });
+            
+            // Set minimum date to today for date inputs
+            const today = new Date().toISOString().split('T')[0];
+            document.querySelectorAll('input[type="date"]').forEach(input => {
+                input.min = today;
+            });
+            
+            // Refresh buttons for request lists
+            document.querySelectorAll('[id^="refresh-"]').forEach(button => {
+                button.addEventListener('click', function() {
+                    const formType = this.id.replace('refresh-', '');
+                    if (formType.includes('approved')) { // Handle refresh for approved-by tab
+                        loadApprovedByRequests(formType.replace('-approved', ''));
+                    } else {
+                        loadRequests(formType);
+                    }
+                    
+                    // Add rotation animation
+                    const icon = this.querySelector('i');
+                    if (icon) {
+                        icon.style.transition = 'transform 0.5s';
+                        icon.style.transform = 'rotate(360deg)';
+                        setTimeout(() => {
+                            icon.style.transform = 'rotate(0deg)';
+                        }, 500);
+                    }
+                });
+            });
+            
+            // Add some sample data for demonstration
+            function addSampleData() {
+                const sampleData = {
+                    atk: [
+                        {
+                            id: 1,
+                            status: 'approved',
+                            judul: 'Permintaan Kertas',
+                            nama: 'Ahmad Rizki',
+                            department: 'IT',
+                            tanggal: '15/11/2023',
+                            waktu: '10:30',
+                            jenis: 'Kertas',
+                            detail: '5 rim kertas A4 80gr',
+                            alasan: 'Untuk kebutuhan cetak dokumen bulanan'
+                        },
+                        {
+                            id: 2,
+                            status: 'pending',
+                            judul: 'Permintaan Pena',
+                            nama: 'Sari Dewi',
+                            department: 'HR',
+                            tanggal: '16/11/2023',
+                            waktu: '14:20',
+                            jenis: 'Pena/Pensil',
+                            detail: '2 lusin pena biru dan 1 lusin pena hitam',
+                            alasan: 'Stok pena di department habis'
+                        }
+                    ],
+                    idcard: [
+                        {
+                            id: 3,
+                            status: 'pending',
+                            judul: 'Permintaan ID Card - Budi Santoso',
+                            nama: 'Budi Santoso',
+                            department: 'Marketing',
+                            tanggal: '17/11/2023',
+                            waktu: '09:00',
+                            nik: '123456789',
+                            posisi: 'Manager Marketing',
+                            'tanggal-bergabung': '2022-01-15',
+                            'jenis-request': 'Baru',
+                            keterangan: ''
+                        }
+                    ],
+                    konsumsi: [
+                        {
+                            id: 4,
+                            status: 'approved',
+                            judul: 'Konsumsi Rapat Tim',
+                            nama: 'Citra Lestari',
+                            department: 'Finance',
+                            tanggal: '18/11/2023',
+                            waktu: '13:00',
+                            acara: 'Rapat Tim Finance',
+                            'jumlah-peserta': '12',
+                            jenis: 'Makan Siang',
+                            budget: '35000',
+                            detail: 'Nasi kotak, ayam bakar, sayur, buah'
+                        }
+                    ],
+                    laptop: [
+                        {
+                            id: 5,
+                            status: 'pending',
+                            judul: 'Permintaan Pengadaan Baru Laptop',
+                            nama: 'Dian Permata',
+                            department: 'IT',
+                            tanggal: '19/11/2023',
+                            waktu: '11:00',
+                            'jenis-request': 'Pengadaan Baru',
+                            spesifikasi: 'Core i7, RAM 16GB, SSD 512GB',
+                            'merk-model': '',
+                            'masalah-kebutuhan': 'Untuk karyawan baru di divisi IT',
+                            approvedBy: ['Renata'] // Contoh: Renata sudah menyetujui
+                        },
+                        {
+                            id: 8,
+                            status: 'pending',
+                            judul: 'Permintaan Perbaikan Laptop',
+                            nama: 'Joko Susilo',
+                            department: 'HR',
+                            tanggal: '22/11/2023',
+                            waktu: '10:00',
+                            'jenis-request': 'Perbaikan',
+                            spesifikasi: '',
+                            'merk-model': 'HP ProBook',
+                            'masalah-kebutuhan': 'Layar berkedip-kedip',
+                            approvedBy: [] // Belum ada yang menyetujui
+                        }
+                    ],
+                    kartunama: [
+                        {
+                            id: 6,
+                            status: 'pending',
+                            judul: 'Permintaan Kartu Nama - Eko Prasetyo',
+                            nama: 'Eko Prasetyo',
+                            department: 'Sales',
+                            tanggal: '20/11/2023',
+                            waktu: '10:00',
+                            posisi: 'Sales Executive',
+                            email: 'eko.p@company.com',
+                            telepon: '+6281234567891',
+                            jumlah: '200',
+                            keterangan: 'Desain standar perusahaan'
+                        }
+                    ],
+                    booking: [
+                        {
+                            id: 7,
+                            status: 'approved',
+                            judul: 'Booking Ruang Meeting A - Rapat Proyek',
+                            nama: 'Fajar Nugraha',
+                            department: 'Project Management',
+                            tanggal: '21/11/2023',
+                            waktu: '09:00',
+                            acara: 'Rapat Proyek X',
+                            ruang: 'Ruang Meeting A',
+                            'waktu-mulai': '09:00',
+                            'waktu-selesai': '11:00',
+                            'jumlah-peserta': '8',
+                            fasilitas: 'Proyektor, Whiteboard',
+                            keterangan: ''
+                        }
+                    ]
+                };
+                
+                // Add sample data if no data exists
+                Object.keys(sampleData).forEach(key => {
+                    if (!localStorage.getItem(`requests_${key}`)) {
+                        localStorage.setItem(`requests_${key}`, JSON.stringify(sampleData[key]));
+                    }
+                });
+            }
+            
+            // Initialize sample data
+            addSampleData();
+        });
+    </script>
+</body>
+</html>
