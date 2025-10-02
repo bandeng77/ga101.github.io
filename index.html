@@ -9,7 +9,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
     <!-- Optional: Firebase Firestore SDK if you plan to use it for persistent data -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+    <!-- <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script> -->
 
     <style>
         :root {
@@ -1331,12 +1331,15 @@
             // Initialize Firebase
             firebase.initializeApp(firebaseConfig);
             const auth = firebase.auth();
-            const db = firebase.firestore(); // Initialize Firestore
+            // const db = firebase.firestore(); // Uncomment if using Firestore
 
             // Navigation handling
+            // const navLinks = document.querySelectorAll('.nav-link'); // Tidak lagi digunakan
             const cards = document.querySelectorAll('.card');
             const sections = document.querySelectorAll('section');
             const backButtons = document.querySelectorAll('.back-button');
+            // const hamburger = document.getElementById('hamburger'); // Tidak lagi digunakan
+            // const navMenu = document.getElementById('navMenu'); // Tidak lagi digunakan
             
             // Form elements
             const forms = {
@@ -1366,7 +1369,7 @@
                 laptop: document.getElementById('laptop-requests'),
                 kartunama: document.getElementById('kartunama-requests'),
                 booking: document.getElementById('booking-requests'),
-                'laptop-approved-by': document.getElementById('laptop-approved-by')
+                'laptop-approved-by': document.getElementById('laptop-approved-by') // Tambahkan ini
             };
 
             // Get all form tabs
@@ -1380,22 +1383,6 @@
             const guestLoginBtn = document.getElementById('guest-login-btn');
             const loginError = document.getElementById('login-error');
             const logoutBtn = document.getElementById('logout-btn');
-
-            // Allowed approver emails
-            const allowedLoginEmails = [
-                "crenata@genetek.co.id",
-                "rossiana.yl@genetek.co.id",
-                "galih@genetek.co.id",
-                "maida@genetek.co.id"
-            ];
-
-            // Mapping approver names to emails
-            const approverEmailMap = {
-                'Renata': 'crenata@genetek.co.id',
-                'Rossiana': 'rossiana.yl@genetek.co.id',
-                'Galih': 'galih@genetek.co.id',
-                'Maida': 'maida@genetek.co.id'
-            };
             
             // Function to show/hide login page and main content
             function toggleLoginState(isLoggedIn) {
@@ -1428,6 +1415,13 @@
                     e.preventDefault();
                     const email = loginEmail.value;
                     const password = loginPassword.value;
+
+                    const allowedLoginEmails = [
+                        "crenata@genetek.co.id",
+                        "rossiana.yl@genetek.co.id",
+                        "galih@genetek.co.id",
+                        "maida@genetek.co.id"
+                    ];
 
                     if (!allowedLoginEmails.includes(email)) {
                         loginError.textContent = "Email tidak terdaftar sebagai approver yang diizinkan.";
@@ -1502,6 +1496,18 @@
                 
                 document.getElementById(targetId).classList.add('active');
                 
+                // Update active nav link (tidak lagi relevan karena nav menu dihapus)
+                // navLinks.forEach(link => {
+                //     link.classList.remove('active');
+                //     if (link.dataset.target === targetId) {
+                //         link.classList.add('active');
+                //     }
+                // });
+                
+                // Close mobile menu if open (tidak lagi relevan karena nav menu dihapus)
+                // navMenu.classList.remove('show');
+                // hamburger.classList.remove('active');
+                
                 // Show form tab by default when navigating to a form
                 if (targetId !== 'dashboard') {
                     showFormTab(targetId.replace('form-', ''), 'form');
@@ -1516,7 +1522,7 @@
                 const formElement = currentFormSection.querySelector('form');
                 const confirmationElement = confirmations[formType];
                 const requestsElement = requestsLists[formType];
-                const approvedByElement = document.getElementById(`${formType}-approved-by`);
+                const approvedByElement = document.getElementById(`${formType}-approved-by`); // Dapatkan elemen approved-by
                 
                 // Update active tab
                 currentFormSection.querySelectorAll('.form-tab').forEach(tab => {
@@ -1526,247 +1532,217 @@
                     }
                 });
                 
-                // Hide all tab content first
+                // Sembunyikan semua konten tab terlebih dahulu
                 if (formElement) formElement.style.display = 'none';
                 if (confirmationElement) confirmationElement.style.display = 'none';
                 if (requestsElement) requestsElement.style.display = 'none';
-                if (approvedByElement) approvedByElement.style.display = 'none';
+                if (approvedByElement) approvedByElement.style.display = 'none'; // Sembunyikan juga approved-by
 
                 if (tabType === 'form') {
                     if (formElement) formElement.style.display = 'block';
                 } else if (tabType === 'requests') {
                     if (requestsElement) {
                         requestsElement.style.display = 'block';
-                        loadRequestsFromFirestore(formType);
+                        loadRequests(formType);
                     }
-                } else if (tabType === 'approved-by' && formType === 'laptop') {
+                } else if (tabType === 'approved-by' && formType === 'laptop') { // Hanya untuk laptop
                     if (approvedByElement) {
                         approvedByElement.style.display = 'block';
-                        loadApprovedByRequestsFromFirestore(formType);
+                        loadApprovedByRequests(formType); // Fungsi baru untuk memuat daftar persetujuan
                     }
-                }
-            }
-
-            // Function to save request to Firestore
-            async function saveRequestToFirestore(formType, requestData) {
-                try {
-                    const docRef = await db.collection(`requests_${formType}`).add(requestData);
-                    console.log("Document written with ID: ", docRef.id);
-                    return docRef.id;
-                } catch (e) {
-                    console.error("Error adding document: ", e);
-                    return null;
                 }
             }
             
-            // Function to load requests from Firestore
-            async function loadRequestsFromFirestore(formType) {
+            // Load requests for a specific form type
+            function loadRequests(formType) {
                 const requestsListContainer = document.getElementById(`${formType}-requests-list`);
+                const requests = JSON.parse(localStorage.getItem(`requests_${formType}`) || '[]');
+                
                 if (!requestsListContainer) return;
 
-                requestsListContainer.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <p>Memuat request ${getFormTitle(formType)}...</p>
-                    </div>
-                `;
-
-                try {
-                    const snapshot = await db.collection(`requests_${formType}`).orderBy('timestamp', 'desc').get();
-                    const requests = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    
-                    if (requests.length === 0) {
-                        requestsListContainer.innerHTML = `
-                            <div class="empty-state">
-                                <i class="fas fa-inbox"></i>
-                                <p>Belum ada request ${getFormTitle(formType)}</p>
-                            </div>
-                        `;
-                        return;
-                    }
-                    
-                    requestsListContainer.innerHTML = '';
-                    requests.forEach((request, index) => {
-                        const statusClass = getStatusClass(request.status);
-                        const statusText = getStatusText(request.status);
-                        
-                        const requestElement = document.createElement('div');
-                        requestElement.className = 'request-item';
-                        requestElement.innerHTML = `
-                            <div class="request-info">
-                                <div class="request-title">${request.judul || getRequestTitle(formType, request)}</div>
-                                <div class="request-details">
-                                    <div>Oleh: ${request.nama} • ${request.department}</div>
-                                    <div>Tanggal: ${request.tanggal} ${request.waktu ? '• ' + request.waktu : ''} ${formType === 'booking' && request.ruang ? '• Ruang: ' + request.ruang : ''}</div>
-                                    ${request.approvedBy && request.approvedBy.length > 0 ? `<div>Disetujui oleh: ${request.approvedBy.join(', ')}</div>` : ''}
-                                </div>
-                            </div>
-                            <div class="request-status ${statusClass}">${statusText}</div>
-                        `;
-                        
-                        requestElement.style.animationDelay = `${index * 0.1}s`;
-                        requestsListContainer.appendChild(requestElement);
-                    });
-                } catch (error) {
-                    console.error("Error loading requests: ", error);
+                if (requests.length === 0) {
                     requestsListContainer.innerHTML = `
                         <div class="empty-state">
-                            <i class="fas fa-exclamation-circle"></i>
-                            <p>Gagal memuat request. Silakan coba lagi.</p>
+                            <i class="fas fa-inbox"></i>
+                            <p>Belum ada request ${getFormTitle(formType)}</p>
                         </div>
                     `;
+                    return;
                 }
+                
+                requestsListContainer.innerHTML = '';
+                requests.forEach((request, index) => {
+                    const statusClass = getStatusClass(request.status);
+                    const statusText = getStatusText(request.status);
+                    
+                    const requestElement = document.createElement('div');
+                    requestElement.className = 'request-item';
+                    requestElement.innerHTML = `
+                        <div class="request-info">
+                            <div class="request-title">${request.judul || getRequestTitle(formType, request)}</div>
+                            <div class="request-details">
+                                <div>Oleh: ${request.nama} • ${request.department}</div>
+                                <div>Tanggal: ${request.tanggal} ${request.waktu ? '• ' + request.waktu : ''} ${formType === 'booking' && request.ruang ? '• Ruang: ' + request.ruang : ''}</div>
+                                ${request.approvedBy && request.approvedBy.length > 0 ? `<div>Disetujui oleh: ${request.approvedBy.join(', ')}</div>` : ''}
+                            </div>
+                        </div>
+                        <div class="request-status ${statusClass}">${statusText}</div>
+                    `;
+                    
+                    // Add animation delay based on index
+                    requestElement.style.animationDelay = `${index * 0.1}s`;
+                    requestsListContainer.appendChild(requestElement);
+                });
             }
 
-            // Function to load requests for approval from Firestore
-            async function loadApprovedByRequestsFromFirestore(formType) {
+            // Fungsi baru untuk memuat daftar request yang perlu disetujui
+            function loadApprovedByRequests(formType) {
                 const approvedByListContainer = document.getElementById(`${formType}-approved-by-list`);
+                const requests = JSON.parse(localStorage.getItem(`requests_${formType}`) || '[]');
+
                 if (!approvedByListContainer) return;
 
-                approvedByListContainer.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <p>Memuat request ${getFormTitle(formType)} untuk persetujuan...</p>
-                    </div>
-                `;
+                const pendingRequests = requests.filter(req => req.status === 'pending');
 
-                try {
-                    const snapshot = await db.collection(`requests_${formType}`)
-                                            .where('status', '==', 'pending')
-                                            .orderBy('timestamp', 'desc')
-                                            .get();
-                    const pendingRequests = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-                    if (pendingRequests.length === 0) {
-                        approvedByListContainer.innerHTML = `
-                            <div class="empty-state">
-                                <i class="fas fa-check-double"></i>
-                                <p>Tidak ada request ${getFormTitle(formType)} yang menunggu persetujuan.</p>
-                            </div>
-                        `;
-                        return;
-                    }
-
-                    approvedByListContainer.innerHTML = '';
-                    const approvers = ['Renata', 'Rossiana', 'Galih', 'Maida'];
-                    const currentUserEmail = auth.currentUser ? auth.currentUser.email : null;
-
-                    pendingRequests.forEach((request, index) => {
-                        const requestElement = document.createElement('div');
-                        requestElement.className = 'request-item';
-                        requestElement.style.flexDirection = 'column';
-                        requestElement.style.alignItems = 'flex-start';
-                        requestElement.style.gap = '10px';
-                        requestElement.innerHTML = `
-                            <div class="request-info" style="width: 100%;">
-                                <div class="request-title">${request.judul || getRequestTitle(formType, request)}</div>
-                                <div class="request-details">
-                                    <div>Oleh: ${request.nama} • ${request.department}</div>
-                                    <div>Tanggal: ${request.tanggal} ${request.waktu ? '• ' + request.waktu : ''}</div>
-                                    <div>Jenis Request: ${request['jenis-request']}</div>
-                                    ${request.spesifikasi ? `<div>Spesifikasi: ${request.spesifikasi}</div>` : ''}
-                                    ${request['merk-model'] ? `<div>Merk/Model: ${request['merk-model']}</div>` : ''}
-                                    <div>Deskripsi: ${request['masalah-kebutuhan']}</div>
-                                </div>
-                            </div>
-                            <div class="approved-by-options" style="width: 100%; border-top: 1px solid var(--border); padding-top: 10px; margin-top: 10px;">
-                                <label style="font-weight: 600; margin-bottom: 5px;">Disetujui Oleh:</label>
-                                <div class="approver-checkboxes" style="display: flex; flex-wrap: wrap; gap: 15px;">
-                                    ${approvers.map(approver => {
-                                        const approverEmail = approverEmailMap[approver];
-                                        const isCurrentUserApprover = (currentUserEmail === approverEmail);
-                                        const isChecked = request.approvedBy && request.approvedBy.includes(approver);
-                                        const isDisabled = !isCurrentUserApprover;
-
-                                        return `
-                                            <div style="display: flex; align-items: center; gap: 5px;">
-                                                <input type="checkbox" id="approve-${request.id}-${approver}"
-                                                    data-request-id="${request.id}"
-                                                    data-approver="${approver}"
-                                                    ${isChecked ? 'checked' : ''}
-                                                    ${isDisabled ? 'disabled' : ''}>
-                                                <label for="approve-${request.id}-${approver}" style="margin-bottom: 0;">${approver}</label>
-                                            </div>
-                                        `;
-                                    }).join('')}
-                                </div>
-                                <div style="margin-top: 15px; display: flex; gap: 10px;">
-                                    <button class="btn btn-primary btn-sm approve-btn" data-request-id="${request.id}" data-status="approved" ${currentUserEmail && Object.values(approverEmailMap).includes(currentUserEmail) ? '' : 'disabled'}><i class="fas fa-check"></i> Setujui</button>
-                                    <button class="btn btn-danger btn-sm reject-btn" data-request-id="${request.id}" data-status="rejected" ${currentUserEmail && Object.values(approverEmailMap).includes(currentUserEmail) ? '' : 'disabled'}><i class="fas fa-times"></i> Tolak</button>
-                                </div>
-                            </div>
-                        `;
-
-                        requestElement.style.animationDelay = `${index * 0.1}s`;
-                        approvedByListContainer.appendChild(requestElement);
-                    });
-
-                    // Event listener for checkboxes
-                    approvedByListContainer.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-                        checkbox.addEventListener('change', async function() {
-                            const requestId = this.dataset.requestId;
-                            const approverName = this.dataset.approver;
-                            const approverEmail = approverEmailMap[approverName];
-
-                            if (auth.currentUser && auth.currentUser.email === approverEmail) {
-                                const docRef = db.collection(`requests_${formType}`).doc(requestId);
-                                const doc = await docRef.get();
-                                if (doc.exists) {
-                                    let approvedBy = doc.data().approvedBy || [];
-                                    if (this.checked) {
-                                        if (!approvedBy.includes(approverName)) {
-                                            approvedBy.push(approverName);
-                                        }
-                                    } else {
-                                        approvedBy = approvedBy.filter(a => a !== approverName);
-                                    }
-                                    await docRef.update({ approvedBy: approvedBy });
-                                    console.log(`Request ${requestId} approvedBy updated for ${approverName}`);
-                                }
-                            } else {
-                                this.checked = !this.checked;
-                                alert("Anda hanya dapat mengubah status persetujuan Anda sendiri.");
-                            }
-                        });
-                    });
-
-                    // Event listener for Approve/Reject buttons
-                    approvedByListContainer.querySelectorAll('.approve-btn, .reject-btn').forEach(button => {
-                        button.addEventListener('click', function() {
-                            const currentUserEmail = auth.currentUser ? auth.currentUser.email : null;
-                            const isAllowedToApprove = Object.values(approverEmailMap).includes(currentUserEmail);
-
-                            if (isAllowedToApprove) {
-                                const requestId = this.dataset.requestId;
-                                const newStatus = this.dataset.status;
-                                updateRequestStatusInFirestore(formType, requestId, newStatus);
-                            } else {
-                                alert("Anda tidak memiliki izin untuk menyetujui atau menolak request.");
-                            }
-                        });
-                    });
-
-                } catch (error) {
-                    console.error("Error loading approved-by requests: ", error);
+                if (pendingRequests.length === 0) {
                     approvedByListContainer.innerHTML = `
                         <div class="empty-state">
-                            <i class="fas fa-exclamation-circle"></i>
-                            <p>Gagal memuat request persetujuan. Silakan coba lagi.</p>
+                            <i class="fas fa-check-double"></i>
+                            <p>Tidak ada request ${getFormTitle(formType)} yang menunggu persetujuan.</p>
                         </div>
                     `;
+                    return;
                 }
+
+                approvedByListContainer.innerHTML = '';
+                const approvers = ['Renata', 'Rossiana', 'Galih', 'Maida'];
+                const currentUserEmail = auth.currentUser ? auth.currentUser.email : null;
+
+                // Mapping nama ke email
+                const approverEmailMap = {
+                    'Renata': 'crenata@genetek.co.id',
+                    'Rossiana': 'rossiana.yl@genetek.co.id',
+                    'Galih': 'galih@genetek.co.id',
+                    'Maida': 'maida@genetek.co.id'
+                };
+
+                pendingRequests.forEach((request, index) => {
+                    const requestElement = document.createElement('div');
+                    requestElement.className = 'request-item';
+                    requestElement.style.flexDirection = 'column'; // Ubah layout untuk ceklis
+                    requestElement.style.alignItems = 'flex-start';
+                    requestElement.style.gap = '10px';
+                    requestElement.innerHTML = `
+                        <div class="request-info" style="width: 100%;">
+                            <div class="request-title">${request.judul || getRequestTitle(formType, request)}</div>
+                            <div class="request-details">
+                                <div>Oleh: ${request.nama} • ${request.department}</div>
+                                <div>Tanggal: ${request.tanggal} ${request.waktu ? '• ' + request.waktu : ''}</div>
+                                <div>Jenis Request: ${request['jenis-request']}</div>
+                                ${request.spesifikasi ? `<div>Spesifikasi: ${request.spesifikasi}</div>` : ''}
+                                ${request['merk-model'] ? `<div>Merk/Model: ${request['merk-model']}</div>` : ''}
+                                <div>Deskripsi: ${request['masalah-kebutuhan']}</div>
+                            </div>
+                        </div>
+                        <div class="approved-by-options" style="width: 100%; border-top: 1px solid var(--border); padding-top: 10px; margin-top: 10px;">
+                            <label style="font-weight: 600; margin-bottom: 5px;">Disetujui Oleh:</label>
+                            <div class="approver-checkboxes" style="display: flex; flex-wrap: wrap; gap: 15px;">
+                                ${approvers.map(approver => {
+                                    const approverEmail = approverEmailMap[approver];
+                                    const isCurrentUserApprover = (currentUserEmail === approverEmail);
+                                    const isChecked = request.approvedBy && request.approvedBy.includes(approver);
+                                    const isDisabled = !isCurrentUserApprover; // Nonaktifkan jika bukan pengguna yang login
+
+                                    return `
+                                        <div style="display: flex; align-items: center; gap: 5px;">
+                                            <input type="checkbox" id="approve-${request.id}-${approver}"
+                                                data-request-id="${request.id}"
+                                                data-approver="${approver}"
+                                                ${isChecked ? 'checked' : ''}
+                                                ${isDisabled ? 'disabled' : ''}>
+                                            <label for="approve-${request.id}-${approver}" style="margin-bottom: 0;">${approver}</label>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                            <div style="margin-top: 15px; display: flex; gap: 10px;">
+                                <!-- Tombol Setujui/Tolak hanya aktif jika pengguna adalah salah satu approver yang diizinkan -->
+                                <button class="btn btn-primary btn-sm approve-btn" data-request-id="${request.id}" data-status="approved" ${currentUserEmail && Object.values(approverEmailMap).includes(currentUserEmail) ? '' : 'disabled'}><i class="fas fa-check"></i> Setujui</button>
+                                <button class="btn btn-danger btn-sm reject-btn" data-request-id="${request.id}" data-status="rejected" ${currentUserEmail && Object.values(approverEmailMap).includes(currentUserEmail) ? '' : 'disabled'}><i class="fas fa-times"></i> Tolak</button>
+                            </div>
+                        </div>
+                    `;
+
+                    // Add animation delay based on index
+                    requestElement.style.animationDelay = `${index * 0.1}s`;
+                    approvedByListContainer.appendChild(requestElement);
+                });
+
+                // Event listener untuk checkbox
+                approvedByListContainer.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                    checkbox.addEventListener('change', function() {
+                        const requestId = parseInt(this.dataset.requestId);
+                        const approverName = this.dataset.approver; // Nama approver dari data-approver
+                        const approverEmail = approverEmailMap[approverName]; // Dapatkan email dari nama
+
+                        // Pastikan hanya pengguna yang login yang dapat mengubah checkbox mereka sendiri
+                        if (auth.currentUser && auth.currentUser.email === approverEmail) {
+                            const currentRequests = JSON.parse(localStorage.getItem(`requests_${formType}`) || '[]');
+                            const requestIndex = currentRequests.findIndex(req => req.id === requestId);
+
+                            if (requestIndex > -1) {
+                                if (!currentRequests[requestIndex].approvedBy) {
+                                    currentRequests[requestIndex].approvedBy = [];
+                                }
+                                if (this.checked) {
+                                    if (!currentRequests[requestIndex].approvedBy.includes(approverName)) {
+                                        currentRequests[requestIndex].approvedBy.push(approverName);
+                                    }
+                                } else {
+                                    currentRequests[requestIndex].approvedBy = currentRequests[requestIndex].approvedBy.filter(a => a !== approverName);
+                                }
+                                localStorage.setItem(`requests_${formType}`, JSON.stringify(currentRequests));
+                                // TODO: Update Firestore here if you're using it for real-time data
+                                // db.collection('requests_laptop').doc(requestId).update({ approvedBy: currentRequests[requestIndex].approvedBy });
+                            }
+                        } else {
+                            // Jika ada upaya untuk mengubah checkbox yang bukan miliknya, kembalikan ke status semula
+                            this.checked = !this.checked;
+                            alert("Anda hanya dapat mengubah status persetujuan Anda sendiri.");
+                        }
+                    });
+                });
+
+                // Event listener untuk tombol Setujui/Tolak
+                approvedByListContainer.querySelectorAll('.approve-btn, .reject-btn').forEach(button => {
+                    button.addEventListener('click', function() {
+                        // Hanya izinkan jika pengguna yang login adalah salah satu approver yang diizinkan
+                        const currentUserEmail = auth.currentUser ? auth.currentUser.email : null;
+                        const isAllowedToApprove = Object.values(approverEmailMap).includes(currentUserEmail);
+
+                        if (isAllowedToApprove) {
+                            const requestId = parseInt(this.dataset.requestId);
+                            const newStatus = this.dataset.status;
+                            updateRequestStatus(formType, requestId, newStatus);
+                            // TODO: Update Firestore here if you're using it for real-time data
+                            // db.collection('requests_laptop').doc(requestId).update({ status: newStatus });
+                        } else {
+                            alert("Anda tidak memiliki izin untuk menyetujui atau menolak request.");
+                        }
+                    });
+                });
             }
 
-            // Function to update request status in Firestore
-            async function updateRequestStatusInFirestore(formType, requestId, newStatus) {
-                try {
-                    await db.collection(`requests_${formType}`).doc(requestId).update({ status: newStatus });
-                    console.log(`Request ${requestId} status updated to ${newStatus}`);
-                    loadApprovedByRequestsFromFirestore(formType);
-                    loadRequestsFromFirestore(formType);
-                } catch (error) {
-                    console.error("Error updating request status: ", error);
-                    alert("Gagal memperbarui status request. Silakan coba lagi.");
+            // Fungsi untuk memperbarui status request
+            function updateRequestStatus(formType, requestId, newStatus) {
+                let currentRequests = JSON.parse(localStorage.getItem(`requests_${formType}`) || '[]');
+                const requestIndex = currentRequests.findIndex(req => req.id === requestId);
+
+                if (requestIndex > -1) {
+                    currentRequests[requestIndex].status = newStatus;
+                    localStorage.setItem(`requests_${formType}`, JSON.stringify(currentRequests));
+                    loadApprovedByRequests(formType); // Muat ulang daftar setelah perubahan
+                    loadRequests(formType); // Muat ulang juga daftar request utama
                 }
             }
             
@@ -1814,6 +1790,14 @@
                 }
             }
             
+            // Navigation event listeners (hanya untuk cards, nav links di header dihapus)
+            // navLinks.forEach(link => { // Tidak lagi digunakan
+            //     link.addEventListener('click', function(e) {
+            //         e.preventDefault();
+            //         showSection(this.dataset.target);
+            //     });
+            // });
+            
             // Card event listeners
             cards.forEach(card => {
                 card.addEventListener('click', function() {
@@ -1836,40 +1820,51 @@
                 });
             });
             
+            // Hamburger menu toggle (tidak lagi diperlukan)
+            // hamburger.addEventListener('click', function() {
+            //     navMenu.classList.toggle('show');
+            //     this.classList.toggle('active');
+            // });
+            
             // Form submission handlers
             Object.keys(forms).forEach(formKey => {
                 if (forms[formKey]) {
-                    forms[formKey].addEventListener('submit', async function(e) {
+                    forms[formKey].addEventListener('submit', function(e) {
                         e.preventDefault();
                         
+                        // Create form data object
                         const formData = new FormData(this);
                         const formObject = {
+                            id: Date.now(),
                             status: 'pending',
                             tanggal: new Date().toLocaleDateString('id-ID'),
-                            waktu: new Date().toLocaleTimeString('id-ID'),
-                            timestamp: firebase.firestore.FieldValue.serverTimestamp(), // Add server timestamp
-                            approvedBy: [] // Initialize approvedBy array
+                            waktu: new Date().toLocaleTimeString('id-ID')
                         };
                         
+                        // Add form-specific data
                         formData.forEach((value, key) => {
                             formObject[key] = value;
                         });
                         
+                        // Add judul for the request
                         formObject.judul = getRequestTitle(formKey, formObject);
                         
-                        const requestId = await saveRequestToFirestore(formKey, formObject);
+                        // Store form data
+                        const existingRequests = JSON.parse(localStorage.getItem(`requests_${formKey}`) || '[]');
+                        existingRequests.unshift(formObject); // Add to the beginning
+                        localStorage.setItem(`requests_${formKey}`, JSON.stringify(existingRequests));
                         
-                        if (requestId) {
-                            this.style.display = 'none';
-                            confirmations[formKey].classList.add('active');
-                            this.reset();
+                        // Hide form and show confirmation
+                        this.style.display = 'none';
+                        confirmations[formKey].classList.add('active');
+                        
+                        // Reset form fields
+                        this.reset();
 
-                            setTimeout(() => {
-                                showFormTab(formKey, 'requests');
-                            }, 3000);
-                        } else {
-                            alert("Gagal mengajukan permintaan. Silakan coba lagi.");
-                        }
+                        // Auto hide confirmation after 3 seconds and show requests
+                        setTimeout(() => {
+                            showFormTab(formKey, 'requests');
+                        }, 3000);
                     });
                 }
             });
@@ -1884,12 +1879,13 @@
             document.querySelectorAll('[id^="refresh-"]').forEach(button => {
                 button.addEventListener('click', function() {
                     const formType = this.id.replace('refresh-', '');
-                    if (formType.includes('approved')) {
-                        loadApprovedByRequestsFromFirestore(formType.replace('-approved', ''));
+                    if (formType.includes('approved')) { // Handle refresh for approved-by tab
+                        loadApprovedByRequests(formType.replace('-approved', ''));
                     } else {
-                        loadRequestsFromFirestore(formType);
+                        loadRequests(formType);
                     }
                     
+                    // Add rotation animation
                     const icon = this.querySelector('i');
                     if (icon) {
                         icon.style.transition = 'transform 0.5s';
@@ -1901,16 +1897,143 @@
                 });
             });
             
-            // Clear all local storage data on initial load (for a clean start with Firestore)
-            // This will only run once when the page loads.
-            // You might want to remove this after initial setup.
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key.startsWith('requests_')) {
-                    localStorage.removeItem(key);
-                }
+            // Add some sample data for demonstration
+            function addSampleData() {
+                const sampleData = {
+                    atk: [
+                        {
+                            id: 1,
+                            status: 'approved',
+                            judul: 'Permintaan Kertas',
+                            nama: 'Ahmad Rizki',
+                            department: 'IT',
+                            tanggal: '15/11/2023',
+                            waktu: '10:30',
+                            jenis: 'Kertas',
+                            detail: '5 rim kertas A4 80gr',
+                            alasan: 'Untuk kebutuhan cetak dokumen bulanan'
+                        },
+                        {
+                            id: 2,
+                            status: 'pending',
+                            judul: 'Permintaan Pena',
+                            nama: 'Sari Dewi',
+                            department: 'HR',
+                            tanggal: '16/11/2023',
+                            waktu: '14:20',
+                            jenis: 'Pena/Pensil',
+                            detail: '2 lusin pena biru dan 1 lusin pena hitam',
+                            alasan: 'Stok pena di department habis'
+                        }
+                    ],
+                    idcard: [
+                        {
+                            id: 3,
+                            status: 'pending',
+                            judul: 'Permintaan ID Card - Budi Santoso',
+                            nama: 'Budi Santoso',
+                            department: 'Marketing',
+                            tanggal: '17/11/2023',
+                            waktu: '09:00',
+                            nik: '123456789',
+                            posisi: 'Manager Marketing',
+                            'tanggal-bergabung': '2022-01-15',
+                            'jenis-request': 'Baru',
+                            keterangan: ''
+                        }
+                    ],
+                    konsumsi: [
+                        {
+                            id: 4,
+                            status: 'approved',
+                            judul: 'Konsumsi Rapat Tim',
+                            nama: 'Citra Lestari',
+                            department: 'Finance',
+                            tanggal: '18/11/2023',
+                            waktu: '13:00',
+                            acara: 'Rapat Tim Finance',
+                            'jumlah-peserta': '12',
+                            jenis: 'Makan Siang',
+                            budget: '35000',
+                            detail: 'Nasi kotak, ayam bakar, sayur, buah'
+                        }
+                    ],
+                    laptop: [
+                        {
+                            id: 5,
+                            status: 'pending',
+                            judul: 'Permintaan Pengadaan Baru Laptop',
+                            nama: 'Dian Permata',
+                            department: 'IT',
+                            tanggal: '19/11/2023',
+                            waktu: '11:00',
+                            'jenis-request': 'Pengadaan Baru',
+                            spesifikasi: 'Core i7, RAM 16GB, SSD 512GB',
+                            'merk-model': '',
+                            'masalah-kebutuhan': 'Untuk karyawan baru di divisi IT',
+                            approvedBy: ['Renata'] // Contoh: Renata sudah menyetujui
+                        },
+                        {
+                            id: 8,
+                            status: 'pending',
+                            judul: 'Permintaan Perbaikan Laptop',
+                            nama: 'Joko Susilo',
+                            department: 'HR',
+                            tanggal: '22/11/2023',
+                            waktu: '10:00',
+                            'jenis-request': 'Perbaikan',
+                            spesifikasi: '',
+                            'merk-model': 'HP ProBook',
+                            'masalah-kebutuhan': 'Layar berkedip-kedip',
+                            approvedBy: [] // Belum ada yang menyetujui
+                        }
+                    ],
+                    kartunama: [
+                        {
+                            id: 6,
+                            status: 'pending',
+                            judul: 'Permintaan Kartu Nama - Eko Prasetyo',
+                            nama: 'Eko Prasetyo',
+                            department: 'Sales',
+                            tanggal: '20/11/2023',
+                            waktu: '10:00',
+                            posisi: 'Sales Executive',
+                            email: 'eko.p@company.com',
+                            telepon: '+6281234567891',
+                            jumlah: '200',
+                            keterangan: 'Desain standar perusahaan'
+                        }
+                    ],
+                    booking: [
+                        {
+                            id: 7,
+                            status: 'approved',
+                            judul: 'Booking Ruang Meeting A - Rapat Proyek',
+                            nama: 'Fajar Nugraha',
+                            department: 'Project Management',
+                            tanggal: '21/11/2023',
+                            waktu: '09:00',
+                            acara: 'Rapat Proyek X',
+                            ruang: 'Ruang Meeting A',
+                            'waktu-mulai': '09:00',
+                            'waktu-selesai': '11:00',
+                            'jumlah-peserta': '8',
+                            fasilitas: 'Proyektor, Whiteboard',
+                            keterangan: ''
+                        }
+                    ]
+                };
+                
+                // Add sample data if no data exists
+                Object.keys(sampleData).forEach(key => {
+                    if (!localStorage.getItem(`requests_${key}`)) {
+                        localStorage.setItem(`requests_${key}`, JSON.stringify(sampleData[key]));
+                    }
+                });
             }
-            console.log("Local storage data for requests cleared.");
+            
+            // Initialize sample data
+            addSampleData();
         });
     </script>
 </body>
