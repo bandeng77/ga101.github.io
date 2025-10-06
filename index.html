@@ -666,6 +666,37 @@
             gap: 10px;
             margin-top: 15px;
         }
+
+        /* Custom Alert */
+        .custom-alert {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 1001;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            animation: slideInRight 0.3s ease;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .alert-success {
+            background-color: var(--success);
+        }
+
+        .alert-danger {
+            background-color: var(--danger);
+        }
+
+        .alert-warning {
+            background-color: var(--warning);
+        }
     </style>
 </head>
 <body>
@@ -1544,7 +1575,7 @@
                 });
             }
 
-            // Fungsi untuk memuat daftar request yang perlu disetujui - FIXED: Tidak berkedip lagi
+            // Fungsi untuk memuat daftar request yang perlu disetujui
             function loadApprovedByRequests(formType) {
                 const approvedByListContainer = document.getElementById(`${formType}-approved-by-list`);
                 const requests = JSON.parse(localStorage.getItem(`requests_${formType}`) || '[]');
@@ -1626,20 +1657,6 @@
                     approvedByListContainer.appendChild(requestElement);
                 });
 
-                // Event listener untuk checkbox
-                approvedByListContainer.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-                    checkbox.addEventListener('change', function() {
-                        const requestId = parseInt(this.dataset.requestId);
-                        const approverName = this.dataset.approver;
-                        const currentUserEmail = auth.currentUser ? auth.currentUser.email : null;
-                        const currentUserName = currentUserEmail ? emailToNameMap[currentUserEmail] : null;
-
-                        if (currentUserName === approverName) {
-                            updateApprovalStatus(formType, requestId, approverName, this.checked);
-                        }
-                    });
-                });
-
                 // Event listener untuk tombol Setujui
                 approvedByListContainer.querySelectorAll('.approve-btn').forEach(button => {
                     button.addEventListener('click', function() {
@@ -1663,6 +1680,9 @@
                                 if (allApproved) {
                                     requests[requestIndex].status = 'approved';
                                     localStorage.setItem(`requests_${formType}`, JSON.stringify(requests));
+                                    showAlert('Request telah disetujui oleh semua approver!', 'success');
+                                } else {
+                                    showAlert('Anda telah menyetujui request ini!', 'success');
                                 }
                             }
                         }
@@ -1674,6 +1694,7 @@
                     button.addEventListener('click', function() {
                         const requestId = parseInt(this.dataset.requestId);
                         updateRequestStatus(formType, requestId, 'rejected');
+                        showAlert('Request telah ditolak!', 'danger');
                     });
                 });
             }
@@ -1717,39 +1738,22 @@
                 }
             }
 
-            // Fungsi untuk refresh data secara berkala - FIXED: Tidak berkedip
-            let refreshInterval;
-            function startRealTimeUpdates() {
-                // Hentikan interval sebelumnya jika ada
-                if (refreshInterval) {
-                    clearInterval(refreshInterval);
-                }
+            // Fungsi untuk menampilkan alert custom
+            function showAlert(message, type = 'success') {
+                const alert = document.createElement('div');
+                alert.className = `custom-alert alert-${type}`;
+                alert.innerHTML = `
+                    <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'danger' ? 'fa-times-circle' : 'fa-exclamation-circle'}"></i>
+                    ${message}
+                `;
                 
-                refreshInterval = setInterval(() => {
-                    const activeFormSection = document.querySelector('.form-section.active');
-                    if (activeFormSection) {
-                        const formType = activeFormSection.id.replace('form-', '');
-                        const activeTab = activeFormSection.querySelector('.form-tab.active');
-                        
-                        if (activeTab && activeTab.dataset.tab === 'approved-by' && formType === 'laptop') {
-                            loadApprovedByRequests(formType);
-                        } else if (activeTab && activeTab.dataset.tab === 'requests') {
-                            loadRequests(formType);
-                        }
-                    }
-                }, 5000); // Refresh setiap 5 detik (lebih lama untuk menghindari kedipan)
+                document.body.appendChild(alert);
+                
+                // Hapus alert setelah 3 detik
+                setTimeout(() => {
+                    alert.remove();
+                }, 3000);
             }
-
-            // Panggil fungsi real-time updates setelah login
-            auth.onAuthStateChanged(user => {
-                if (user) {
-                    startRealTimeUpdates();
-                } else {
-                    if (refreshInterval) {
-                        clearInterval(refreshInterval);
-                    }
-                }
-            });
             
             // Helper function to get form title
             function getFormTitle(formType) {
