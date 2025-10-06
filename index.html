@@ -8,8 +8,6 @@
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
-    <!-- Optional: Firebase Firestore SDK if you plan to use it for persistent data -->
-    <!-- <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script> -->
 
     <style>
         :root {
@@ -59,7 +57,7 @@
             top: 0;
             z-index: 100;
             height: var(--header-height);
-            padding-bottom: 2rem; /* Menambahkan jarak di bawah header menjadi 2rem */
+            padding-bottom: 2rem;
         }
 
         .header-content {
@@ -112,77 +110,46 @@
             font-weight: 400;
         }
 
-        /* Navigasi di header dihapus, jadi bagian ini tidak lagi relevan untuk header */
-        /* nav ul {
-            display: flex;
-            list-style: none;
-            gap: 5px;
-        }
-
-        nav a {
-            text-decoration: none;
-            color: rgba(255, 255, 255, 0.9);
-            font-weight: 500;
-            padding: 10px 15px;
-            border-radius: 8px;
-            transition: all 0.3s ease;
+        .header-right {
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 0.95rem;
+            gap: 15px;
         }
 
-        nav a:hover, nav a.active {
-            background-color: rgba(255, 255, 255, 0.15);
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
             color: white;
-            transform: translateY(-2px);
+            margin-right: 15px;
         }
-
-        nav a i {
-            font-size: 1rem;
-        } */
-
-        .hamburger {
-            display: none; /* Hamburger juga tidak diperlukan jika tidak ada nav menu */
-            flex-direction: column;
-            gap: 5px;
-            cursor: pointer;
-            padding: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
         }
-
-        .hamburger span {
-            width: 25px;
-            height: 3px;
-            background-color: white;
-            transition: all 0.3s;
-            border-radius: 2px;
-        }
-
-        .hamburger.active span:nth-child(1) {
-            transform: rotate(45deg) translate(6px, 6px);
-        }
-
-        .hamburger.active span:nth-child(2) {
-            opacity: 0;
-        }
-
-        .hamburger.active span:nth-child(3) {
-            transform: rotate(-45deg) translate(6px, -6px);
+        
+        .user-name {
+            font-weight: 500;
         }
 
         /* JARAK ANTARA HEADER DAN CARD */
         main {
             padding: 2rem 0;
             min-height: calc(100vh - var(--header-height) - 100px);
-            margin-top: 2rem; /* Tambahan jarak dari header menjadi 2rem */
+            margin-top: 2rem;
         }
 
         .dashboard {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 25px; /* Tambahan jarak antar card */
+            gap: 25px;
             margin-bottom: 2rem;
         }
 
@@ -258,7 +225,7 @@
             padding: 2rem;
             margin-bottom: 2rem;
             animation: fadeIn 0.5s ease;
-            margin-top: 20px; /* Jarak dari header */
+            margin-top: 20px;
         }
 
         @keyframes fadeIn {
@@ -508,7 +475,7 @@
             color: white;
             padding: 2rem 0;
             text-align: center;
-            margin-top: 40px; /* Tambahan jarak dari konten */
+            margin-top: 40px;
         }
 
         .footer-content {
@@ -535,37 +502,6 @@
         }
 
         @media (max-width: 768px) {
-            /* Navigasi di header dihapus, jadi bagian ini tidak lagi relevan untuk header */
-            /* nav ul {
-                display: none;
-                position: absolute;
-                top: var(--header-height);
-                left: 0;
-                right: 0;
-                background-color: white;
-                flex-direction: column;
-                padding: 1rem;
-                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            }
-            
-            nav ul.show {
-                display: flex;
-            }
-            
-            nav a {
-                color: var(--dark);
-                padding: 12px 15px;
-            }
-            
-            nav a:hover, nav a.active {
-                background-color: #f1f5f9;
-                color: var(--primary);
-            } */
-            
-            .hamburger {
-                display: none; /* Hamburger juga tidak diperlukan jika tidak ada nav menu */
-            }
-            
             .dashboard {
                 grid-template-columns: 1fr;
             }
@@ -585,6 +521,10 @@
             }
             
             .logo-text {
+                display: none;
+            }
+            
+            .user-name {
                 display: none;
             }
         }
@@ -631,7 +571,7 @@
 
         /* Login Page Styling */
         .login-container {
-            display: none; /* Hidden by default */
+            display: none;
             position: fixed;
             top: 0;
             left: 0;
@@ -661,7 +601,7 @@
         .login-card .logo {
             justify-content: center;
             margin-bottom: 1.5rem;
-            color: var(--primary); /* Ubah warna logo di login card */
+            color: var(--primary);
         }
 
         .login-card .logo-icon {
@@ -749,24 +689,13 @@
                     <span class="logo-sub">General Affair</span>
                 </div>
             </div>
-            <button id="logout-btn" class="btn btn-secondary" style="display: none;"><i class="fas fa-sign-out-alt"></i> Logout</button>
-            <!-- Navigasi di header dihapus karena sudah ada di dashboard -->
-            <!-- <nav>
-                <ul id="navMenu">
-                    <li><a href="#" class="nav-link active" data-target="dashboard"><i class="fas fa-home"></i> Beranda</a></li>
-                    <li><a href="#" class="nav-link" data-target="form-atk"><i class="fas fa-pencil-alt"></i> Form ATK</a></li>
-                    <li><a href="#" class="nav-link" data-target="form-idcard"><i class="fas fa-address-card"></i> Form ID Card</a></li>
-                    <li><a href="#" class="nav-link" data-target="form-konsumsi"><i class="fas fa-utensils"></i> Form Konsumsi</a></li>
-                    <li><a href="#" class="nav-link" data-target="form-laptop"><i class="fas fa-laptop"></i> Form Laptop</a></li>
-                    <li><a href="#" class="nav-link" data-target="form-kartu-nama"><i class="fas fa-address-book"></i> Form Kartu Nama</a></li>
-                    <li><a href="#" class="nav-link" data-target="form-booking"><i class="fas fa-calendar-alt"></i> Booking Ruang</a></li>
-                </ul>
-                <div class="hamburger" id="hamburger">
-                    <span></span>
-                    <span></span>
-                    <span></span>
+            <div class="header-right">
+                <div id="user-info" class="user-info" style="display: none;">
+                    <div class="user-avatar" id="user-avatar">U</div>
+                    <span class="user-name" id="user-name"></span>
                 </div>
-            </nav> -->
+                <button id="logout-btn" class="btn btn-secondary" style="display: none;"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            </div>
         </div>
     </header>
 
@@ -1055,7 +984,7 @@
             <div class="form-tabs">
                 <div class="form-tab active" data-tab="form">Form Request</div>
                 <div class="form-tab" data-tab="requests">Daftar Request</div>
-                <div class="form-tab" data-tab="approved-by">Approved By</div> <!-- Tab baru -->
+                <div class="form-tab" data-tab="approved-by">Approved By</div>
             </div>
             
             <div class="form-content">
@@ -1331,15 +1260,19 @@
             // Initialize Firebase
             firebase.initializeApp(firebaseConfig);
             const auth = firebase.auth();
-            // const db = firebase.firestore(); // Uncomment if using Firestore
+
+            // Mapping email ke nama
+            const emailToNameMap = {
+                'galih@genetek.co.id': 'Galih',
+                'crenata@genetek.co.id': 'Renata',
+                'rossiana.yl@genetek.co.id': 'Rossiana',
+                'maida@genetek.co.id': 'Maida'
+            };
 
             // Navigation handling
-            // const navLinks = document.querySelectorAll('.nav-link'); // Tidak lagi digunakan
             const cards = document.querySelectorAll('.card');
             const sections = document.querySelectorAll('section');
             const backButtons = document.querySelectorAll('.back-button');
-            // const hamburger = document.getElementById('hamburger'); // Tidak lagi digunakan
-            // const navMenu = document.getElementById('navMenu'); // Tidak lagi digunakan
             
             // Form elements
             const forms = {
@@ -1369,7 +1302,7 @@
                 laptop: document.getElementById('laptop-requests'),
                 kartunama: document.getElementById('kartunama-requests'),
                 booking: document.getElementById('booking-requests'),
-                'laptop-approved-by': document.getElementById('laptop-approved-by') // Tambahkan ini
+                'laptop-approved-by': document.getElementById('laptop-approved-by')
             };
 
             // Get all form tabs
@@ -1383,18 +1316,36 @@
             const guestLoginBtn = document.getElementById('guest-login-btn');
             const loginError = document.getElementById('login-error');
             const logoutBtn = document.getElementById('logout-btn');
+            const userInfo = document.getElementById('user-info');
+            const userName = document.getElementById('user-name');
+            const userAvatar = document.getElementById('user-avatar');
             
             // Function to show/hide login page and main content
-            function toggleLoginState(isLoggedIn) {
-                if (isLoggedIn) {
+            function toggleLoginState(isLoggedIn, user = null) {
+                if (isLoggedIn && user) {
                     loginPage.classList.remove('active');
                     document.body.classList.remove('login-active');
                     logoutBtn.style.display = 'inline-flex';
-                    showSection('dashboard'); // Show dashboard after login
+                    
+                    // Tampilkan info user
+                    if (user.email) {
+                        const displayName = emailToNameMap[user.email] || user.email.split('@')[0];
+                        userName.textContent = displayName;
+                        userAvatar.textContent = displayName.charAt(0).toUpperCase();
+                        userInfo.style.display = 'flex';
+                    } else {
+                        // Guest user
+                        userName.textContent = 'Tamu';
+                        userAvatar.textContent = 'T';
+                        userInfo.style.display = 'flex';
+                    }
+                    
+                    showSection('dashboard');
                 } else {
                     loginPage.classList.add('active');
                     document.body.classList.add('login-active');
                     logoutBtn.style.display = 'none';
+                    userInfo.style.display = 'none';
                 }
             }
 
@@ -1402,7 +1353,7 @@
             auth.onAuthStateChanged(user => {
                 if (user) {
                     console.log("User logged in:", user.email || "Guest");
-                    toggleLoginState(true);
+                    toggleLoginState(true, user);
                 } else {
                     console.log("User logged out");
                     toggleLoginState(false);
@@ -1426,12 +1377,11 @@
                     if (!allowedLoginEmails.includes(email)) {
                         loginError.textContent = "Email tidak terdaftar sebagai approver yang diizinkan.";
                         loginError.style.display = 'block';
-                        return; // Stop login attempt
+                        return;
                     }
 
                     auth.signInWithEmailAndPassword(email, password)
                         .then((userCredential) => {
-                            // Signed in
                             const user = userCredential.user;
                             console.log("Login successful:", user.email);
                             loginError.style.display = 'none';
@@ -1469,24 +1419,11 @@
                 logoutBtn.addEventListener('click', function() {
                     auth.signOut().then(() => {
                         console.log("User signed out");
-                        // UI will be updated by onAuthStateChanged listener
                     }).catch((error) => {
                         console.error("Logout failed:", error);
                     });
                 });
             }
-
-            // Optional: Function to create a new user (for testing purposes)
-            // You can call this from the browser console: createUser('test@example.com', 'password123');
-            window.createUser = function(email, password) {
-                auth.createUserWithEmailAndPassword(email, password)
-                    .then((userCredential) => {
-                        console.log("User created:", userCredential.user.email);
-                    })
-                    .catch((error) => {
-                        console.error("Error creating user:", error.message);
-                    });
-            };
             
             // Show section based on target
             function showSection(targetId) {
@@ -1495,18 +1432,6 @@
                 });
                 
                 document.getElementById(targetId).classList.add('active');
-                
-                // Update active nav link (tidak lagi relevan karena nav menu dihapus)
-                // navLinks.forEach(link => {
-                //     link.classList.remove('active');
-                //     if (link.dataset.target === targetId) {
-                //         link.classList.add('active');
-                //     }
-                // });
-                
-                // Close mobile menu if open (tidak lagi relevan karena nav menu dihapus)
-                // navMenu.classList.remove('show');
-                // hamburger.classList.remove('active');
                 
                 // Show form tab by default when navigating to a form
                 if (targetId !== 'dashboard') {
@@ -1522,7 +1447,7 @@
                 const formElement = currentFormSection.querySelector('form');
                 const confirmationElement = confirmations[formType];
                 const requestsElement = requestsLists[formType];
-                const approvedByElement = document.getElementById(`${formType}-approved-by`); // Dapatkan elemen approved-by
+                const approvedByElement = document.getElementById(`${formType}-approved-by`);
                 
                 // Update active tab
                 currentFormSection.querySelectorAll('.form-tab').forEach(tab => {
@@ -1536,7 +1461,7 @@
                 if (formElement) formElement.style.display = 'none';
                 if (confirmationElement) confirmationElement.style.display = 'none';
                 if (requestsElement) requestsElement.style.display = 'none';
-                if (approvedByElement) approvedByElement.style.display = 'none'; // Sembunyikan juga approved-by
+                if (approvedByElement) approvedByElement.style.display = 'none';
 
                 if (tabType === 'form') {
                     if (formElement) formElement.style.display = 'block';
@@ -1545,10 +1470,10 @@
                         requestsElement.style.display = 'block';
                         loadRequests(formType);
                     }
-                } else if (tabType === 'approved-by' && formType === 'laptop') { // Hanya untuk laptop
+                } else if (tabType === 'approved-by' && formType === 'laptop') {
                     if (approvedByElement) {
                         approvedByElement.style.display = 'block';
-                        loadApprovedByRequests(formType); // Fungsi baru untuk memuat daftar persetujuan
+                        loadApprovedByRequests(formType);
                     }
                 }
             }
@@ -1595,7 +1520,7 @@
                 });
             }
 
-            // Fungsi baru untuk memuat daftar request yang perlu disetujui
+            // Fungsi untuk memuat daftar request yang perlu disetujui
             function loadApprovedByRequests(formType) {
                 const approvedByListContainer = document.getElementById(`${formType}-approved-by-list`);
                 const requests = JSON.parse(localStorage.getItem(`requests_${formType}`) || '[]');
@@ -1617,21 +1542,20 @@
                 approvedByListContainer.innerHTML = '';
                 const approvers = ['Renata', 'Rossiana', 'Galih', 'Maida'];
                 const currentUserEmail = auth.currentUser ? auth.currentUser.email : null;
-
-                // Mapping nama ke email
-                const approverEmailMap = {
-                    'Renata': 'crenata@genetek.co.id',
-                    'Rossiana': 'rossiana.yl@genetek.co.id',
-                    'Galih': 'galih@genetek.co.id',
-                    'Maida': 'maida@genetek.co.id'
-                };
+                const currentUserName = currentUserEmail ? emailToNameMap[currentUserEmail] : null;
 
                 pendingRequests.forEach((request, index) => {
                     const requestElement = document.createElement('div');
                     requestElement.className = 'request-item';
-                    requestElement.style.flexDirection = 'column'; // Ubah layout untuk ceklis
+                    requestElement.style.flexDirection = 'column';
                     requestElement.style.alignItems = 'flex-start';
                     requestElement.style.gap = '10px';
+                    
+                    // Cek apakah request sudah disetujui oleh semua approver
+                    const allApproved = approvers.every(approver => 
+                        request.approvedBy && request.approvedBy.includes(approver)
+                    );
+                    
                     requestElement.innerHTML = `
                         <div class="request-info" style="width: 100%;">
                             <div class="request-title">${request.judul || getRequestTitle(formType, request)}</div>
@@ -1648,10 +1572,9 @@
                             <label style="font-weight: 600; margin-bottom: 5px;">Disetujui Oleh:</label>
                             <div class="approver-checkboxes" style="display: flex; flex-wrap: wrap; gap: 15px;">
                                 ${approvers.map(approver => {
-                                    const approverEmail = approverEmailMap[approver];
-                                    const isCurrentUserApprover = (currentUserEmail === approverEmail);
+                                    const isCurrentUserApprover = (currentUserName === approver);
                                     const isChecked = request.approvedBy && request.approvedBy.includes(approver);
-                                    const isDisabled = !isCurrentUserApprover; // Nonaktifkan jika bukan pengguna yang login
+                                    const isDisabled = !isCurrentUserApprover;
 
                                     return `
                                         <div style="display: flex; align-items: center; gap: 5px;">
@@ -1665,10 +1588,11 @@
                                     `;
                                 }).join('')}
                             </div>
-                            <div style="margin-top: 15px; display: flex; gap: 10px;">
-                                <!-- Tombol Setujui/Tolak hanya aktif jika pengguna adalah salah satu approver yang diizinkan -->
-                                <button class="btn btn-primary btn-sm approve-btn" data-request-id="${request.id}" data-status="approved" ${currentUserEmail && Object.values(approverEmailMap).includes(currentUserEmail) ? '' : 'disabled'}><i class="fas fa-check"></i> Setujui</button>
-                                <button class="btn btn-danger btn-sm reject-btn" data-request-id="${request.id}" data-status="rejected" ${currentUserEmail && Object.values(approverEmailMap).includes(currentUserEmail) ? '' : 'disabled'}><i class="fas fa-times"></i> Tolak</button>
+                            <div style="margin-top: 15px;">
+                                ${allApproved ? 
+                                    '<div class="request-status status-approved" style="display: inline-block;">Sudah Disetujui Semua</div>' : 
+                                    '<div class="request-status status-pending" style="display: inline-block;">Menunggu Persetujuan</div>'
+                                }
                             </div>
                         </div>
                     `;
@@ -1682,11 +1606,12 @@
                 approvedByListContainer.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
                     checkbox.addEventListener('change', function() {
                         const requestId = parseInt(this.dataset.requestId);
-                        const approverName = this.dataset.approver; // Nama approver dari data-approver
-                        const approverEmail = approverEmailMap[approverName]; // Dapatkan email dari nama
+                        const approverName = this.dataset.approver;
+                        const currentUserEmail = auth.currentUser ? auth.currentUser.email : null;
+                        const currentUserName = currentUserEmail ? emailToNameMap[currentUserEmail] : null;
 
                         // Pastikan hanya pengguna yang login yang dapat mengubah checkbox mereka sendiri
-                        if (auth.currentUser && auth.currentUser.email === approverEmail) {
+                        if (currentUserName === approverName) {
                             const currentRequests = JSON.parse(localStorage.getItem(`requests_${formType}`) || '[]');
                             const requestIndex = currentRequests.findIndex(req => req.id === requestId);
 
@@ -1701,9 +1626,22 @@
                                 } else {
                                     currentRequests[requestIndex].approvedBy = currentRequests[requestIndex].approvedBy.filter(a => a !== approverName);
                                 }
+                                
+                                // Cek apakah semua approver sudah menyetujui
+                                const allApproved = approvers.every(approver => 
+                                    currentRequests[requestIndex].approvedBy.includes(approver)
+                                );
+                                
+                                // Jika semua sudah menyetujui, ubah status menjadi approved
+                                if (allApproved) {
+                                    currentRequests[requestIndex].status = 'approved';
+                                }
+                                
                                 localStorage.setItem(`requests_${formType}`, JSON.stringify(currentRequests));
-                                // TODO: Update Firestore here if you're using it for real-time data
-                                // db.collection('requests_laptop').doc(requestId).update({ approvedBy: currentRequests[requestIndex].approvedBy });
+                                
+                                // Muat ulang daftar untuk update real-time
+                                loadApprovedByRequests(formType);
+                                loadRequests(formType);
                             }
                         } else {
                             // Jika ada upaya untuk mengubah checkbox yang bukan miliknya, kembalikan ke status semula
@@ -1712,39 +1650,31 @@
                         }
                     });
                 });
+            }
 
-                // Event listener untuk tombol Setujui/Tolak
-                approvedByListContainer.querySelectorAll('.approve-btn, .reject-btn').forEach(button => {
-                    button.addEventListener('click', function() {
-                        // Hanya izinkan jika pengguna yang login adalah salah satu approver yang diizinkan
-                        const currentUserEmail = auth.currentUser ? auth.currentUser.email : null;
-                        const isAllowedToApprove = Object.values(approverEmailMap).includes(currentUserEmail);
-
-                        if (isAllowedToApprove) {
-                            const requestId = parseInt(this.dataset.requestId);
-                            const newStatus = this.dataset.status;
-                            updateRequestStatus(formType, requestId, newStatus);
-                            // TODO: Update Firestore here if you're using it for real-time data
-                            // db.collection('requests_laptop').doc(requestId).update({ status: newStatus });
-                        } else {
-                            alert("Anda tidak memiliki izin untuk menyetujui atau menolak request.");
+            // Fungsi untuk refresh data secara berkala (simulasi real-time)
+            function startRealTimeUpdates() {
+                setInterval(() => {
+                    const activeFormSection = document.querySelector('.form-section.active');
+                    if (activeFormSection) {
+                        const formType = activeFormSection.id.replace('form-', '');
+                        const activeTab = activeFormSection.querySelector('.form-tab.active');
+                        
+                        if (activeTab && activeTab.dataset.tab === 'approved-by' && formType === 'laptop') {
+                            loadApprovedByRequests(formType);
+                        } else if (activeTab && activeTab.dataset.tab === 'requests') {
+                            loadRequests(formType);
                         }
-                    });
-                });
+                    }
+                }, 3000); // Refresh setiap 3 detik
             }
 
-            // Fungsi untuk memperbarui status request
-            function updateRequestStatus(formType, requestId, newStatus) {
-                let currentRequests = JSON.parse(localStorage.getItem(`requests_${formType}`) || '[]');
-                const requestIndex = currentRequests.findIndex(req => req.id === requestId);
-
-                if (requestIndex > -1) {
-                    currentRequests[requestIndex].status = newStatus;
-                    localStorage.setItem(`requests_${formType}`, JSON.stringify(currentRequests));
-                    loadApprovedByRequests(formType); // Muat ulang daftar setelah perubahan
-                    loadRequests(formType); // Muat ulang juga daftar request utama
+            // Panggil fungsi real-time updates setelah login
+            auth.onAuthStateChanged(user => {
+                if (user) {
+                    startRealTimeUpdates();
                 }
-            }
+            });
             
             // Helper function to get form title
             function getFormTitle(formType) {
@@ -1790,14 +1720,6 @@
                 }
             }
             
-            // Navigation event listeners (hanya untuk cards, nav links di header dihapus)
-            // navLinks.forEach(link => { // Tidak lagi digunakan
-            //     link.addEventListener('click', function(e) {
-            //         e.preventDefault();
-            //         showSection(this.dataset.target);
-            //     });
-            // });
-            
             // Card event listeners
             cards.forEach(card => {
                 card.addEventListener('click', function() {
@@ -1819,12 +1741,6 @@
                     showFormTab(formId, this.dataset.tab);
                 });
             });
-            
-            // Hamburger menu toggle (tidak lagi diperlukan)
-            // hamburger.addEventListener('click', function() {
-            //     navMenu.classList.toggle('show');
-            //     this.classList.toggle('active');
-            // });
             
             // Form submission handlers
             Object.keys(forms).forEach(formKey => {
@@ -1851,7 +1767,7 @@
                         
                         // Store form data
                         const existingRequests = JSON.parse(localStorage.getItem(`requests_${formKey}`) || '[]');
-                        existingRequests.unshift(formObject); // Add to the beginning
+                        existingRequests.unshift(formObject);
                         localStorage.setItem(`requests_${formKey}`, JSON.stringify(existingRequests));
                         
                         // Hide form and show confirmation
@@ -1879,7 +1795,7 @@
             document.querySelectorAll('[id^="refresh-"]').forEach(button => {
                 button.addEventListener('click', function() {
                     const formType = this.id.replace('refresh-', '');
-                    if (formType.includes('approved')) { // Handle refresh for approved-by tab
+                    if (formType.includes('approved')) {
                         loadApprovedByRequests(formType.replace('-approved', ''));
                     } else {
                         loadRequests(formType);
@@ -1912,18 +1828,6 @@
                             jenis: 'Kertas',
                             detail: '5 rim kertas A4 80gr',
                             alasan: 'Untuk kebutuhan cetak dokumen bulanan'
-                        },
-                        {
-                            id: 2,
-                            status: 'pending',
-                            judul: 'Permintaan Pena',
-                            nama: 'Sari Dewi',
-                            department: 'HR',
-                            tanggal: '16/11/2023',
-                            waktu: '14:20',
-                            jenis: 'Pena/Pensil',
-                            detail: '2 lusin pena biru dan 1 lusin pena hitam',
-                            alasan: 'Stok pena di department habis'
                         }
                     ],
                     idcard: [
@@ -1971,21 +1875,7 @@
                             spesifikasi: 'Core i7, RAM 16GB, SSD 512GB',
                             'merk-model': '',
                             'masalah-kebutuhan': 'Untuk karyawan baru di divisi IT',
-                            approvedBy: ['Renata'] // Contoh: Renata sudah menyetujui
-                        },
-                        {
-                            id: 8,
-                            status: 'pending',
-                            judul: 'Permintaan Perbaikan Laptop',
-                            nama: 'Joko Susilo',
-                            department: 'HR',
-                            tanggal: '22/11/2023',
-                            waktu: '10:00',
-                            'jenis-request': 'Perbaikan',
-                            spesifikasi: '',
-                            'merk-model': 'HP ProBook',
-                            'masalah-kebutuhan': 'Layar berkedip-kedip',
-                            approvedBy: [] // Belum ada yang menyetujui
+                            approvedBy: ['Renata']
                         }
                     ],
                     kartunama: [
