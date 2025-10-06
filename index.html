@@ -646,11 +646,31 @@
         body.login-active footer {
             display: none;
         }
+
+        /* Styling untuk approved-by section */
+        .approver-checkboxes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .approver-option {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
     </style>
 </head>
 <body>
     <!-- Login Page -->
-    <div id="login-page" class="login-container active">
+    <div id="login-page" class="login-container">
         <div class="login-card">
             <div class="logo">
                 <div class="logo-icon">
@@ -701,7 +721,7 @@
 
     <main class="container">
         <!-- Dashboard Section -->
-        <section id="dashboard" class="dashboard active">
+        <section id="dashboard" class="dashboard">
             <div class="card" data-target="form-atk">
                 <div class="card-icon"><i class="fas fa-pencil-alt"></i></div>
                 <h3 class="card-title">Form Request ATK</h3>
@@ -1349,14 +1369,18 @@
                 }
             }
 
-            // Check authentication state
+            // Check authentication state - FIXED: Handle page reload properly
+            let authChecked = false;
             auth.onAuthStateChanged(user => {
-                if (user) {
-                    console.log("User logged in:", user.email || "Guest");
-                    toggleLoginState(true, user);
-                } else {
-                    console.log("User logged out");
-                    toggleLoginState(false);
+                if (!authChecked) {
+                    authChecked = true;
+                    if (user) {
+                        console.log("User logged in:", user.email || "Guest");
+                        toggleLoginState(true, user);
+                    } else {
+                        console.log("User logged out");
+                        toggleLoginState(false);
+                    }
                 }
             });
 
@@ -1520,7 +1544,7 @@
                 });
             }
 
-            // Fungsi untuk memuat daftar request yang perlu disetujui
+            // Fungsi untuk memuat daftar request yang perlu disetujui - FIXED: Tidak berkedip lagi
             function loadApprovedByRequests(formType) {
                 const approvedByListContainer = document.getElementById(`${formType}-approved-by-list`);
                 const requests = JSON.parse(localStorage.getItem(`requests_${formType}`) || '[]');
@@ -1545,16 +1569,16 @@
                 const currentUserName = currentUserEmail ? emailToNameMap[currentUserEmail] : null;
 
                 pendingRequests.forEach((request, index) => {
+                    // Cek apakah request sudah disetujui oleh semua approver
+                    const allApproved = approvers.every(approver => 
+                        request.approvedBy && request.approvedBy.includes(approver)
+                    );
+                    
                     const requestElement = document.createElement('div');
                     requestElement.className = 'request-item';
                     requestElement.style.flexDirection = 'column';
                     requestElement.style.alignItems = 'flex-start';
                     requestElement.style.gap = '10px';
-                    
-                    // Cek apakah request sudah disetujui oleh semua approver
-                    const allApproved = approvers.every(approver => 
-                        request.approvedBy && request.approvedBy.includes(approver)
-                    );
                     
                     requestElement.innerHTML = `
                         <div class="request-info" style="width: 100%;">
@@ -1566,39 +1590,39 @@
                                 ${request.spesifikasi ? `<div>Spesifikasi: ${request.spesifikasi}</div>` : ''}
                                 ${request['merk-model'] ? `<div>Merk/Model: ${request['merk-model']}</div>` : ''}
                                 <div>Deskripsi: ${request['masalah-kebutuhan']}</div>
+                                <div>Status Persetujuan: ${allApproved ? 'Sudah disetujui semua' : 'Menunggu persetujuan'}</div>
                             </div>
                         </div>
                         <div class="approved-by-options" style="width: 100%; border-top: 1px solid var(--border); padding-top: 10px; margin-top: 10px;">
-                            <label style="font-weight: 600; margin-bottom: 5px;">Disetujui Oleh:</label>
-                            <div class="approver-checkboxes" style="display: flex; flex-wrap: wrap; gap: 15px;">
+                            <label style="font-weight: 600; margin-bottom: 5px;">Status Persetujuan:</label>
+                            <div class="approver-checkboxes">
                                 ${approvers.map(approver => {
                                     const isCurrentUserApprover = (currentUserName === approver);
                                     const isChecked = request.approvedBy && request.approvedBy.includes(approver);
-                                    const isDisabled = !isCurrentUserApprover;
 
                                     return `
-                                        <div style="display: flex; align-items: center; gap: 5px;">
+                                        <div class="approver-option">
                                             <input type="checkbox" id="approve-${request.id}-${approver}"
                                                 data-request-id="${request.id}"
                                                 data-approver="${approver}"
                                                 ${isChecked ? 'checked' : ''}
-                                                ${isDisabled ? 'disabled' : ''}>
+                                                ${!isCurrentUserApprover ? 'disabled' : ''}>
                                             <label for="approve-${request.id}-${approver}" style="margin-bottom: 0;">${approver}</label>
                                         </div>
                                     `;
                                 }).join('')}
                             </div>
-                            <div style="margin-top: 15px;">
-                                ${allApproved ? 
-                                    '<div class="request-status status-approved" style="display: inline-block;">Sudah Disetujui Semua</div>' : 
-                                    '<div class="request-status status-pending" style="display: inline-block;">Menunggu Persetujuan</div>'
-                                }
+                            <div class="action-buttons">
+                                <button class="btn btn-primary btn-sm approve-btn" data-request-id="${request.id}" ${!currentUserName ? 'disabled' : ''}>
+                                    <i class="fas fa-check"></i> Setujui
+                                </button>
+                                <button class="btn btn-danger btn-sm reject-btn" data-request-id="${request.id}" ${!currentUserName ? 'disabled' : ''}>
+                                    <i class="fas fa-times"></i> Tolak
+                                </button>
                             </div>
                         </div>
                     `;
 
-                    // Add animation delay based on index
-                    requestElement.style.animationDelay = `${index * 0.1}s`;
                     approvedByListContainer.appendChild(requestElement);
                 });
 
@@ -1610,51 +1634,98 @@
                         const currentUserEmail = auth.currentUser ? auth.currentUser.email : null;
                         const currentUserName = currentUserEmail ? emailToNameMap[currentUserEmail] : null;
 
-                        // Pastikan hanya pengguna yang login yang dapat mengubah checkbox mereka sendiri
                         if (currentUserName === approverName) {
-                            const currentRequests = JSON.parse(localStorage.getItem(`requests_${formType}`) || '[]');
-                            const requestIndex = currentRequests.findIndex(req => req.id === requestId);
+                            updateApprovalStatus(formType, requestId, approverName, this.checked);
+                        }
+                    });
+                });
 
+                // Event listener untuk tombol Setujui
+                approvedByListContainer.querySelectorAll('.approve-btn').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const requestId = parseInt(this.dataset.requestId);
+                        const currentUserEmail = auth.currentUser ? auth.currentUser.email : null;
+                        const currentUserName = currentUserEmail ? emailToNameMap[currentUserEmail] : null;
+                        
+                        if (currentUserName) {
+                            // Setujui request dan centang checkbox user saat ini
+                            updateApprovalStatus(formType, requestId, currentUserName, true);
+                            
+                            // Cek apakah semua sudah menyetujui
+                            const requests = JSON.parse(localStorage.getItem(`requests_${formType}`) || '[]');
+                            const requestIndex = requests.findIndex(req => req.id === requestId);
+                            
                             if (requestIndex > -1) {
-                                if (!currentRequests[requestIndex].approvedBy) {
-                                    currentRequests[requestIndex].approvedBy = [];
-                                }
-                                if (this.checked) {
-                                    if (!currentRequests[requestIndex].approvedBy.includes(approverName)) {
-                                        currentRequests[requestIndex].approvedBy.push(approverName);
-                                    }
-                                } else {
-                                    currentRequests[requestIndex].approvedBy = currentRequests[requestIndex].approvedBy.filter(a => a !== approverName);
-                                }
-                                
-                                // Cek apakah semua approver sudah menyetujui
                                 const allApproved = approvers.every(approver => 
-                                    currentRequests[requestIndex].approvedBy.includes(approver)
+                                    requests[requestIndex].approvedBy && requests[requestIndex].approvedBy.includes(approver)
                                 );
                                 
-                                // Jika semua sudah menyetujui, ubah status menjadi approved
                                 if (allApproved) {
-                                    currentRequests[requestIndex].status = 'approved';
+                                    requests[requestIndex].status = 'approved';
+                                    localStorage.setItem(`requests_${formType}`, JSON.stringify(requests));
                                 }
-                                
-                                localStorage.setItem(`requests_${formType}`, JSON.stringify(currentRequests));
-                                
-                                // Muat ulang daftar untuk update real-time
-                                loadApprovedByRequests(formType);
-                                loadRequests(formType);
                             }
-                        } else {
-                            // Jika ada upaya untuk mengubah checkbox yang bukan miliknya, kembalikan ke status semula
-                            this.checked = !this.checked;
-                            alert("Anda hanya dapat mengubah status persetujuan Anda sendiri.");
                         }
+                    });
+                });
+
+                // Event listener untuk tombol Tolak
+                approvedByListContainer.querySelectorAll('.reject-btn').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const requestId = parseInt(this.dataset.requestId);
+                        updateRequestStatus(formType, requestId, 'rejected');
                     });
                 });
             }
 
-            // Fungsi untuk refresh data secara berkala (simulasi real-time)
+            // Fungsi untuk memperbarui status persetujuan
+            function updateApprovalStatus(formType, requestId, approverName, isApproved) {
+                const currentRequests = JSON.parse(localStorage.getItem(`requests_${formType}`) || '[]');
+                const requestIndex = currentRequests.findIndex(req => req.id === requestId);
+
+                if (requestIndex > -1) {
+                    if (!currentRequests[requestIndex].approvedBy) {
+                        currentRequests[requestIndex].approvedBy = [];
+                    }
+                    
+                    if (isApproved) {
+                        if (!currentRequests[requestIndex].approvedBy.includes(approverName)) {
+                            currentRequests[requestIndex].approvedBy.push(approverName);
+                        }
+                    } else {
+                        currentRequests[requestIndex].approvedBy = currentRequests[requestIndex].approvedBy.filter(a => a !== approverName);
+                    }
+                    
+                    localStorage.setItem(`requests_${formType}`, JSON.stringify(currentRequests));
+                    
+                    // Muat ulang daftar untuk update
+                    loadApprovedByRequests(formType);
+                    loadRequests(formType);
+                }
+            }
+
+            // Fungsi untuk memperbarui status request
+            function updateRequestStatus(formType, requestId, newStatus) {
+                const currentRequests = JSON.parse(localStorage.getItem(`requests_${formType}`) || '[]');
+                const requestIndex = currentRequests.findIndex(req => req.id === requestId);
+
+                if (requestIndex > -1) {
+                    currentRequests[requestIndex].status = newStatus;
+                    localStorage.setItem(`requests_${formType}`, JSON.stringify(currentRequests));
+                    loadApprovedByRequests(formType);
+                    loadRequests(formType);
+                }
+            }
+
+            // Fungsi untuk refresh data secara berkala - FIXED: Tidak berkedip
+            let refreshInterval;
             function startRealTimeUpdates() {
-                setInterval(() => {
+                // Hentikan interval sebelumnya jika ada
+                if (refreshInterval) {
+                    clearInterval(refreshInterval);
+                }
+                
+                refreshInterval = setInterval(() => {
                     const activeFormSection = document.querySelector('.form-section.active');
                     if (activeFormSection) {
                         const formType = activeFormSection.id.replace('form-', '');
@@ -1666,13 +1737,17 @@
                             loadRequests(formType);
                         }
                     }
-                }, 3000); // Refresh setiap 3 detik
+                }, 5000); // Refresh setiap 5 detik (lebih lama untuk menghindari kedipan)
             }
 
             // Panggil fungsi real-time updates setelah login
             auth.onAuthStateChanged(user => {
                 if (user) {
                     startRealTimeUpdates();
+                } else {
+                    if (refreshInterval) {
+                        clearInterval(refreshInterval);
+                    }
                 }
             });
             
