@@ -812,7 +812,7 @@
         <!-- Form Request ATK -->
         <section id="form-atk" class="form-section">
             <div class="form-header">
-                <h2 class="form-title"><i class="fas fa-pencil-alt"></i> Form Request Alat Tulis Kantor (ATK)</h2>
+                <h2 class="form-title"><i class="fas fa-pencil-alt"></i> Form Request GA</h2>
             </div>
             
             <div class="form-tabs">
@@ -837,25 +837,23 @@
                             <input type="date" id="atk-tanggal" name="tanggal" required>
                         </div>
                         <div class="form-group">
-                            <label for="atk-jenis">Jenis ATK</label>
+                            <label for="atk-jenis">Kategori Permintaan</label>
                             <select id="atk-jenis" name="jenis" required>
-                                <option value="">Pilih Jenis ATK</option>
-                                <option value="Kertas">Kertas</option>
-                                <option value="Pena/Pensil">Pena/Pensil</option>
-                                <option value="Binder/Map">Binder/Map</option>
-                                <option value="Stationery Lainnya">Stationery Lainnya</option>
+                                <option value="">Pilih Kategori</option>
+                                <option value="Kertas">Jasa</option>
+                                <option value="Pena/Pensil">Barang</option>
                             </select>
                         </div>
                     </div>
                     
                     <div class="form-group">
                         <label for="atk-detail">Detail Permintaan</label>
-                        <textarea id="atk-detail" name="detail" placeholder="Jelaskan detail ATK yang diperlukan, termasuk jumlah dan spesifikasi" required></textarea>
+                        <textarea id="atk-detail" name="detail" placeholder="Jelaskan detail yang diperlukan, termasuk jumlah dan spesifikasi" required></textarea>
                     </div>
                     
                     <div class="form-group">
                         <label for="atk-alasan">Alasan Kebutuhan</label>
-                        <textarea id="atk-alasan" name="alasan" placeholder="Jelaskan alasan dan urgensi kebutuhan ATK ini" required></textarea>
+                        <textarea id="atk-alasan" name="alasan" placeholder="Jelaskan alasan dan urgensi kebutuhan ini" required></textarea>
                     </div>
                     
                     <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Ajukan Permintaan</button>
@@ -864,13 +862,13 @@
                 
                 <div id="atk-confirmation" class="confirmation">
                     <div class="confirmation-icon"><i class="fas fa-check-circle"></i></div>
-                    <h3>Permintaan ATK Berhasil Diajukan!</h3>
-                    <p>Terima kasih telah mengajukan permintaan ATK. Tim General Affair akan segera memproses permintaan Anda.</p>
+                    <h3>Permintaan GA Berhasil Diajukan!</h3>
+                    <p>Terima kasih telah mengajukan permintaan GA. Tim General Affair akan segera memproses permintaan Anda.</p>
                 </div>
                 
                 <div id="atk-requests" class="requests-list">
                     <div class="requests-header">
-                        <h3 class="requests-title">Daftar Request ATK</h3>
+                        <h3 class="requests-title">Daftar Request GA</h3>
                         <button class="btn btn-primary" id="refresh-atk"><i class="fas fa-sync-alt"></i> Refresh</button>
                     </div>
                     
@@ -884,7 +882,7 @@
 
                 <div id="atk-approved-by" class="requests-list">
                     <div class="requests-header">
-                        <h3 class="requests-title">Persetujuan Request ATK</h3>
+                        <h3 class="requests-title">Persetujuan Request GA</h3>
                         <button class="btn btn-primary" id="refresh-atk-approved"><i class="fas fa-sync-alt"></i> Refresh</button>
                     </div>
                     <div id="atk-approved-by-list">
