@@ -475,19 +475,19 @@
         footer {
             background-color: var(--dark);
             color: white;
-            padding: 1rem 0;
+            padding: 1rem 0; /* Dikurangi dari 2rem menjadi 1rem */
             text-align: center;
-            margin-top: 2rem;
+            margin-top: 2rem; /* Dikurangi dari 40px menjadi 2rem */
         }
 
         .footer-content {
             display: flex;
             flex-direction: column;
-            gap: 0.5rem;
+            gap: 0.5rem; /* Dikurangi dari 1rem menjadi 0.5rem */
         }
 
         .footer-links {
-            display: none;
+            display: none; /* Sembunyikan footer links */
         }
 
         .footer-content p {
@@ -525,7 +525,7 @@
             }
 
             footer {
-                padding: 0.8rem 0;
+                padding: 0.8rem 0; /* Lebih tipis di mobile */
             }
             
             .footer-content p {
@@ -772,10 +772,10 @@
     <main class="container" style="display: none;">
         <!-- Dashboard Section -->
         <section id="dashboard" class="dashboard">
-            <div class="card" data-target="form-ga">
-                <div class="card-icon"><i class="fas fa-tools"></i></div>
-                <h3 class="card-title">Form Request GA</h3>
-                <p class="card-desc">Ajukan permintaan layanan General Affair untuk kebutuhan kantor</p>
+            <div class="card" data-target="form-atk">
+                <div class="card-icon"><i class="fas fa-pencil-alt"></i></div>
+                <h3 class="card-title">Form Request ATK</h3>
+                <p class="card-desc">Ajukan permintaan alat tulis kantor untuk kebutuhan pekerjaan</p>
             </div>
             
             <div class="card" data-target="form-idcard">
@@ -790,10 +790,10 @@
                 <p class="card-desc">Ajukan kebutuhan konsumsi untuk meeting atau acara perusahaan</p>
             </div>
             
-            <div class="card" data-target="form-it">
+            <div class="card" data-target="form-laptop">
                 <div class="card-icon"><i class="fas fa-laptop"></i></div>
-                <h3 class="card-title">Form Request IT</h3>
-                <p class="card-desc">Ajukan permintaan atau perbaikan perangkat IT dan teknologi</p>
+                <h3 class="card-title">Form Request Laptop</h3>
+                <p class="card-desc">Ajukan permintaan atau perbaikan perangkat laptop</p>
             </div>
             
             <div class="card" data-target="form-kartu-nama">
@@ -809,74 +809,72 @@
             </div>
         </section>
 
-        <!-- Form Request GA -->
-        <section id="form-ga" class="form-section">
+        <!-- Form Request ATK -->
+        <section id="form-atk" class="form-section">
             <div class="form-header">
-                <h2 class="form-title"><i class="fas fa-tools"></i> Form Request General Affair</h2>
+                <h2 class="form-title"><i class="fas fa-pencil-alt"></i> Form Request Alat Tulis Kantor (ATK)</h2>
             </div>
             
             <div class="form-tabs">
                 <div class="form-tab active" data-tab="form">Form Request</div>
-                <div class="form-tab" data-tab="requests" id="ga-requests-tab">Daftar Request</div>
-                <div class="form-tab" data-tab="approved-by" id="ga-approved-tab">Approved By</div>
+                <div class="form-tab" data-tab="requests" id="atk-requests-tab">Daftar Request</div>
+                <div class="form-tab" data-tab="approved-by" id="atk-approved-tab">Approved By</div>
             </div>
             
             <div class="form-content">
-                <form id="gaForm">
+                <form id="atkForm">
                     <div class="form-grid">
                         <div class="form-group">
-                            <label for="ga-nama">Nama Pemohon</label>
-                            <input type="text" id="ga-nama" name="nama" required>
+                            <label for="atk-nama">Nama Pemohon</label>
+                            <input type="text" id="atk-nama" name="nama" required>
                         </div>
                         <div class="form-group">
-                            <label for="ga-department">Department</label>
-                            <input type="text" id="ga-department" name="department" required>
+                            <label for="atk-department">Department</label>
+                            <input type="text" id="atk-department" name="department" required>
                         </div>
                         <div class="form-group">
-                            <label for="ga-tanggal">Tanggal Permintaan</label>
-                            <input type="date" id="ga-tanggal" name="tanggal" required>
+                            <label for="atk-tanggal">Tanggal Permintaan</label>
+                            <input type="date" id="atk-tanggal" name="tanggal" required>
                         </div>
                         <div class="form-group">
-                            <label for="ga-jenis">Jenis Layanan GA</label>
-                            <select id="ga-jenis" name="jenis" required>
-                                <option value="">Pilih Jenis Layanan</option>
-                                <option value="Kebersihan">Kebersihan</option>
-                                <option value="Pemeliharaan">Pemeliharaan</option>
-                                <option value="Keamanan">Keamanan</option>
-                                <option value="Parkir">Parkir</option>
-                                <option value="Pengadaan Barang">Pengadaan Barang</option>
-                                <option value="Lainnya">Lainnya</option>
+                            <label for="atk-jenis">Jenis ATK</label>
+                            <select id="atk-jenis" name="jenis" required>
+                                <option value="">Pilih Jenis ATK</option>
+                                <option value="Kertas">Kertas</option>
+                                <option value="Pena/Pensil">Pena/Pensil</option>
+                                <option value="Binder/Map">Binder/Map</option>
+                                <option value="Stationery Lainnya">Stationery Lainnya</option>
                             </select>
                         </div>
                     </div>
                     
                     <div class="form-group">
-                        <label for="ga-detail">Detail Permintaan</label>
-                        <textarea id="ga-detail" name="detail" placeholder="Jelaskan detail layanan GA yang diperlukan" required></textarea>
+                        <label for="atk-detail">Detail Permintaan</label>
+                        <textarea id="atk-detail" name="detail" placeholder="Jelaskan detail ATK yang diperlukan, termasuk jumlah dan spesifikasi" required></textarea>
                     </div>
                     
                     <div class="form-group">
-                        <label for="ga-alasan">Alasan Kebutuhan</label>
-                        <textarea id="ga-alasan" name="alasan" placeholder="Jelaskan alasan dan urgensi kebutuhan layanan GA ini" required></textarea>
+                        <label for="atk-alasan">Alasan Kebutuhan</label>
+                        <textarea id="atk-alasan" name="alasan" placeholder="Jelaskan alasan dan urgensi kebutuhan ATK ini" required></textarea>
                     </div>
                     
                     <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Ajukan Permintaan</button>
                     <button type="button" class="btn btn-secondary back-button"><i class="fas fa-arrow-left"></i> Kembali ke Beranda</button>
                 </form>
                 
-                <div id="ga-confirmation" class="confirmation">
+                <div id="atk-confirmation" class="confirmation">
                     <div class="confirmation-icon"><i class="fas fa-check-circle"></i></div>
-                    <h3>Permintaan GA Berhasil Diajukan!</h3>
-                    <p>Terima kasih telah mengajukan permintaan GA. Tim General Affair akan segera memproses permintaan Anda.</p>
+                    <h3>Permintaan ATK Berhasil Diajukan!</h3>
+                    <p>Terima kasih telah mengajukan permintaan ATK. Tim General Affair akan segera memproses permintaan Anda.</p>
                 </div>
                 
-                <div id="ga-requests" class="requests-list">
+                <div id="atk-requests" class="requests-list">
                     <div class="requests-header">
-                        <h3 class="requests-title">Daftar Request GA</h3>
-                        <button class="btn btn-primary" id="refresh-ga"><i class="fas fa-sync-alt"></i> Refresh</button>
+                        <h3 class="requests-title">Daftar Request ATK</h3>
+                        <button class="btn btn-primary" id="refresh-atk"><i class="fas fa-sync-alt"></i> Refresh</button>
                     </div>
                     
-                    <div id="ga-requests-list">
+                    <div id="atk-requests-list">
                         <div class="empty-state">
                             <i class="fas fa-inbox"></i>
                             <p>Memuat data request...</p>
@@ -884,12 +882,12 @@
                     </div>
                 </div>
 
-                <div id="ga-approved-by" class="requests-list">
+                <div id="atk-approved-by" class="requests-list">
                     <div class="requests-header">
-                        <h3 class="requests-title">Persetujuan Request GA</h3>
-                        <button class="btn btn-primary" id="refresh-ga-approved"><i class="fas fa-sync-alt"></i> Refresh</button>
+                        <h3 class="requests-title">Persetujuan Request ATK</h3>
+                        <button class="btn btn-primary" id="refresh-atk-approved"><i class="fas fa-sync-alt"></i> Refresh</button>
                     </div>
-                    <div id="ga-approved-by-list">
+                    <div id="atk-approved-by-list">
                         <div class="empty-state">
                             <i class="fas fa-check-double"></i>
                             <p>Memuat data request...</p>
@@ -1023,8 +1021,8 @@
                     </div>
                     
                     <div class="form-group">
-                        <label for="konsumsi-keterangan">Keterangan Tambahan</label>
-                        <textarea id="konsumsi-keterangan" name="keterangan" placeholder="Jelaskan detail menu atau kebutuhan khusus lainnya"></textarea>
+                        <label for="konsumsi-detail">Detail Konsumsi & Keterangan</label>
+                        <textarea id="konsumsi-detail" name="detail" placeholder="Jelaskan detail menu, preferensi, atau alergi jika ada"></textarea>
                     </div>
                     
                     <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Ajukan Permintaan</button>
@@ -1034,7 +1032,7 @@
                 <div id="konsumsi-confirmation" class="confirmation">
                     <div class="confirmation-icon"><i class="fas fa-check-circle"></i></div>
                     <h3>Permintaan Konsumsi Berhasil Diajukan!</h3>
-                    <p>Tim General Affair akan segera memproses permintaan konsumsi untuk acara Anda.</p>
+                    <p>Tim General Affair akan segera menyiapkan konsumsi untuk acara Anda.</p>
                 </div>
                 
                 <div id="konsumsi-requests" class="requests-list">
@@ -1053,73 +1051,75 @@
             </div>
         </section>
 
-        <!-- Form Request IT -->
-        <section id="form-it" class="form-section">
+        <!-- Form Request Laptop -->
+        <section id="form-laptop" class="form-section">
             <div class="form-header">
-                <h2 class="form-title"><i class="fas fa-laptop"></i> Form Request IT</h2>
+                <h2 class="form-title"><i class="fas fa-laptop"></i> Form Request Laptop</h2>
             </div>
             
             <div class="form-tabs">
                 <div class="form-tab active" data-tab="form">Form Request</div>
-                <div class="form-tab" data-tab="requests" id="it-requests-tab">Daftar Request</div>
-                <div class="form-tab" data-tab="approved-by" id="it-approved-tab">Approved By</div>
+                <div class="form-tab" data-tab="requests" id="laptop-requests-tab">Daftar Request</div>
+                <div class="form-tab" data-tab="approved-by" id="laptop-approved-tab">Approved By</div>
             </div>
             
             <div class="form-content">
-                <form id="itForm">
+                <form id="laptopForm">
                     <div class="form-grid">
                         <div class="form-group">
-                            <label for="it-nama">Nama Pemohon</label>
-                            <input type="text" id="it-nama" name="nama" required>
+                            <label for="laptop-nama">Nama Pemohon</label>
+                            <input type="text" id="laptop-nama" name="nama" required>
                         </div>
                         <div class="form-group">
-                            <label for="it-department">Department</label>
-                            <input type="text" id="it-department" name="department" required>
+                            <label for="laptop-department">Department</label>
+                            <input type="text" id="laptop-department" name="department" required>
                         </div>
                         <div class="form-group">
-                            <label for="it-tanggal">Tanggal Permintaan</label>
-                            <input type="date" id="it-tanggal" name="tanggal" required>
+                            <label for="laptop-tanggal">Tanggal Permintaan</label>
+                            <input type="date" id="laptop-tanggal" name="tanggal" required>
                         </div>
                         <div class="form-group">
-                            <label for="it-jenis">Jenis Permintaan IT</label>
-                            <select id="it-jenis" name="jenis" required>
-                                <option value="">Pilih Jenis Permintaan</option>
-                                <option value="Hardware">Hardware</option>
-                                <option value="Software">Software</option>
-                                <option value="Jaringan">Jaringan</option>
+                            <label for="laptop-jenis-request">Jenis Request</label>
+                            <select id="laptop-jenis-request" name="jenis-request" required>
+                                <option value="">Pilih Jenis Request</option>
+                                <option value="Pengadaan Baru">Pengadaan Baru</option>
                                 <option value="Perbaikan">Perbaikan</option>
-                                <option value="Lainnya">Lainnya</option>
+                                <option value="Upgrade">Upgrade</option>
+                                <option value="Penggantian">Penggantian</option>
                             </select>
                         </div>
+                        <div class="form-group">
+                            <label for="laptop-spesifikasi">Spesifikasi Diinginkan (untuk pengadaan/upgrade)</label>
+                            <input type="text" id="laptop-spesifikasi" name="spesifikasi" placeholder="Contoh: Core i7, RAM 16GB, SSD 512GB">
+                        </div>
+                        <div class="form-group">
+                            <label for="laptop-merk-model">Merk/Model Laptop (untuk perbaikan/penggantian)</label>
+                            <input type="text" id="laptop-merk-model" name="merk-model" placeholder="Contoh: Dell Latitude 7420">
+                        </div>
                     </div>
                     
                     <div class="form-group">
-                        <label for="it-detail">Detail Permintaan</label>
-                        <textarea id="it-detail" name="detail" placeholder="Jelaskan detail perangkat IT yang diperlukan atau masalah yang dihadapi" required></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="it-alasan">Alasan Kebutuhan</label>
-                        <textarea id="it-alasan" name="alasan" placeholder="Jelaskan alasan dan urgensi kebutuhan perangkat IT ini" required></textarea>
+                        <label for="laptop-masalah-kebutuhan">Deskripsi Masalah / Kebutuhan</label>
+                        <textarea id="laptop-masalah-kebutuhan" name="masalah-kebutuhan" placeholder="Jelaskan masalah yang terjadi atau kebutuhan spesifik Anda" required></textarea>
                     </div>
                     
                     <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Ajukan Permintaan</button>
                     <button type="button" class="btn btn-secondary back-button"><i class="fas fa-arrow-left"></i> Kembali ke Beranda</button>
                 </form>
                 
-                <div id="it-confirmation" class="confirmation">
+                <div id="laptop-confirmation" class="confirmation">
                     <div class="confirmation-icon"><i class="fas fa-check-circle"></i></div>
-                    <h3>Permintaan IT Berhasil Diajukan!</h3>
-                    <p>Terima kasih telah mengajukan permintaan IT. Tim IT akan segera memproses permintaan Anda.</p>
+                    <h3>Permintaan Laptop Berhasil Diajukan!</h3>
+                    <p>Tim General Affair akan segera menindaklanjuti permintaan laptop Anda.</p>
                 </div>
                 
-                <div id="it-requests" class="requests-list">
+                <div id="laptop-requests" class="requests-list">
                     <div class="requests-header">
-                        <h3 class="requests-title">Daftar Request IT</h3>
-                        <button class="btn btn-primary" id="refresh-it"><i class="fas fa-sync-alt"></i> Refresh</button>
+                        <h3 class="requests-title">Daftar Request Laptop</h3>
+                        <button class="btn btn-primary" id="refresh-laptop"><i class="fas fa-sync-alt"></i> Refresh</button>
                     </div>
                     
-                    <div id="it-requests-list">
+                    <div id="laptop-requests-list">
                         <div class="empty-state">
                             <i class="fas fa-inbox"></i>
                             <p>Memuat data request...</p>
@@ -1127,12 +1127,12 @@
                     </div>
                 </div>
 
-                <div id="it-approved-by" class="requests-list">
+                <div id="laptop-approved-by" class="requests-list">
                     <div class="requests-header">
-                        <h3 class="requests-title">Persetujuan Request IT</h3>
-                        <button class="btn btn-primary" id="refresh-it-approved"><i class="fas fa-sync-alt"></i> Refresh</button>
+                        <h3 class="requests-title">Persetujuan Request Laptop</h3>
+                        <button class="btn btn-primary" id="refresh-laptop-approved"><i class="fas fa-sync-alt"></i> Refresh</button>
                     </div>
-                    <div id="it-approved-by-list">
+                    <div id="laptop-approved-by-list">
                         <div class="empty-state">
                             <i class="fas fa-check-double"></i>
                             <p>Memuat data request...</p>
@@ -1150,60 +1150,60 @@
             
             <div class="form-tabs">
                 <div class="form-tab active" data-tab="form">Form Request</div>
-                <div class="form-tab" data-tab="requests" id="kartu-nama-requests-tab">Daftar Request</div>
+                <div class="form-tab" data-tab="requests" id="kartunama-requests-tab">Daftar Request</div>
             </div>
             
             <div class="form-content">
-                <form id="kartuNamaForm">
+                <form id="kartunamaForm">
                     <div class="form-grid">
                         <div class="form-group">
-                            <label for="kartu-nama-nama">Nama Lengkap</label>
-                            <input type="text" id="kartu-nama-nama" name="nama" required>
+                            <label for="kartunama-nama">Nama Lengkap</label>
+                            <input type="text" id="kartunama-nama" name="nama" required>
                         </div>
                         <div class="form-group">
-                            <label for="kartu-nama-department">Department</label>
-                            <input type="text" id="kartu-nama-department" name="department" required>
+                            <label for="kartunama-department">Department</label>
+                            <input type="text" id="kartunama-department" name="department" required>
                         </div>
                         <div class="form-group">
-                            <label for="kartu-nama-posisi">Posisi</label>
-                            <input type="text" id="kartu-nama-posisi" name="posisi" required>
+                            <label for="kartunama-posisi">Posisi</label>
+                            <input type="text" id="kartunama-posisi" name="posisi" required>
                         </div>
                         <div class="form-group">
-                            <label for="kartu-nama-telepon">Nomor Telepon</label>
-                            <input type="tel" id="kartu-nama-telepon" name="telepon" required>
+                            <label for="kartunama-email">Email Kantor</label>
+                            <input type="email" id="kartunama-email" name="email" required>
                         </div>
                         <div class="form-group">
-                            <label for="kartu-nama-email">Email</label>
-                            <input type="email" id="kartu-nama-email" name="email" required>
+                            <label for="kartunama-telepon">Nomor Telepon Kantor</label>
+                            <input type="tel" id="kartunama-telepon" name="telepon" placeholder="Contoh: +6281234567890">
                         </div>
                         <div class="form-group">
-                            <label for="kartu-nama-jumlah">Jumlah Kartu Nama</label>
-                            <input type="number" id="kartu-nama-jumlah" name="jumlah" min="1" required>
+                            <label for="kartunama-jumlah">Jumlah Kartu Nama</label>
+                            <input type="number" id="kartunama-jumlah" name="jumlah" min="1" value="100" required>
                         </div>
                     </div>
                     
                     <div class="form-group">
-                        <label for="kartu-nama-keterangan">Keterangan Tambahan</label>
-                        <textarea id="kartu-nama-keterangan" name="keterangan" placeholder="Catatan khusus untuk desain atau informasi tambahan"></textarea>
+                        <label for="kartunama-keterangan">Keterangan Tambahan (misal: desain khusus, informasi tambahan)</label>
+                        <textarea id="kartunama-keterangan" name="keterangan" placeholder=""></textarea>
                     </div>
                     
                     <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Ajukan Permintaan</button>
                     <button type="button" class="btn btn-secondary back-button"><i class="fas fa-arrow-left"></i> Kembali ke Beranda</button>
                 </form>
                 
-                <div id="kartu-nama-confirmation" class="confirmation">
+                <div id="kartunama-confirmation" class="confirmation">
                     <div class="confirmation-icon"><i class="fas fa-check-circle"></i></div>
                     <h3>Permintaan Kartu Nama Berhasil Diajukan!</h3>
-                    <p>Tim General Affair akan segera memproses permintaan kartu nama Anda.</p>
+                    <p>Tim General Affair akan segera memproses pencetakan kartu nama Anda.</p>
                 </div>
                 
-                <div id="kartu-nama-requests" class="requests-list">
+                <div id="kartunama-requests" class="requests-list">
                     <div class="requests-header">
                         <h3 class="requests-title">Daftar Request Kartu Nama</h3>
-                        <button class="btn btn-primary" id="refresh-kartu-nama"><i class="fas fa-sync-alt"></i> Refresh</button>
+                        <button class="btn btn-primary" id="refresh-kartunama"><i class="fas fa-sync-alt"></i> Refresh</button>
                     </div>
                     
-                    <div id="kartu-nama-requests-list">
+                    <div id="kartunama-requests-list">
                         <div class="empty-state">
                             <i class="fas fa-inbox"></i>
                             <p>Memuat data request...</p>
@@ -1246,27 +1246,19 @@
                                 <option value="Layanan">Layanan</option>
                                 <option value="Fasilitas">Fasilitas</option>
                                 <option value="Proses">Proses</option>
-                                <option value="Personil">Personil</option>
                                 <option value="Lainnya">Lainnya</option>
                             </select>
                         </div>
                     </div>
                     
                     <div class="form-group">
-                        <label for="feedback-pesan">Pesan Feedback</label>
-                        <textarea id="feedback-pesan" name="pesan" placeholder="Jelaskan feedback, saran, atau masukan Anda untuk perbaikan layanan General Affair" required></textarea>
+                        <label for="feedback-masukan">Masukan dan Saran</label>
+                        <textarea id="feedback-masukan" name="masukan" placeholder="Berikan masukan dan saran untuk perbaikan layanan General Affair" required></textarea>
                     </div>
                     
                     <div class="form-group">
-                        <label for="feedback-rating">Rating Layanan GA</label>
-                        <select id="feedback-rating" name="rating" required>
-                            <option value="">Pilih Rating</option>
-                            <option value="Sangat Puas">Sangat Puas</option>
-                            <option value="Puas">Puas</option>
-                            <option value="Cukup">Cukup</option>
-                            <option value="Kurang Puas">Kurang Puas</option>
-                            <option value="Tidak Puas">Tidak Puas</option>
-                        </select>
+                        <label for="feedback-penilaian">Penilaian Layanan (1-10)</label>
+                        <input type="number" id="feedback-penilaian" name="penilaian" min="1" max="10" required>
                     </div>
                     
                     <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Kirim Feedback</button>
@@ -1276,7 +1268,7 @@
                 <div id="feedback-confirmation" class="confirmation">
                     <div class="confirmation-icon"><i class="fas fa-check-circle"></i></div>
                     <h3>Feedback Berhasil Dikirim!</h3>
-                    <p>Terima kasih atas feedback yang telah Anda berikan. Ini sangat berarti untuk perbaikan layanan General Affair.</p>
+                    <p>Terima kasih atas masukan Anda. Tim General Affair akan menindaklanjuti feedback ini.</p>
                 </div>
                 
                 <div id="feedback-requests" class="requests-list">
@@ -1294,652 +1286,884 @@
                 </div>
             </div>
         </section>
+
     </main>
 
+    <!-- FOOTER SEDERHANA -->
     <footer style="display: none;">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-links">
-                    <a href="#">Kebijakan Privasi</a>
-                    <a href="#">Syarat & Ketentuan</a>
-                    <a href="#">Bantuan</a>
-                </div>
-                <p>&copy; 2023 Aplikasi General Affair. Hak Cipta Dilindungi.</p>
-            </div>
+        <div class="container footer-content">
+            <p>&copy; 2023 General Affair System - Aplikasi Manajemen Kebutuhan Perusahaan</p>
         </div>
     </footer>
 
     <script>
-        // Firebase Configuration dari kode asli yang berfungsi
-        const firebaseConfig = {
-            apiKey: "AIzaSyDihA-hrOGbYojWc9WLwYFi207XoOtfjuU",
-            authDomain: "generalaffair-d18ce.firebaseapp.com",
-            projectId: "generalaffair-d18ce",
-            storageBucket: "generalaffair-d18ce.firebasestorage.app",
-            messagingSenderId: "726107738231",
-            appId: "1:726107738231:web:8385b1fa08994a2a06f672"
-        };
+        document.addEventListener('DOMContentLoaded', function() {
+            // Firebase Configuration
+            const firebaseConfig = {
+                apiKey: "AIzaSyDihA-hrOGbYojWc9WLwYFi207XoOtfjuU",
+                authDomain: "generalaffair-d18ce.firebaseapp.com",
+                projectId: "generalaffair-d18ce",
+                storageBucket: "generalaffair-d18ce.firebasestorage.app",
+                messagingSenderId: "726107738231",
+                appId: "1:726107738231:web:8385b1fa08994a2a06f672"
+            };
 
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+            // Initialize Firebase
+            firebase.initializeApp(firebaseConfig);
+            const auth = firebase.auth();
+            const db = firebase.firestore();
 
-        // Mapping email ke nama
-        const emailToNameMap = {
-            'galih@genetek.co.id': 'Galih',
-            'crenata@genetek.co.id': 'Renata',
-            'rossiana.yl@genetek.co.id': 'Rossiana',
-            'maida@genetek.co.id': 'Maida',
-            'ulandari@genetek.co.id': 'Ulan',
-        };
+            // Mapping email ke nama
+            const emailToNameMap = {
+                'galih@genetek.co.id': 'Galih',
+                'crenata@genetek.co.id': 'Renata',
+                'rossiana.yl@genetek.co.id': 'Rossiana',
+                'maida@genetek.co.id': 'Maida',
+                'ulandari@genetek.co.id': 'Ulan',
+            };
 
-        // DOM Elements
-        const loginPage = document.getElementById('login-page');
-        const loginForm = document.getElementById('login-form');
-        const guestLoginBtn = document.getElementById('guest-login-btn');
-        const loginError = document.getElementById('login-error');
-        const header = document.querySelector('header');
-        const main = document.querySelector('main');
-        const footer = document.querySelector('footer');
-        const userInfo = document.getElementById('user-info');
-        const userName = document.getElementById('user-name');
-        const userAvatar = document.getElementById('user-avatar');
-        const logoutBtn = document.getElementById('logout-btn');
-        const dashboard = document.getElementById('dashboard');
-        const formSections = document.querySelectorAll('.form-section');
-        const cards = document.querySelectorAll('.card');
-        const backButtons = document.querySelectorAll('.back-button');
-        const formTabs = document.querySelectorAll('.form-tab');
-        const confirmationMessages = document.querySelectorAll('.confirmation');
-        const requestsLists = document.querySelectorAll('.requests-list');
-
-        // Show custom alert
-        function showAlert(message, type = 'success') {
-            const alert = document.createElement('div');
-            alert.className = `custom-alert alert-${type}`;
-            alert.textContent = message;
-            document.body.appendChild(alert);
+            // Navigation handling
+            const cards = document.querySelectorAll('.card');
+            const sections = document.querySelectorAll('section');
+            const backButtons = document.querySelectorAll('.back-button');
             
-            setTimeout(() => {
-                alert.remove();
-            }, 3000);
-        }
-
-        // Login functionality
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
+            // Form elements
+            const forms = {
+                atk: document.getElementById('atkForm'),
+                idcard: document.getElementById('idcardForm'),
+                konsumsi: document.getElementById('konsumsiForm'),
+                laptop: document.getElementById('laptopForm'),
+                kartunama: document.getElementById('kartunamaForm'),
+                feedback: document.getElementById('feedbackForm')
+            };
             
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-
-            // Check if email is in allowed list
-            const allowedEmails = Object.keys(emailToNameMap);
-            if (!allowedEmails.includes(email)) {
-                loginError.textContent = "Email tidak terdaftar sebagai approver yang diizinkan.";
-                loginError.style.display = 'block';
-                return;
-            }
+            // Confirmation messages
+            const confirmations = {
+                atk: document.getElementById('atk-confirmation'),
+                idcard: document.getElementById('idcard-confirmation'),
+                konsumsi: document.getElementById('konsumsi-confirmation'),
+                laptop: document.getElementById('laptop-confirmation'),
+                kartunama: document.getElementById('kartunama-confirmation'),
+                feedback: document.getElementById('feedback-confirmation')
+            };
             
-            try {
-                const userCredential = await auth.signInWithEmailAndPassword(email, password);
-                const user = userCredential.user;
-                showAlert('Login berhasil!', 'success');
-                hideLoginPage();
-            } catch (error) {
-                console.error('Login error:', error);
-                loginError.textContent = 'Email atau password salah. Silakan coba lagi.';
-                loginError.style.display = 'block';
-            }
-        });
+            // Requests lists
+            const requestsLists = {
+                atk: document.getElementById('atk-requests'),
+                idcard: document.getElementById('idcard-requests'),
+                konsumsi: document.getElementById('konsumsi-requests'),
+                laptop: document.getElementById('laptop-requests'),
+                kartunama: document.getElementById('kartunama-requests'),
+                feedback: document.getElementById('feedback-requests'),
+                'laptop-approved-by': document.getElementById('laptop-approved-by'),
+                'atk-approved-by': document.getElementById('atk-approved-by')
+            };
 
-        // Guest login functionality
-        guestLoginBtn.addEventListener('click', async () => {
-            try {
-                await auth.signInAnonymously();
-                showAlert('Login sebagai tamu berhasil!', 'success');
-                hideLoginPage();
-            } catch (error) {
-                console.error('Guest login error:', error);
-                showAlert('Terjadi kesalahan saat login sebagai tamu', 'danger');
-            }
-        });
+            // Get all form tabs
+            const allFormTabs = document.querySelectorAll('.form-section .form-tab');
 
-        // Hide login page and show main content
-        function hideLoginPage() {
-            loginPage.classList.remove('active');
-            document.body.classList.remove('login-active');
-            header.style.display = 'block';
-            main.style.display = 'block';
-            footer.style.display = 'block';
-            userInfo.style.display = 'flex';
-            logoutBtn.style.display = 'block';
+            // Login elements
+            const loginPage = document.getElementById('login-page');
+            const loginForm = document.getElementById('login-form');
+            const loginEmail = document.getElementById('login-email');
+            const loginPassword = document.getElementById('login-password');
+            const guestLoginBtn = document.getElementById('guest-login-btn');
+            const loginError = document.getElementById('login-error');
+            const logoutBtn = document.getElementById('logout-btn');
+            const userInfo = document.getElementById('user-info');
+            const userName = document.getElementById('user-name');
+            const userAvatar = document.getElementById('user-avatar');
             
-            // Set user info
-            const user = auth.currentUser;
-            if (user) {
-                if (user.isAnonymous) {
-                    userName.textContent = 'Tamu';
-                    userAvatar.textContent = 'T';
+            // Function to show/hide login page and main content
+            function toggleLoginState(isLoggedIn, user = null) {
+                if (isLoggedIn && user) {
+                    // Hide login page, show main content
+                    loginPage.style.display = 'none';
+                    document.querySelector('header').style.display = 'block';
+                    document.querySelector('main').style.display = 'block';
+                    document.querySelector('footer').style.display = 'block';
                     
-                    // Hide request tabs for guest users
-                    document.querySelectorAll('[id$="-requests-tab"], [id$="-approved-tab"]').forEach(tab => {
-                        tab.style.display = 'none';
-                    });
+                    logoutBtn.style.display = 'inline-flex';
+                    
+                    // Tampilkan info user
+                    if (user.email) {
+                        const displayName = emailToNameMap[user.email] || user.email.split('@')[0];
+                        userName.textContent = displayName;
+                        userAvatar.textContent = displayName.charAt(0).toUpperCase();
+                        userInfo.style.display = 'flex';
+                        
+                        // Show all tabs for logged in users
+                        document.querySelectorAll('[id$="-requests-tab"], [id$="-approved-tab"]').forEach(tab => {
+                            tab.style.display = 'block';
+                        });
+                    } else {
+                        // Guest user - hide request tabs
+                        userName.textContent = 'Tamu';
+                        userAvatar.textContent = 'T';
+                        userInfo.style.display = 'flex';
+                        
+                        // Hide request tabs for guest users
+                        document.querySelectorAll('[id$="-requests-tab"], [id$="-approved-tab"]').forEach(tab => {
+                            tab.style.display = 'none';
+                        });
+                    }
+                    
+                    showSection('dashboard');
                 } else {
-                    userName.textContent = emailToNameMap[user.email] || user.email.split('@')[0];
-                    userAvatar.textContent = userName.textContent.charAt(0).toUpperCase();
+                    // Show login page, hide main content
+                    loginPage.style.display = 'flex';
+                    document.querySelector('header').style.display = 'none';
+                    document.querySelector('main').style.display = 'none';
+                    document.querySelector('footer').style.display = 'none';
                     
-                    // Show all tabs for logged in users
-                    document.querySelectorAll('[id$="-requests-tab"], [id$="-approved-tab"]').forEach(tab => {
-                        tab.style.display = 'block';
+                    logoutBtn.style.display = 'none';
+                    userInfo.style.display = 'none';
+                    
+                    // Reset login form
+                    loginForm.reset();
+                    loginError.style.display = 'none';
+                }
+            }
+
+            // Check authentication state
+            auth.onAuthStateChanged(user => {
+                console.log("Auth state changed:", user);
+                if (user) {
+                    console.log("User logged in:", user.email || "Guest");
+                    toggleLoginState(true, user);
+                } else {
+                    console.log("User logged out");
+                    toggleLoginState(false);
+                }
+            });
+
+            // Handle email/password login
+            if (loginForm) {
+                loginForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const email = loginEmail.value;
+                    const password = loginPassword.value;
+
+                    const allowedLoginEmails = [
+                        "crenata@genetek.co.id",
+                        "rossiana.yl@genetek.co.id",
+                        "galih@genetek.co.id",
+                        "maida@genetek.co.id",
+                        "ulandari@genetek.co.id",
+                    ];
+
+                    if (!allowedLoginEmails.includes(email)) {
+                        loginError.textContent = "Email tidak terdaftar sebagai approver yang diizinkan.";
+                        loginError.style.display = 'block';
+                        return;
+                    }
+
+                    // Show loading
+                    const submitBtn = loginForm.querySelector('button[type="submit"]');
+                    const originalText = submitBtn.innerHTML;
+                    submitBtn.innerHTML = '<div class="loading"></div> Login...';
+                    submitBtn.disabled = true;
+
+                    auth.signInWithEmailAndPassword(email, password)
+                        .then((userCredential) => {
+                            const user = userCredential.user;
+                            console.log("Login successful:", user.email);
+                            loginError.style.display = 'none';
+                            submitBtn.innerHTML = originalText;
+                            submitBtn.disabled = false;
+                        })
+                        .catch((error) => {
+                            const errorCode = error.code;
+                            const errorMessage = error.message;
+                            console.error("Login failed:", errorCode, errorMessage);
+                            loginError.textContent = "Login gagal: " + errorMessage;
+                            loginError.style.display = 'block';
+                            submitBtn.innerHTML = originalText;
+                            submitBtn.disabled = false;
+                        });
+                });
+            }
+
+            // Handle guest login dengan error handling yang lebih baik
+            if (guestLoginBtn) {
+                guestLoginBtn.addEventListener('click', function() {
+                    // Show loading
+                    const originalText = guestLoginBtn.innerHTML;
+                    guestLoginBtn.innerHTML = '<div class="loading"></div> Login...';
+                    guestLoginBtn.disabled = true;
+
+                    auth.signInAnonymously()
+                        .then((userCredential) => {
+                            console.log("Signed in as guest:", userCredential.user.uid);
+                            loginError.style.display = 'none';
+                            guestLoginBtn.innerHTML = originalText;
+                            guestLoginBtn.disabled = false;
+                            
+                            // Show success message
+                            showAlert('Login sebagai tamu berhasil!', 'success');
+                        })
+                        .catch((error) => {
+                            const errorCode = error.code;
+                            const errorMessage = error.message;
+                            console.error("Guest login failed:", errorCode, errorMessage);
+                            
+                            // User-friendly error messages
+                            let userFriendlyError = "Gagal masuk sebagai tamu. Silakan coba lagi.";
+                            if (errorCode === 'auth/admin-restricted-operation') {
+                                userFriendlyError = "Login tamu dinonaktifkan. Silakan hubungi administrator.";
+                            } else if (errorCode === 'auth/network-request-failed') {
+                                userFriendlyError = "Koneksi internet bermasalah. Periksa koneksi Anda.";
+                            }
+                            
+                            loginError.textContent = userFriendlyError;
+                            loginError.style.display = 'block';
+                            guestLoginBtn.innerHTML = originalText;
+                            guestLoginBtn.disabled = false;
+                        });
+                });
+            }
+
+            // Handle logout
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function() {
+                    // Show loading
+                    const originalText = logoutBtn.innerHTML;
+                    logoutBtn.innerHTML = '<div class="loading"></div> Logout...';
+                    logoutBtn.disabled = true;
+
+                    auth.signOut().then(() => {
+                        console.log("User signed out");
+                        logoutBtn.innerHTML = originalText;
+                        logoutBtn.disabled = false;
+                        // UI akan diupdate oleh auth state listener
+                    }).catch((error) => {
+                        console.error("Logout failed:", error);
+                        showAlert('Logout gagal', 'danger');
+                        logoutBtn.innerHTML = originalText;
+                        logoutBtn.disabled = false;
                     });
-                }
+                });
             }
-        }
-
-        // Logout functionality
-        logoutBtn.addEventListener('click', async () => {
-            try {
-                await auth.signOut();
-                showAlert('Logout berhasil!', 'success');
-                loginPage.classList.add('active');
-                document.body.classList.add('login-active');
-                header.style.display = 'none';
-                main.style.display = 'none';
-                footer.style.display = 'none';
-                userInfo.style.display = 'none';
-                logoutBtn.style.display = 'none';
-                
-                // Reset forms
-                document.querySelectorAll('form').forEach(form => form.reset());
-                formSections.forEach(section => section.classList.remove('active'));
-                dashboard.classList.add('fade-in');
-            } catch (error) {
-                console.error('Logout error:', error);
-                showAlert('Terjadi kesalahan saat logout', 'danger');
-            }
-        });
-
-        // Check auth state
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                hideLoginPage();
-            } else {
-                loginPage.classList.add('active');
-                document.body.classList.add('login-active');
-                header.style.display = 'none';
-                main.style.display = 'none';
-                footer.style.display = 'none';
-                userInfo.style.display = 'none';
-                logoutBtn.style.display = 'none';
-            }
-        });
-
-        // Navigation functionality
-        cards.forEach(card => {
-            card.addEventListener('click', () => {
-                const targetId = card.getAttribute('data-target');
-                dashboard.classList.remove('fade-in');
-                formSections.forEach(section => {
+            
+            // Show section based on target
+            function showSection(targetId) {
+                sections.forEach(section => {
                     section.classList.remove('active');
-                    if (section.id === targetId) {
-                        section.classList.add('active');
+                });
+                
+                document.getElementById(targetId).classList.add('active');
+                
+                // Show form tab by default when navigating to a form
+                if (targetId !== 'dashboard') {
+                    showFormTab(targetId.replace('form-', ''), 'form');
+                }
+            }
+            
+            // Show the appropriate tab (form or requests)
+            function showFormTab(formType, tabType) {
+                const currentFormSection = document.getElementById(`form-${formType}`);
+                if (!currentFormSection) return;
+
+                const formElement = currentFormSection.querySelector('form');
+                const confirmationElement = confirmations[formType];
+                const requestsElement = requestsLists[formType];
+                const approvedByElement = document.getElementById(`${formType}-approved-by`);
+                
+                // Update active tab
+                currentFormSection.querySelectorAll('.form-tab').forEach(tab => {
+                    tab.classList.remove('active');
+                    if (tab.dataset.tab === tabType) {
+                        tab.classList.add('active');
                     }
                 });
                 
-                // Reset form tabs to default
-                resetFormTabs(targetId);
-            });
-        });
+                // Sembunyikan semua konten tab terlebih dahulu
+                if (formElement) formElement.style.display = 'none';
+                if (confirmationElement) confirmationElement.style.display = 'none';
+                if (requestsElement) requestsElement.style.display = 'none';
+                if (approvedByElement) approvedByElement.style.display = 'none';
 
-        // Back to dashboard
-        backButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                formSections.forEach(section => section.classList.remove('active'));
-                dashboard.classList.add('fade-in');
-            });
-        });
-
-        // Form tabs functionality
-        formTabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                const parentSection = tab.closest('.form-section');
-                const tabType = tab.getAttribute('data-tab');
-                const formContent = parentSection.querySelector('.form-content');
-                const formType = parentSection.id.replace('form-', '');
+                // Cek jika user adalah tamu, jangan tampilkan daftar request
+                const currentUser = auth.currentUser;
+                const isGuest = !currentUser || currentUser.isAnonymous;
                 
-                // Reset all tabs in this section
-                parentSection.querySelectorAll('.form-tab').forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                
-                // Hide all content in this section
-                formContent.querySelectorAll('form, .confirmation, .requests-list').forEach(el => {
-                    el.classList.remove('active');
-                });
-                
-                // Show selected content
                 if (tabType === 'form') {
-                    formContent.querySelector('form').classList.add('active');
+                    if (formElement) formElement.style.display = 'block';
                 } else if (tabType === 'requests') {
-                    const requestsList = formContent.querySelector('.requests-list:not(#ga-approved-by):not(#it-approved-by)');
-                    if (requestsList) {
-                        requestsList.classList.add('active');
+                    if (requestsElement && !isGuest) {
+                        requestsElement.style.display = 'block';
                         loadRequests(formType);
+                    } else if (isGuest) {
+                        // Untuk tamu, tetap tampilkan form
+                        if (formElement) formElement.style.display = 'block';
+                        showAlert('Fitur ini tidak tersedia untuk tamu', 'warning');
                     }
-                } else if (tabType === 'approved-by') {
-                    const approvedByList = formContent.querySelector('#ga-approved-by, #it-approved-by');
-                    if (approvedByList) {
-                        approvedByList.classList.add('active');
-                        loadApprovedRequests(formType);
+                } else if (tabType === 'approved-by' && (formType === 'laptop' || formType === 'atk')) {
+                    if (approvedByElement && !isGuest) {
+                        approvedByElement.style.display = 'block';
+                        loadApprovedByRequests(formType);
+                    } else if (isGuest) {
+                        // Untuk tamu, tetap tampilkan form
+                        if (formElement) formElement.style.display = 'block';
+                        showAlert('Fitur ini tidak tersedia untuk tamu', 'warning');
                     }
                 }
-            });
-        });
-
-        // Reset form tabs to default state
-        function resetFormTabs(formId) {
-            const formSection = document.getElementById(formId);
-            const formContent = formSection.querySelector('.form-content');
-            
-            // Reset tabs
-            formSection.querySelectorAll('.form-tab').forEach(tab => {
-                tab.classList.remove('active');
-                if (tab.getAttribute('data-tab') === 'form') {
-                    tab.classList.add('active');
-                }
-            });
-            
-            // Reset content
-            formContent.querySelectorAll('form, .confirmation, .requests-list').forEach(el => {
-                el.classList.remove('active');
-            });
-            formContent.querySelector('form').classList.add('active');
-        }
-
-        // Form submissions
-        document.getElementById('gaForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            submitForm('ga');
-        });
-
-        document.getElementById('idcardForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            submitForm('idcard');
-        });
-
-        document.getElementById('konsumsiForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            submitForm('konsumsi');
-        });
-
-        document.getElementById('itForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            submitForm('it');
-        });
-
-        document.getElementById('kartuNamaForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            submitForm('kartu-nama');
-        });
-
-        document.getElementById('feedbackForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            submitForm('feedback');
-        });
-
-        // Submit form data to Firestore
-        async function submitForm(formType) {
-            const user = auth.currentUser;
-            if (!user) {
-                showAlert('Anda harus login untuk mengajukan permintaan', 'danger');
-                return;
-            }
-
-            const form = document.getElementById(`${formType}Form`);
-            const formData = new FormData(form);
-            const data = Object.fromEntries(formData.entries());
-            
-            // Add metadata
-            data.timestamp = firebase.firestore.FieldValue.serverTimestamp();
-            data.userId = user.uid;
-            data.userEmail = user.isAnonymous ? 'guest@example.com' : user.email;
-            data.status = 'pending';
-            
-            // For GA and IT forms, add approvedBy field
-            if (formType === 'ga' || formType === 'it') {
-                data.approvedBy = [];
             }
             
-            try {
-                await db.collection(`requests-${formType}`).add(data);
-                
-                // Show confirmation
-                const confirmation = document.getElementById(`${formType}-confirmation`);
-                form.classList.remove('active');
-                confirmation.classList.add('active');
-                
-                // Reset form
-                form.reset();
-                
-                showAlert(`Permintaan ${formType.toUpperCase()} berhasil diajukan!`, 'success');
-                
-                // Auto hide confirmation after 5 seconds
-                setTimeout(() => {
-                    confirmation.classList.remove('active');
-                    form.classList.add('active');
-                }, 5000);
-            } catch (error) {
-                console.error('Error submitting form:', error);
-                showAlert('Terjadi kesalahan saat mengajukan permintaan', 'danger');
-            }
-        }
+            // Load requests for a specific form type from Firestore
+            function loadRequests(formType) {
+                const requestsListContainer = document.getElementById(`${formType}-requests-list`);
+                if (!requestsListContainer) return;
 
-        // Load requests from Firestore
-        async function loadRequests(formType) {
-            const user = auth.currentUser;
-            if (!user) return;
+                // Show loading state
+                requestsListContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="loading"></div>
+                        <p>Memuat data request...</p>
+                    </div>
+                `;
 
-            const requestsList = document.getElementById(`${formType}-requests-list`);
-            requestsList.innerHTML = '<div class="empty-state"><i class="fas fa-spinner loading"></i><p>Memuat data request...</p></div>';
+                db.collection(`requests_${formType}`)
+                    .orderBy('createdAt', 'desc')
+                    .get()
+                    .then((querySnapshot) => {
+                        const requests = [];
+                        querySnapshot.forEach((doc) => {
+                            requests.push({ id: doc.id, ...doc.data() });
+                        });
 
-            try {
-                let query = db.collection(`requests-${formType}`)
-                    .where('userId', '==', user.uid)
-                    .orderBy('timestamp', 'desc');
-
-                const snapshot = await query.get();
-                
-                if (snapshot.empty) {
-                    requestsList.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada request yang diajukan</p></div>';
-                    return;
-                }
-
-                requestsList.innerHTML = '';
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    const requestItem = createRequestItem(doc.id, data, formType);
-                    requestsList.appendChild(requestItem);
-                });
-            } catch (error) {
-                console.error('Error loading requests:', error);
-                requestsList.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Terjadi kesalahan saat memuat data</p></div>';
-            }
-        }
-
-        // Load approved requests for GA and IT
-        async function loadApprovedRequests(formType) {
-            const user = auth.currentUser;
-            if (!user || user.isAnonymous) {
-                showAlert('Fitur ini tidak tersedia untuk tamu', 'warning');
-                return;
-            }
-
-            const approvedList = document.getElementById(`${formType}-approved-by-list`);
-            approvedList.innerHTML = '<div class="empty-state"><i class="fas fa-spinner loading"></i><p>Memuat data request...</p></div>';
-
-            try {
-                let query = db.collection(`requests-${formType}`)
-                    .where('status', 'in', ['pending', 'approved'])
-                    .orderBy('timestamp', 'desc');
-
-                const snapshot = await query.get();
-                
-                if (snapshot.empty) {
-                    approvedList.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>Tidak ada request yang menunggu persetujuan</p></div>';
-                    return;
-                }
-
-                approvedList.innerHTML = '';
-                const approvers = formType === 'ga' ? ['Renata'] : ['Galih', 'Maida', 'Renata', 'Rossiana'];
-                const currentUserEmail = user.email;
-                const currentUserName = emailToNameMap[currentUserEmail];
-
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    const requestItem = createApprovedRequestItem(doc.id, data, formType, approvers, currentUserName);
-                    approvedList.appendChild(requestItem);
-                });
-            } catch (error) {
-                console.error('Error loading approved requests:', error);
-                approvedList.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Terjadi kesalahan saat memuat data</p></div>';
-            }
-        }
-
-        // Create request item for display
-        function createRequestItem(id, data, formType) {
-            const item = document.createElement('div');
-            item.className = 'request-item';
-            
-            const title = getRequestTitle(data, formType);
-            const details = getRequestDetails(data, formType);
-            const status = data.status || 'pending';
-            
-            // For GA and IT, show approval status
-            let statusText = status === 'pending' ? 'Menunggu' : status === 'approved' ? 'Disetujui' : 'Ditolak';
-            if ((formType === 'ga' || formType === 'it') && data.approvedBy) {
-                const approvers = formType === 'ga' ? ['Renata'] : ['Galih', 'Maida', 'Renata', 'Rossiana'];
-                const approvedCount = data.approvedBy.length;
-                const requiredCount = approvers.length;
-                
-                if (status === 'pending') {
-                    statusText = `Menunggu (${approvedCount}/${requiredCount})`;
-                }
-            }
-            
-            item.innerHTML = `
-                <div class="request-info">
-                    <div class="request-title">${title}</div>
-                    <div class="request-details">${details}</div>
-                    ${data.approvedBy && data.approvedBy.length > 0 ? 
-                        `<div class="request-details">Disetujui oleh: ${data.approvedBy.join(', ')}</div>` : ''}
-                </div>
-                <div class="request-status status-${status}">${statusText}</div>
-            `;
-            
-            return item;
-        }
-
-        // Create approved request item for GA and IT
-        function createApprovedRequestItem(id, data, formType, approvers, currentUserName) {
-            const item = document.createElement('div');
-            item.className = 'request-item';
-            item.style.flexDirection = 'column';
-            item.style.alignItems = 'flex-start';
-            item.style.gap = '10px';
-            
-            const title = getRequestTitle(data, formType);
-            const details = getRequestDetails(data, formType);
-            const status = data.status || 'pending';
-            const approvedBy = data.approvedBy || [];
-            
-            // Check if all approvers have approved
-            const allApproved = approvers.every(approver => approvedBy.includes(approver));
-            
-            // Update status if all approvers have approved
-            if (allApproved && status !== 'approved') {
-                db.collection(`requests-${formType}`).doc(id).update({
-                    status: 'approved'
-                });
-            }
-            
-            item.innerHTML = `
-                <div class="request-info" style="width: 100%;">
-                    <div class="request-title">${title}</div>
-                    <div class="request-details">${details}</div>
-                    <div class="request-details">Status Persetujuan: ${allApproved ? 
-                        'Sudah disetujui semua' : 
-                        `Menunggu (${approvedBy.length}/${approvers.length})`}</div>
-                </div>
-                <div class="approved-by-options" style="width: 100%; border-top: 1px solid var(--border); padding-top: 10px; margin-top: 10px;">
-                    <label style="font-weight: 600; margin-bottom: 5px;">Status Persetujuan:</label>
-                    <div class="approver-checkboxes">
-                        ${approvers.map(approver => {
-                            const isCurrentUserApprover = (currentUserName === approver);
-                            const isChecked = approvedBy.includes(approver);
-
-                            return `
-                                <div class="approver-option">
-                                    <input type="checkbox" id="approve-${id}-${approver}"
-                                        data-request-id="${id}"
-                                        data-approver="${approver}"
-                                        ${isChecked ? 'checked' : ''}
-                                        ${!isCurrentUserApprover ? 'disabled' : ''}>
-                                    <label for="approve-${id}-${approver}" style="margin-bottom: 0;">${approver}</label>
+                        if (requests.length === 0) {
+                            requestsListContainer.innerHTML = `
+                                <div class="empty-state">
+                                    <i class="fas fa-inbox"></i>
+                                    <p>Belum ada request ${getFormTitle(formType)}</p>
                                 </div>
                             `;
-                        }).join('')}
-                    </div>
-                    <div class="action-buttons">
-                        <button class="btn btn-primary btn-sm approve-btn" data-request-id="${id}" data-form-type="${formType}" ${!currentUserName ? 'disabled' : ''}>
-                            <i class="fas fa-check"></i> Setujui
-                        </button>
-                        <button class="btn btn-danger btn-sm reject-btn" data-request-id="${id}" data-form-type="${formType}" ${!currentUserName ? 'disabled' : ''}>
-                            <i class="fas fa-times"></i> Tolak
-                        </button>
-                    </div>
-                </div>
-            `;
+                            return;
+                        }
+                        
+                        requestsListContainer.innerHTML = '';
+                        requests.forEach((request, index) => {
+                            // LOGIKA STATUS: 
+                            let status = request.status;
+                            let statusClass = 'status-pending';
+                            let statusText = 'Menunggu';
+                            
+                            // Untuk ATK: jika sudah disetujui Renata, status menjadi "Disetujui"
+                            if (formType === 'atk') {
+                                if (request.approvedBy && request.approvedBy.includes('Renata')) {
+                                    status = 'approved';
+                                    statusClass = 'status-approved';
+                                    statusText = 'Disetujui';
+                                } else if (request.status === 'approved') {
+                                    statusClass = 'status-approved';
+                                    statusText = 'Disetujui';
+                                } else if (request.status === 'rejected') {
+                                    statusClass = 'status-rejected';
+                                    statusText = 'Ditolak';
+                                } else {
+                                    statusText = 'Menunggu Persetujuan Renata';
+                                }
+                            } 
+                            // Untuk Laptop: jika sudah 4 user yang approve, status menjadi "Disetujui"
+                            else if (formType === 'laptop') {
+                                if (request.approvedBy && request.approvedBy.length >= 4) {
+                                    status = 'approved';
+                                    statusClass = 'status-approved';
+                                    statusText = 'Disetujui';
+                                } else if (request.status === 'approved') {
+                                    statusClass = 'status-approved';
+                                    statusText = 'Disetujui';
+                                } else if (request.status === 'rejected') {
+                                    statusClass = 'status-rejected';
+                                    statusText = 'Ditolak';
+                                } else {
+                                    // Tampilkan jumlah approval yang sudah ada
+                                    const approvedCount = request.approvedBy ? request.approvedBy.length : 0;
+                                    statusText = `Menunggu (${approvedCount}/4)`;
+                                }
+                            }
+                            // Untuk form lainnya
+                            else {
+                                if (request.status === 'approved') {
+                                    statusClass = 'status-approved';
+                                    statusText = 'Disetujui';
+                                } else if (request.status === 'rejected') {
+                                    statusClass = 'status-rejected';
+                                    statusText = 'Ditolak';
+                                }
+                            }
+                            
+                            const requestElement = document.createElement('div');
+                            requestElement.className = 'request-item';
+                            requestElement.innerHTML = `
+                                <div class="request-info">
+                                    <div class="request-title">${request.judul || getRequestTitle(formType, request)}</div>
+                                    <div class="request-details">
+                                        <div>Oleh: ${request.nama} • ${request.department}</div>
+                                        <div>Tanggal: ${request.tanggal} ${request.waktu ? '• ' + request.waktu : ''} ${formType === 'feedback' && request.kategori ? '• Kategori: ' + request.kategori : ''}</div>
+                                        ${request.approvedBy && request.approvedBy.length > 0 ? `<div>Disetujui oleh: ${request.approvedBy.join(', ')}</div>` : ''}
+                                    </div>
+                                </div>
+                                <div class="request-status ${statusClass}">${statusText}</div>
+                            `;
+                            
+                            // Add animation delay based on index
+                            requestElement.style.animationDelay = `${index * 0.1}s`;
+                            requestsListContainer.appendChild(requestElement);
+                        });
+                    })
+                    .catch((error) => {
+                        console.error("Error loading requests:", error);
+                        requestsListContainer.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <p>Gagal memuat data request</p>
+                            </div>
+                        `;
+                    });
+            }
 
-            // Add event listeners for buttons
-            const approveBtn = item.querySelector('.approve-btn');
-            const rejectBtn = item.querySelector('.reject-btn');
-            
-            approveBtn.addEventListener('click', function() {
-                const requestId = this.dataset.requestId;
-                const formType = this.dataset.formType;
+            // Fungsi untuk memuat daftar request yang perlu disetujui dari Firestore
+            function loadApprovedByRequests(formType) {
+                const approvedByListContainer = document.getElementById(`${formType}-approved-by-list`);
+                if (!approvedByListContainer) return;
+
+                // Show loading state
+                approvedByListContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="loading"></div>
+                        <p>Memuat data request...</p>
+                    </div>
+                `;
+
+                db.collection(`requests_${formType}`)
+                    .where('status', 'in', ['pending', 'approved'])
+                    .orderBy('createdAt', 'desc')
+                    .get()
+                    .then((querySnapshot) => {
+                        const pendingRequests = [];
+                        querySnapshot.forEach((doc) => {
+                            pendingRequests.push({ id: doc.id, ...doc.data() });
+                        });
+
+                        if (pendingRequests.length === 0) {
+                            approvedByListContainer.innerHTML = `
+                                <div class="empty-state">
+                                    <i class="fas fa-check-double"></i>
+                                    <p>Tidak ada request ${getFormTitle(formType)} yang menunggu persetujuan.</p>
+                                </div>
+                            `;
+                            return;
+                        }
+
+                        approvedByListContainer.innerHTML = '';
+                        
+                        // Tentukan approver berdasarkan form type
+                        let approvers = [];
+                        if (formType === 'laptop') {
+                            approvers = ['Renata', 'Rossiana', 'Galih', 'Maida'];
+                        } else if (formType === 'atk') {
+                            approvers = ['Renata']; // Hanya Renata yang bisa menyetujui ATK
+                        }
+                        
+                        const currentUserEmail = auth.currentUser ? auth.currentUser.email : null;
+                        const currentUserName = currentUserEmail ? emailToNameMap[currentUserEmail] : null;
+
+                        pendingRequests.forEach((request, index) => {
+                            // LOGIKA STATUS: Cek apakah request sudah disetujui
+                            let isApproved = false;
+                            let approvalText = '';
+                            
+                            if (formType === 'laptop') {
+                                const approvedCount = request.approvedBy ? request.approvedBy.length : 0;
+                                isApproved = approvedCount >= 4;
+                                approvalText = isApproved ? 'Sudah disetujui semua (4/4)' : `Menunggu (${approvedCount}/4)`;
+                                
+                                // Update status di database jika sudah disetujui semua
+                                if (isApproved && request.status !== 'approved') {
+                                    db.collection(`requests_${formType}`).doc(request.id).update({
+                                        status: 'approved'
+                                    });
+                                }
+                            } else if (formType === 'atk') {
+                                isApproved = request.approvedBy && request.approvedBy.includes('Renata');
+                                approvalText = isApproved ? 'Sudah disetujui Renata' : 'Menunggu Persetujuan Renata';
+                                
+                                // Update status di database jika sudah disetujui
+                                if (isApproved && request.status !== 'approved') {
+                                    db.collection(`requests_${formType}`).doc(request.id).update({
+                                        status: 'approved'
+                                    });
+                                }
+                            }
+                            
+                            const requestElement = document.createElement('div');
+                            requestElement.className = 'request-item';
+                            requestElement.style.flexDirection = 'column';
+                            requestElement.style.alignItems = 'flex-start';
+                            requestElement.style.gap = '10px';
+                            
+                            // Generate content berdasarkan form type
+                            let requestDetails = '';
+                            if (formType === 'atk') {
+                                requestDetails = `
+                                    <div>Oleh: ${request.nama} • ${request.department}</div>
+                                    <div>Tanggal: ${request.tanggal}</div>
+                                    <div>Jenis ATK: ${request.jenis}</div>
+                                    <div>Detail: ${request.detail}</div>
+                                    <div>Alasan: ${request.alasan}</div>
+                                    <div>Status Persetujuan: ${approvalText}</div>
+                                `;
+                            } else if (formType === 'laptop') {
+                                requestDetails = `
+                                    <div>Oleh: ${request.nama} • ${request.department}</div>
+                                    <div>Tanggal: ${request.tanggal}</div>
+                                    <div>Jenis Request: ${request['jenis-request']}</div>
+                                    ${request.spesifikasi ? `<div>Spesifikasi: ${request.spesifikasi}</div>` : ''}
+                                    ${request['merk-model'] ? `<div>Merk/Model: ${request['merk-model']}</div>` : ''}
+                                    <div>Deskripsi: ${request['masalah-kebutuhan']}</div>
+                                    <div>Status Persetujuan: ${approvalText}</div>
+                                `;
+                            }
+                            
+                            requestElement.innerHTML = `
+                                <div class="request-info" style="width: 100%;">
+                                    <div class="request-title">${request.judul || getRequestTitle(formType, request)}</div>
+                                    <div class="request-details">
+                                        ${requestDetails}
+                                    </div>
+                                </div>
+                                <div class="approved-by-options" style="width: 100%; border-top: 1px solid var(--border); padding-top: 10px; margin-top: 10px;">
+                                    <label style="font-weight: 600; margin-bottom: 5px;">Status Persetujuan:</label>
+                                    <div class="approver-checkboxes">
+                                        ${approvers.map(approver => {
+                                            const isCurrentUserApprover = (currentUserName === approver);
+                                            const isChecked = request.approvedBy && request.approvedBy.includes(approver);
+
+                                            return `
+                                                <div class="approver-option">
+                                                    <input type="checkbox" id="approve-${request.id}-${approver}"
+                                                        data-request-id="${request.id}"
+                                                        data-approver="${approver}"
+                                                        ${isChecked ? 'checked' : ''}
+                                                        ${!isCurrentUserApprover ? 'disabled' : ''}>
+                                                    <label for="approve-${request.id}-${approver}" style="margin-bottom: 0;">${approver}</label>
+                                                </div>
+                                            `;
+                                        }).join('')}
+                                    </div>
+                                    <div class="action-buttons">
+                                        <button class="btn btn-primary btn-sm approve-btn" data-request-id="${request.id}" ${!currentUserName ? 'disabled' : ''}>
+                                            <i class="fas fa-check"></i> Setujui
+                                        </button>
+                                        <button class="btn btn-danger btn-sm reject-btn" data-request-id="${request.id}" ${!currentUserName ? 'disabled' : ''}>
+                                            <i class="fas fa-times"></i> Tolak
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+
+                            approvedByListContainer.appendChild(requestElement);
+                        });
+
+                        // Event listener untuk tombol Setujui
+                        approvedByListContainer.querySelectorAll('.approve-btn').forEach(button => {
+                            button.addEventListener('click', function() {
+                                const requestId = this.dataset.requestId;
+                                const currentUserEmail = auth.currentUser ? auth.currentUser.email : null;
+                                const currentUserName = currentUserEmail ? emailToNameMap[currentUserEmail] : null;
+                                
+                                if (currentUserName) {
+                                    // Setujui request dan centang checkbox user saat ini
+                                    updateApprovalStatus(formType, requestId, currentUserName, true);
+                                    
+                                    // Cek apakah semua sudah menyetujui
+                                    db.collection(`requests_${formType}`).doc(requestId).get()
+                                        .then((doc) => {
+                                            if (doc.exists) {
+                                                const request = doc.data();
+                                                
+                                                if (formType === 'laptop') {
+                                                    const approvedCount = request.approvedBy ? request.approvedBy.length : 0;
+                                                    const allApproved = approvedCount >= 4;
+                                                    
+                                                    if (allApproved) {
+                                                        db.collection(`requests_${formType}`).doc(requestId).update({
+                                                            status: 'approved'
+                                                        });
+                                                        showAlert('Request telah disetujui oleh semua approver!', 'success');
+                                                    } else {
+                                                        showAlert('Anda telah menyetujui request ini!', 'success');
+                                                    }
+                                                } else if (formType === 'atk') {
+                                                    const isApprovedByRenata = request.approvedBy && request.approvedBy.includes('Renata');
+                                                    
+                                                    if (isApprovedByRenata) {
+                                                        db.collection(`requests_${formType}`).doc(requestId).update({
+                                                            status: 'approved'
+                                                        });
+                                                        showAlert('Request ATK telah disetujui!', 'success');
+                                                    } else {
+                                                        showAlert('Anda telah menyetujui request ini!', 'success');
+                                                    }
+                                                }
+                                            }
+                                        });
+                                }
+                            });
+                        });
+
+                        // Event listener untuk tombol Tolak
+                        approvedByListContainer.querySelectorAll('.reject-btn').forEach(button => {
+                            button.addEventListener('click', function() {
+                                const requestId = this.dataset.requestId;
+                                updateRequestStatus(formType, requestId, 'rejected');
+                                showAlert('Request telah ditolak!', 'danger');
+                            });
+                        });
+                    })
+                    .catch((error) => {
+                        console.error("Error loading approved by requests:", error);
+                        approvedByListContainer.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <p>Gagal memuat data request</p>
+                            </div>
+                        `;
+                    });
+            }
+
+            // Fungsi untuk memperbarui status persetujuan di Firestore
+            function updateApprovalStatus(formType, requestId, approverName, isApproved) {
+                db.collection(`requests_${formType}`).doc(requestId).get()
+                    .then((doc) => {
+                        if (doc.exists) {
+                            const request = doc.data();
+                            const approvedBy = request.approvedBy || [];
+                            
+                            if (isApproved) {
+                                if (!approvedBy.includes(approverName)) {
+                                    approvedBy.push(approverName);
+                                }
+                            } else {
+                                const index = approvedBy.indexOf(approverName);
+                                if (index > -1) {
+                                    approvedBy.splice(index, 1);
+                                }
+                            }
+                            
+                            return db.collection(`requests_${formType}`).doc(requestId).update({
+                                approvedBy: approvedBy
+                            });
+                        }
+                    })
+                    .then(() => {
+                        // Muat ulang daftar untuk update
+                        loadApprovedByRequests(formType);
+                        loadRequests(formType);
+                    })
+                    .catch((error) => {
+                        console.error("Error updating approval status:", error);
+                        showAlert('Gagal memperbarui status persetujuan', 'danger');
+                    });
+            }
+
+            // Fungsi untuk memperbarui status request di Firestore
+            function updateRequestStatus(formType, requestId, newStatus) {
+                db.collection(`requests_${formType}`).doc(requestId).update({
+                    status: newStatus
+                })
+                .then(() => {
+                    loadApprovedByRequests(formType);
+                    loadRequests(formType);
+                })
+                .catch((error) => {
+                    console.error("Error updating request status:", error);
+                    showAlert('Gagal memperbarui status request', 'danger');
+                });
+            }
+
+            // Fungsi untuk menampilkan alert custom
+            function showAlert(message, type = 'success') {
+                const alert = document.createElement('div');
+                alert.className = `custom-alert alert-${type}`;
+                alert.innerHTML = `
+                    <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'danger' ? 'fa-times-circle' : 'fa-exclamation-circle'}"></i>
+                    ${message}
+                `;
                 
-                if (currentUserName) {
-                    updateApprovalStatus(formType, requestId, currentUserName, true);
-                    showAlert('Anda telah menyetujui request ini!', 'success');
+                document.body.appendChild(alert);
+                
+                // Hapus alert setelah 3 detik
+                setTimeout(() => {
+                    alert.remove();
+                }, 3000);
+            }
+            
+            // Helper function to get form title
+            function getFormTitle(formType) {
+                const titles = {
+                    atk: 'ATK',
+                    idcard: 'ID Card',
+                    konsumsi: 'Konsumsi',
+                    laptop: 'Laptop',
+                    kartunama: 'Kartu Nama',
+                    feedback: 'Feedback'
+                };
+                return titles[formType] || '';
+            }
+            
+            // Helper function to generate request title
+            function getRequestTitle(formType, request) {
+                switch(formType) {
+                    case 'atk': return `Permintaan ${request.jenis}`;
+                    case 'idcard': return `Permintaan ID Card - ${request.nama}`;
+                    case 'konsumsi': return `Konsumsi ${request.acara}`;
+                    case 'laptop': return `Permintaan ${request['jenis-request']} Laptop`;
+                    case 'kartunama': return `Permintaan Kartu Nama - ${request.nama}`;
+                    case 'feedback': return `Feedback ${request.kategori} - ${request.nama}`;
+                    default: return 'Permintaan';
+                }
+            }
+            
+            // Card event listeners
+            cards.forEach(card => {
+                card.addEventListener('click', function() {
+                    showSection(this.dataset.target);
+                });
+            });
+            
+            // Back button event listeners
+            backButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    showSection('dashboard');
+                });
+            });
+            
+            // Form tab event listeners
+            allFormTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const formId = this.closest('.form-section').id.replace('form-', '');
+                    showFormTab(formId, this.dataset.tab);
+                });
+            });
+            
+            // Form submission handlers - Save to Firestore
+            Object.keys(forms).forEach(formKey => {
+                if (forms[formKey]) {
+                    forms[formKey].addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        
+                        // Create form data object
+                        const formData = new FormData(this);
+                        const formObject = {
+                            status: 'pending',
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            tanggal: new Date().toLocaleDateString('id-ID'),
+                            waktu: new Date().toLocaleTimeString('id-ID'),
+                            approvedBy: [] // Initialize empty array for approvals
+                        };
+                        
+                        // Add form-specific data
+                        formData.forEach((value, key) => {
+                            formObject[key] = value;
+                        });
+                        
+                        // Add judul for the request
+                        formObject.judul = getRequestTitle(formKey, formObject);
+                        
+                        // Store form data to Firestore
+                        db.collection(`requests_${formKey}`).add(formObject)
+                            .then((docRef) => {
+                                console.log("Document written with ID: ", docRef.id);
+                                
+                                // Hide form and show confirmation
+                                this.style.display = 'none';
+                                confirmations[formKey].classList.add('active');
+                                
+                                // Reset form fields
+                                this.reset();
+
+                                // Auto hide confirmation after 3 seconds and show form again
+                                setTimeout(() => {
+                                    confirmations[formKey].classList.remove('active');
+                                    this.style.display = 'block';
+                                }, 3000);
+                            })
+                            .catch((error) => {
+                                console.error("Error adding document: ", error);
+                                showAlert('Gagal mengajukan permintaan', 'danger');
+                            });
+                    });
                 }
             });
             
-            rejectBtn.addEventListener('click', function() {
-                const requestId = this.dataset.requestId;
-                const formType = this.dataset.formType;
-                updateRequestStatus(formType, requestId, 'rejected');
-                showAlert('Request telah ditolak!', 'danger');
+            // Set minimum date to today for date inputs
+            const today = new Date().toISOString().split('T')[0];
+            document.querySelectorAll('input[type="date"]').forEach(input => {
+                input.min = today;
             });
             
-            return item;
-        }
-
-        // Update approval status
-        async function updateApprovalStatus(formType, requestId, approverName, isApproved) {
-            try {
-                const docRef = db.collection(`requests-${formType}`).doc(requestId);
-                const doc = await docRef.get();
-                
-                if (doc.exists) {
-                    const data = doc.data();
-                    const approvedBy = data.approvedBy || [];
-                    
-                    if (isApproved) {
-                        if (!approvedBy.includes(approverName)) {
-                            approvedBy.push(approverName);
-                        }
+            // Refresh buttons for request lists
+            document.querySelectorAll('[id^="refresh-"]').forEach(button => {
+                button.addEventListener('click', function() {
+                    const formType = this.id.replace('refresh-', '');
+                    if (formType.includes('approved')) {
+                        const baseFormType = formType.replace('-approved', '');
+                        loadApprovedByRequests(baseFormType);
                     } else {
-                        const index = approvedBy.indexOf(approverName);
-                        if (index > -1) {
-                            approvedBy.splice(index, 1);
-                        }
+                        loadRequests(formType);
                     }
                     
-                    await docRef.update({
-                        approvedBy: approvedBy
+                    // Add rotation animation
+                    const icon = this.querySelector('i');
+                    if (icon) {
+                        icon.style.transition = 'transform 0.5s';
+                        icon.style.transform = 'rotate(360deg)';
+                        setTimeout(() => {
+                            icon.style.transform = 'rotate(0deg)';
+                        }, 500);
+                    }
+                });
+            });
+
+            // Initialize real-time listeners for approved-by tab
+            function initializeRealtimeListeners() {
+                // Real-time listener untuk laptop requests
+                db.collection('requests_laptop')
+                    .where('status', 'in', ['pending', 'approved'])
+                    .onSnapshot((snapshot) => {
+                        const activeFormSection = document.querySelector('.form-section.active');
+                        if (activeFormSection && activeFormSection.id === 'form-laptop') {
+                            const activeTab = activeFormSection.querySelector('.form-tab.active');
+                            if (activeTab && activeTab.dataset.tab === 'approved-by') {
+                                loadApprovedByRequests('laptop');
+                            }
+                        }
                     });
                     
-                    // Reload the lists
-                    loadApprovedRequests(formType);
-                    loadRequests(formType);
+                // Real-time listener untuk atk requests
+                db.collection('requests_atk')
+                    .where('status', 'in', ['pending', 'approved'])
+                    .onSnapshot((snapshot) => {
+                        const activeFormSection = document.querySelector('.form-section.active');
+                        if (activeFormSection && activeFormSection.id === 'form-atk') {
+                            const activeTab = activeFormSection.querySelector('.form-tab.active');
+                            if (activeTab && activeTab.dataset.tab === 'approved-by') {
+                                loadApprovedByRequests('atk');
+                            }
+                        }
+                    });
+            }
+
+            // Initialize real-time listeners after login
+            auth.onAuthStateChanged(user => {
+                if (user) {
+                    initializeRealtimeListeners();
                 }
-            } catch (error) {
-                console.error('Error updating approval status:', error);
-                showAlert('Gagal memperbarui status persetujuan', 'danger');
-            }
-        }
-
-        // Update request status
-        async function updateRequestStatus(formType, requestId, newStatus) {
-            try {
-                await db.collection(`requests-${formType}`).doc(requestId).update({
-                    status: newStatus
-                });
-                
-                // Reload the lists
-                loadApprovedRequests(formType);
-                loadRequests(formType);
-            } catch (error) {
-                console.error('Error updating request status:', error);
-                showAlert('Gagal memperbarui status request', 'danger');
-            }
-        }
-
-        // Get request title based on form type and data
-        function getRequestTitle(data, formType) {
-            switch (formType) {
-                case 'ga':
-                    return `Permintaan GA: ${data.jenis || 'Layanan GA'}`;
-                case 'idcard':
-                    return `Permintaan ID Card: ${data.nama}`;
-                case 'konsumsi':
-                    return `Permintaan Konsumsi: ${data.acara || 'Acara'}`;
-                case 'it':
-                    return `Permintaan IT: ${data.jenis || 'Layanan IT'}`;
-                case 'kartu-nama':
-                    return `Permintaan Kartu Nama: ${data.nama}`;
-                case 'feedback':
-                    return `Feedback: ${data.kategori || 'Umum'}`;
-                default:
-                    return 'Permintaan';
-            }
-        }
-
-        // Get request details based on form type and data
-        function getRequestDetails(data, formType) {
-            const date = data.tanggal ? new Date(data.tanggal).toLocaleDateString('id-ID') : 'Tanggal tidak tersedia';
-            
-            switch (formType) {
-                case 'ga':
-                    return `Oleh: ${data.nama} | Dept: ${data.department} | ${date}`;
-                case 'idcard':
-                    return `Dept: ${data.department} | Posisi: ${data.posisi} | ${date}`;
-                case 'konsumsi':
-                    return `Oleh: ${data.nama} | Peserta: ${data['jumlah-peserta']} | ${date}`;
-                case 'it':
-                    return `Oleh: ${data.nama} | Dept: ${data.department} | ${date}`;
-                case 'kartu-nama':
-                    return `Dept: ${data.department} | Posisi: ${data.posisi} | Jumlah: ${data.jumlah} | ${date}`;
-                case 'feedback':
-                    return `Oleh: ${data.nama} | Rating: ${data.rating} | ${date}`;
-                default:
-                    return `Oleh: ${data.nama} | ${date}`;
-            }
-        }
-
-        // Refresh buttons for requests
-        document.getElementById('refresh-ga').addEventListener('click', () => loadRequests('ga'));
-        document.getElementById('refresh-idcard').addEventListener('click', () => loadRequests('idcard'));
-        document.getElementById('refresh-konsumsi').addEventListener('click', () => loadRequests('konsumsi'));
-        document.getElementById('refresh-it').addEventListener('click', () => loadRequests('it'));
-        document.getElementById('refresh-kartu-nama').addEventListener('click', () => loadRequests('kartu-nama'));
-        document.getElementById('refresh-feedback').addEventListener('click', () => loadRequests('feedback'));
-        document.getElementById('refresh-ga-approved').addEventListener('click', () => loadApprovedRequests('ga'));
-        document.getElementById('refresh-it-approved').addEventListener('click', () => loadApprovedRequests('it'));
-
-        // Set current date for date fields
-        document.querySelectorAll('input[type="date"]').forEach(input => {
-            input.valueAsDate = new Date();
+            });
         });
-
-        // Initialize the app
-        function initApp() {
-            console.log('Aplikasi General Affair telah diinisialisasi');
-        }
-
-        // Run initialization when DOM is loaded
-        document.addEventListener('DOMContentLoaded', initApp);
     </script>
 </body>
 </html>
