@@ -1452,7 +1452,7 @@
                 'ulandari@genetek.co.id': 'Ulan',
             };
 
-            // User permissions mapping
+            // User permissions mapping - DIPERBAIKI: Semua user bisa akses kartu-nama
             const userPermissions = {
                 'ulandari@genetek.co.id': {
                     name: 'Ulan',
@@ -1464,15 +1464,15 @@
                 },
                 'galih@genetek.co.id': {
                     name: 'Galih',
-                    allowedForms: ['laptop']
+                    allowedForms: ['laptop', 'kartu-nama']
                 },
                 'maida@genetek.co.id': {
                     name: 'Maida',
-                    allowedForms: ['laptop']
+                    allowedForms: ['laptop', 'kartu-nama']
                 },
                 'rossiana.yl@genetek.co.id': {
                     name: 'Rossiana',
-                    allowedForms: ['laptop']
+                    allowedForms: ['laptop', 'kartu-nama']
                 }
             };
 
@@ -1805,10 +1805,13 @@
                 }
             }
             
-            // Load requests for a specific form type from Firestore
+            // Load requests for a specific form type from Firestore - DIPERBAIKI
             function loadRequests(formType) {
                 const requestsListContainer = document.getElementById(`${formType}-requests-list`);
-                if (!requestsListContainer) return;
+                if (!requestsListContainer) {
+                    console.error(`Container not found for form type: ${formType}`);
+                    return;
+                }
 
                 // Show loading state
                 requestsListContainer.innerHTML = `
@@ -1818,7 +1821,11 @@
                     </div>
                 `;
 
-                db.collection(`requests_${formType}`)
+                // DIPERBAIKI: Gunakan collection name yang benar
+                const collectionName = `requests_${formType}`;
+                console.log(`Loading requests from collection: ${collectionName}`);
+
+                db.collection(collectionName)
                     .orderBy('createdAt', 'desc')
                     .get()
                     .then((querySnapshot) => {
@@ -1826,6 +1833,8 @@
                         querySnapshot.forEach((doc) => {
                             requests.push({ id: doc.id, ...doc.data() });
                         });
+
+                        console.log(`Loaded ${requests.length} requests for ${formType}`);
 
                         if (requests.length === 0) {
                             requestsListContainer.innerHTML = `
@@ -1901,6 +1910,7 @@
                                         <div class="request-details">
                                             <div>Oleh: ${request.nama} • ${request.department}</div>
                                             <div>Tanggal: ${request.tanggal} ${request.waktu ? '• ' + request.waktu : ''}</div>
+                                            <div>Jenis: ${request['jenis-request'] || ''}</div>
                                             ${request.approvedBy && request.approvedBy.length > 0 ? `<div>Disetujui oleh: ${request.approvedBy.join(', ')}</div>` : ''}
                                         </div>
                                     </div>
@@ -1915,13 +1925,31 @@
                                 });
                             } else {
                                 requestElement.className = 'request-item';
+                                let details = '';
+                                
+                                if (formType === 'kartu-nama') {
+                                    details = `
+                                        <div>Oleh: ${request.nama} • ${request.department}</div>
+                                        <div>Tanggal: ${request.tanggal}</div>
+                                        <div>Posisi: ${request.posisi || ''}</div>
+                                        <div>Jumlah: ${request.jumlah || ''} kartu</div>
+                                        ${request.email ? `<div>Email: ${request.email}</div>` : ''}
+                                        ${request.approvedBy && request.approvedBy.length > 0 ? `<div>Disetujui oleh: ${request.approvedBy.join(', ')}</div>` : ''}
+                                    `;
+                                } else {
+                                    details = `
+                                        <div>Oleh: ${request.nama} • ${request.department}</div>
+                                        <div>Tanggal: ${request.tanggal} ${request.waktu ? '• ' + request.waktu : ''}</div>
+                                        ${formType === 'feedback' && request.kategori ? '<div>Kategori: ' + request.kategori + '</div>' : ''}
+                                        ${request.approvedBy && request.approvedBy.length > 0 ? `<div>Disetujui oleh: ${request.approvedBy.join(', ')}</div>` : ''}
+                                    `;
+                                }
+                                
                                 requestElement.innerHTML = `
                                     <div class="request-info">
                                         <div class="request-title">${request.judul || getRequestTitle(formType, request)}</div>
                                         <div class="request-details">
-                                            <div>Oleh: ${request.nama} • ${request.department}</div>
-                                            <div>Tanggal: ${request.tanggal} ${request.waktu ? '• ' + request.waktu : ''} ${formType === 'feedback' && request.kategori ? '• Kategori: ' + request.kategori : ''}</div>
-                                            ${request.approvedBy && request.approvedBy.length > 0 ? `<div>Disetujui oleh: ${request.approvedBy.join(', ')}</div>` : ''}
+                                            ${details}
                                         </div>
                                     </div>
                                     <div class="request-status ${statusClass}">${statusText}</div>
@@ -1939,8 +1967,104 @@
                             <div class="empty-state">
                                 <i class="fas fa-exclamation-triangle"></i>
                                 <p>Gagal memuat data request</p>
+                                <p style="font-size: 0.8rem; margin-top: 0.5rem;">Error: ${error.message}</p>
                             </div>
                         `;
+                    });
+            }
+
+            // Form submission handlers - DIPERBAIKI: Handle semua form dengan benar
+            Object.keys(forms).forEach(formKey => {
+                if (forms[formKey]) {
+                    forms[formKey].addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        console.log(`Submitting form: ${formKey}`);
+                        
+                        // Handle ID Card form separately to process photo
+                        if (formKey === 'idcard') {
+                            const photoFile = document.getElementById('idcard-foto').files[0];
+                            if (!photoFile) {
+                                showAlert('Harap pilih foto untuk ID Card', 'danger');
+                                return;
+                            }
+                            
+                            // Convert photo to base64
+                            const reader = new FileReader();
+                            reader.onload = function(event) {
+                                const photoBase64 = event.target.result;
+                                submitFormData(formKey, this, photoBase64);
+                            }.bind(this); // Bind the form context
+                            reader.readAsDataURL(photoFile);
+                        } else {
+                            submitFormData(formKey, this);
+                        }
+                    });
+                }
+            });
+
+            // Function to submit form data - DIPERBAIKI
+            function submitFormData(formKey, formElement, photoBase64 = null) {
+                const formData = new FormData(formElement);
+                const formObject = {
+                    status: 'pending',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    tanggal: new Date().toLocaleDateString('id-ID'),
+                    waktu: new Date().toLocaleTimeString('id-ID'),
+                    approvedBy: []
+                };
+                
+                // Add form-specific data
+                formData.forEach((value, key) => {
+                    if (value) { // Only add if value exists
+                        formObject[key] = value;
+                    }
+                });
+                
+                // Add photo for ID Card
+                if (formKey === 'idcard' && photoBase64) {
+                    formObject.foto = photoBase64;
+                }
+                
+                // Add judul for the request
+                formObject.judul = getRequestTitle(formKey, formObject);
+                
+                // DIPERBAIKI: Gunakan collection name yang benar
+                const collectionName = `requests_${formKey}`;
+                console.log(`Saving to collection: ${collectionName}`, formObject);
+                
+                // Store form data to Firestore
+                db.collection(collectionName).add(formObject)
+                    .then((docRef) => {
+                        console.log("Document written with ID: ", docRef.id);
+                        
+                        // Hide form and show confirmation
+                        formElement.style.display = 'none';
+                        if (confirmations[formKey]) {
+                            confirmations[formKey].classList.add('active');
+                        }
+                        
+                        // Reset form fields
+                        formElement.reset();
+                        
+                        // Reset photo preview for ID Card
+                        if (formKey === 'idcard') {
+                            if (photoPreview) photoPreview.style.display = 'none';
+                            if (previewImage) previewImage.src = '';
+                        }
+
+                        // Auto hide confirmation after 3 seconds and show form again
+                        setTimeout(() => {
+                            if (confirmations[formKey]) {
+                                confirmations[formKey].classList.remove('active');
+                            }
+                            formElement.style.display = 'block';
+                        }, 3000);
+                        
+                        showAlert('Permintaan berhasil diajukan!', 'success');
+                    })
+                    .catch((error) => {
+                        console.error("Error adding document: ", error);
+                        showAlert('Gagal mengajukan permintaan: ' + error.message, 'danger');
                     });
             }
 
@@ -2230,7 +2354,7 @@
                     idcard: 'ID Card',
                     konsumsi: 'Konsumsi',
                     laptop: 'Laptop',
-                    kartunama: 'Kartu Nama',
+                    'kartu-nama': 'Kartu Nama',
                     feedback: 'Feedback'
                 };
                 return titles[formType] || '';
@@ -2243,7 +2367,7 @@
                     case 'idcard': return `Permintaan ID Card - ${request.nama}`;
                     case 'konsumsi': return `Konsumsi ${request.acara}`;
                     case 'laptop': return `Permintaan ${request['jenis-request']} Laptop`;
-                    case 'kartunama': return `Permintaan Kartu Nama - ${request.nama}`;
+                    case 'kartu-nama': return `Permintaan Kartu Nama - ${request.nama}`;
                     case 'feedback': return `Feedback ${request.kategori} - ${request.nama}`;
                     default: return 'Permintaan';
                 }
@@ -2270,93 +2394,7 @@
                     showFormTab(formId, this.dataset.tab);
                 });
             });
-            
-            // Form submission handlers - Save to Firestore
-            Object.keys(forms).forEach(formKey => {
-                if (forms[formKey]) {
-                    forms[formKey].addEventListener('submit', function(e) {
-                        e.preventDefault();
-                        
-                        // Handle ID Card form separately to process photo
-                        if (formKey === 'idcard') {
-                            const photoFile = document.getElementById('idcard-foto').files[0];
-                            if (!photoFile) {
-                                showAlert('Harap pilih foto untuk ID Card', 'danger');
-                                return;
-                            }
-                            
-                            // Convert photo to base64
-                            const reader = new FileReader();
-                            reader.onload = function(event) {
-                                const photoBase64 = event.target.result;
-                                submitFormData(formKey, this, photoBase64);
-                            };
-                            reader.readAsDataURL(photoFile);
-                        } else {
-                            submitFormData(formKey, this);
-                        }
-                    });
-                }
-            });
 
-            // Function to submit form data
-            function submitFormData(formKey, formElement, photoBase64 = null) {
-                const formData = new FormData(formElement);
-                const formObject = {
-                    status: 'pending',
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    tanggal: new Date().toLocaleDateString('id-ID'),
-                    waktu: new Date().toLocaleTimeString('id-ID'),
-                    approvedBy: []
-                };
-                
-                // Add form-specific data
-                formData.forEach((value, key) => {
-                    formObject[key] = value;
-                });
-                
-                // Add photo for ID Card
-                if (formKey === 'idcard' && photoBase64) {
-                    formObject.foto = photoBase64;
-                }
-                
-                // Add judul for the request
-                formObject.judul = getRequestTitle(formKey, formObject);
-                
-                // Store form data to Firestore
-                db.collection(`requests_${formKey}`).add(formObject)
-                    .then((docRef) => {
-                        console.log("Document written with ID: ", docRef.id);
-                        
-                        // Hide form and show confirmation
-                        formElement.style.display = 'none';
-                        if (confirmations[formKey]) {
-                            confirmations[formKey].classList.add('active');
-                        }
-                        
-                        // Reset form fields
-                        formElement.reset();
-                        
-                        // Reset photo preview for ID Card
-                        if (formKey === 'idcard') {
-                            photoPreview.style.display = 'none';
-                            previewImage.src = '';
-                        }
-
-                        // Auto hide confirmation after 3 seconds and show form again
-                        setTimeout(() => {
-                            if (confirmations[formKey]) {
-                                confirmations[formKey].classList.remove('active');
-                            }
-                            formElement.style.display = 'block';
-                        }, 3000);
-                    })
-                    .catch((error) => {
-                        console.error("Error adding document: ", error);
-                        showAlert('Gagal mengajukan permintaan', 'danger');
-                    });
-            }
-            
             // Set minimum date to today for date inputs
             const today = new Date().toISOString().split('T')[0];
             document.querySelectorAll('input[type="date"]').forEach(input => {
@@ -2438,8 +2476,8 @@
                 // Preview image
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    previewImage.src = e.target.result;
-                    photoPreview.style.display = 'block';
+                    if (previewImage) previewImage.src = e.target.result;
+                    if (photoPreview) photoPreview.style.display = 'block';
                 };
                 reader.readAsDataURL(file);
             }
