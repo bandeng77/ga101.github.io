@@ -841,8 +841,8 @@
                             <label for="atk-jenis">Kategori Permintaan</label>
                             <select id="atk-jenis" name="jenis" required>
                                 <option value="">Pilih Kategori</option>
-                                <option value="Jasa">Jasa</option>
-                                <option value="Barang">Barang</option>
+                                <option value="Kertas">Jasa</option>
+                                <option value="Pena/Pensil">Barang</option>
                             </select>
                         </div>
                     </div>
@@ -1059,6 +1059,7 @@
             <div class="form-tabs">
                 <div class="form-tab active" data-tab="form">Form Request</div>
                 <div class="form-tab" data-tab="requests" id="laptop-requests-tab">Daftar Request</div>
+                <div class="form-tab" data-tab="approved-by" id="laptop-approved-tab">Approved By</div>
             </div>
             
             <div class="form-content">
@@ -1120,6 +1121,19 @@
                     <div id="laptop-requests-list">
                         <div class="empty-state">
                             <i class="fas fa-inbox"></i>
+                            <p>Memuat data request...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="laptop-approved-by" class="requests-list">
+                    <div class="requests-header">
+                        <h3 class="requests-title">Persetujuan Request IT</h3>
+                        <button class="btn btn-primary" id="refresh-laptop-approved"><i class="fas fa-sync-alt"></i> Refresh</button>
+                    </div>
+                    <div id="laptop-approved-by-list">
+                        <div class="empty-state">
+                            <i class="fas fa-check-double"></i>
                             <p>Memuat data request...</p>
                         </div>
                     </div>
@@ -1340,6 +1354,7 @@
                 laptop: document.getElementById('laptop-requests'),
                 kartunama: document.getElementById('kartunama-requests'),
                 feedback: document.getElementById('feedback-requests'),
+                'laptop-approved-by': document.getElementById('laptop-approved-by'),
                 'atk-approved-by': document.getElementById('atk-approved-by')
             };
 
@@ -1582,7 +1597,7 @@
                         if (formElement) formElement.style.display = 'block';
                         showAlert('Fitur ini tidak tersedia untuk tamu', 'warning');
                     }
-                } else if (tabType === 'approved-by' && formType === 'atk') {
+                } else if (tabType === 'approved-by' && (formType === 'laptop' || formType === 'atk')) {
                     if (approvedByElement && !isGuest) {
                         approvedByElement.style.display = 'block';
                         loadApprovedByRequests(formType);
@@ -1649,6 +1664,24 @@
                                     statusText = 'Menunggu Persetujuan Renata';
                                 }
                             } 
+                            // Untuk Laptop: jika sudah 4 user yang approve, status menjadi "Disetujui"
+                            else if (formType === 'laptop') {
+                                if (request.approvedBy && request.approvedBy.length >= 4) {
+                                    status = 'approved';
+                                    statusClass = 'status-approved';
+                                    statusText = 'Disetujui';
+                                } else if (request.status === 'approved') {
+                                    statusClass = 'status-approved';
+                                    statusText = 'Disetujui';
+                                } else if (request.status === 'rejected') {
+                                    statusClass = 'status-rejected';
+                                    statusText = 'Ditolak';
+                                } else {
+                                    // Tampilkan jumlah approval yang sudah ada
+                                    const approvedCount = request.approvedBy ? request.approvedBy.length : 0;
+                                    statusText = `Menunggu (${approvedCount}/4)`;
+                                }
+                            }
                             // Untuk form lainnya
                             else {
                                 if (request.status === 'approved') {
@@ -1725,22 +1758,43 @@
 
                         approvedByListContainer.innerHTML = '';
                         
-                        // Hanya Renata yang bisa menyetujui ATK
-                        const approvers = ['Renata'];
+                        // Tentukan approver berdasarkan form type
+                        let approvers = [];
+                        if (formType === 'laptop') {
+                            approvers = ['Renata', 'Rossiana', 'Galih', 'Maida'];
+                        } else if (formType === 'atk') {
+                            approvers = ['Renata']; // Hanya Renata yang bisa menyetujui ATK
+                        }
                         
                         const currentUserEmail = auth.currentUser ? auth.currentUser.email : null;
                         const currentUserName = currentUserEmail ? emailToNameMap[currentUserEmail] : null;
 
                         pendingRequests.forEach((request, index) => {
                             // LOGIKA STATUS: Cek apakah request sudah disetujui
-                            let isApproved = request.approvedBy && request.approvedBy.includes('Renata');
-                            let approvalText = isApproved ? 'Sudah disetujui Renata' : 'Menunggu Persetujuan Renata';
+                            let isApproved = false;
+                            let approvalText = '';
                             
-                            // Update status di database jika sudah disetujui
-                            if (isApproved && request.status !== 'approved') {
-                                db.collection(`requests_${formType}`).doc(request.id).update({
-                                    status: 'approved'
-                                });
+                            if (formType === 'laptop') {
+                                const approvedCount = request.approvedBy ? request.approvedBy.length : 0;
+                                isApproved = approvedCount >= 4;
+                                approvalText = isApproved ? 'Sudah disetujui semua (4/4)' : `Menunggu (${approvedCount}/4)`;
+                                
+                                // Update status di database jika sudah disetujui semua
+                                if (isApproved && request.status !== 'approved') {
+                                    db.collection(`requests_${formType}`).doc(request.id).update({
+                                        status: 'approved'
+                                    });
+                                }
+                            } else if (formType === 'atk') {
+                                isApproved = request.approvedBy && request.approvedBy.includes('Renata');
+                                approvalText = isApproved ? 'Sudah disetujui Renata' : 'Menunggu Persetujuan Renata';
+                                
+                                // Update status di database jika sudah disetujui
+                                if (isApproved && request.status !== 'approved') {
+                                    db.collection(`requests_${formType}`).doc(request.id).update({
+                                        status: 'approved'
+                                    });
+                                }
                             }
                             
                             const requestElement = document.createElement('div');
@@ -1749,7 +1803,7 @@
                             requestElement.style.alignItems = 'flex-start';
                             requestElement.style.gap = '10px';
                             
-                            // Generate content untuk ATK
+                            // Generate content berdasarkan form type
                             let requestDetails = '';
                             if (formType === 'atk') {
                                 requestDetails = `
@@ -1758,6 +1812,16 @@
                                     <div>Jenis ATK: ${request.jenis}</div>
                                     <div>Detail: ${request.detail}</div>
                                     <div>Alasan: ${request.alasan}</div>
+                                    <div>Status Persetujuan: ${approvalText}</div>
+                                `;
+                            } else if (formType === 'laptop') {
+                                requestDetails = `
+                                    <div>Oleh: ${request.nama} • ${request.department}</div>
+                                    <div>Tanggal: ${request.tanggal}</div>
+                                    <div>Jenis Request: ${request['jenis-request']}</div>
+                                    ${request.spesifikasi ? `<div>Spesifikasi: ${request.spesifikasi}</div>` : ''}
+                                    ${request['merk-model'] ? `<div>Merk/Model: ${request['merk-model']}</div>` : ''}
+                                    <div>Deskripsi: ${request['masalah-kebutuhan']}</div>
                                     <div>Status Persetujuan: ${approvalText}</div>
                                 `;
                             }
@@ -1789,10 +1853,10 @@
                                         }).join('')}
                                     </div>
                                     <div class="action-buttons">
-                                        <button class="btn btn-primary btn-sm approve-btn" data-request-id="${request.id}" ${!currentUserName || currentUserName !== 'Renata' ? 'disabled' : ''}>
+                                        <button class="btn btn-primary btn-sm approve-btn" data-request-id="${request.id}" ${!currentUserName ? 'disabled' : ''}>
                                             <i class="fas fa-check"></i> Setujui
                                         </button>
-                                        <button class="btn btn-danger btn-sm reject-btn" data-request-id="${request.id}" ${!currentUserName || currentUserName !== 'Renata' ? 'disabled' : ''}>
+                                        <button class="btn btn-danger btn-sm reject-btn" data-request-id="${request.id}" ${!currentUserName ? 'disabled' : ''}>
                                             <i class="fas fa-times"></i> Tolak
                                         </button>
                                     </div>
@@ -1809,24 +1873,39 @@
                                 const currentUserEmail = auth.currentUser ? auth.currentUser.email : null;
                                 const currentUserName = currentUserEmail ? emailToNameMap[currentUserEmail] : null;
                                 
-                                if (currentUserName === 'Renata') {
+                                if (currentUserName) {
                                     // Setujui request dan centang checkbox user saat ini
                                     updateApprovalStatus(formType, requestId, currentUserName, true);
                                     
-                                    // Cek apakah sudah disetujui
+                                    // Cek apakah semua sudah menyetujui
                                     db.collection(`requests_${formType}`).doc(requestId).get()
                                         .then((doc) => {
                                             if (doc.exists) {
                                                 const request = doc.data();
-                                                const isApprovedByRenata = request.approvedBy && request.approvedBy.includes('Renata');
                                                 
-                                                if (isApprovedByRenata) {
-                                                    db.collection(`requests_${formType}`).doc(requestId).update({
-                                                        status: 'approved'
-                                                    });
-                                                    showAlert('Request ATK telah disetujui!', 'success');
-                                                } else {
-                                                    showAlert('Anda telah menyetujui request ini!', 'success');
+                                                if (formType === 'laptop') {
+                                                    const approvedCount = request.approvedBy ? request.approvedBy.length : 0;
+                                                    const allApproved = approvedCount >= 4;
+                                                    
+                                                    if (allApproved) {
+                                                        db.collection(`requests_${formType}`).doc(requestId).update({
+                                                            status: 'approved'
+                                                        });
+                                                        showAlert('Request telah disetujui oleh semua approver!', 'success');
+                                                    } else {
+                                                        showAlert('Anda telah menyetujui request ini!', 'success');
+                                                    }
+                                                } else if (formType === 'atk') {
+                                                    const isApprovedByRenata = request.approvedBy && request.approvedBy.includes('Renata');
+                                                    
+                                                    if (isApprovedByRenata) {
+                                                        db.collection(`requests_${formType}`).doc(requestId).update({
+                                                            status: 'approved'
+                                                        });
+                                                        showAlert('Request ATK telah disetujui!', 'success');
+                                                    } else {
+                                                        showAlert('Anda telah menyetujui request ini!', 'success');
+                                                    }
                                                 }
                                             }
                                         });
@@ -1838,12 +1917,8 @@
                         approvedByListContainer.querySelectorAll('.reject-btn').forEach(button => {
                             button.addEventListener('click', function() {
                                 const requestId = this.dataset.requestId;
-                                const currentUserName = auth.currentUser && auth.currentUser.email ? emailToNameMap[auth.currentUser.email] : null;
-                                
-                                if (currentUserName === 'Renata') {
-                                    updateRequestStatus(formType, requestId, 'rejected');
-                                    showAlert('Request telah ditolak!', 'danger');
-                                }
+                                updateRequestStatus(formType, requestId, 'rejected');
+                                showAlert('Request telah ditolak!', 'danger');
                             });
                         });
                     })
@@ -2054,6 +2129,19 @@
 
             // Initialize real-time listeners for approved-by tab
             function initializeRealtimeListeners() {
+                // Real-time listener untuk laptop requests
+                db.collection('requests_laptop')
+                    .where('status', 'in', ['pending', 'approved'])
+                    .onSnapshot((snapshot) => {
+                        const activeFormSection = document.querySelector('.form-section.active');
+                        if (activeFormSection && activeFormSection.id === 'form-laptop') {
+                            const activeTab = activeFormSection.querySelector('.form-tab.active');
+                            if (activeTab && activeTab.dataset.tab === 'approved-by') {
+                                loadApprovedByRequests('laptop');
+                            }
+                        }
+                    });
+                    
                 // Real-time listener untuk atk requests
                 db.collection('requests_atk')
                     .where('status', 'in', ['pending', 'approved'])
