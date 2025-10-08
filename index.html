@@ -11,7 +11,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
 
     <style>
-        /* CSS TETAP SAMA SEPERTI SEBELUMNYA */
         :root {
             --primary: #3b82f6;
             --primary-dark: #2563eb;
@@ -50,7 +49,7 @@
             padding: 0 20px;
         }
 
-        /* HEADER MODERN YANG LEBIH BAGUS */
+        /* HEADER */
         header {
             background: var(--gradient-primary);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
@@ -143,7 +142,7 @@
             font-weight: 500;
         }
 
-        /* JARAK ANTARA HEADER DAN CARD */
+        /* MAIN CONTENT */
         main {
             padding: 3rem 0;
             min-height: calc(100vh - var(--header-height) - 100px);
@@ -219,7 +218,7 @@
             line-height: 1.5;
         }
 
-        /* FORM SECTION STYLING */
+        /* FORM SECTION */
         .form-section {
             display: none;
             background-color: white;
@@ -472,7 +471,7 @@
             color: var(--gray);
         }
 
-        /* FOOTER SEDERHANA DAN TIPIS */
+        /* FOOTER */
         footer {
             background-color: var(--dark);
             color: white;
@@ -485,10 +484,6 @@
             display: flex;
             flex-direction: column;
             gap: 0.5rem;
-        }
-
-        .footer-links {
-            display: none;
         }
 
         .footer-content p {
@@ -545,20 +540,6 @@
             animation: pulse 2s infinite;
         }
 
-        .fade-in {
-            animation: fadeIn 0.6s ease;
-        }
-
-        .slide-in-left {
-            animation: slideInLeft 0.6s ease;
-        }
-
-        @keyframes slideInLeft {
-            from { opacity: 0; transform: translateX(-30px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-
-        /* Tambahan untuk tombol kecil di approved-by */
         .btn-sm {
             padding: 0.5rem 1rem;
             font-size: 0.85rem;
@@ -574,7 +555,7 @@
             box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.3);
         }
 
-        /* Login Page Styling */
+        /* Login Page */
         .login-container {
             display: none;
             position: fixed;
@@ -645,14 +626,14 @@
             display: none;
         }
 
-        /* Hide main content and header when login page is active */
+        /* Hide main content when login page is active */
         body.login-active header,
         body.login-active main,
         body.login-active footer {
             display: none;
         }
 
-        /* Styling untuk approved-by section */
+        /* Approved-by section */
         .approver-checkboxes {
             display: flex;
             flex-wrap: wrap;
@@ -718,7 +699,7 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* STYLING UNTUK UPLOAD FOTO ID CARD */
+        /* UPLOAD FOTO ID CARD */
         .photo-upload-container {
             border: 2px dashed var(--border);
             border-radius: 0.5rem;
@@ -787,7 +768,7 @@
             margin-top: 0.5rem;
         }
 
-        /* Styling untuk foto di daftar request */
+        /* Foto di daftar request */
         .request-photo {
             width: 60px;
             height: 60px;
@@ -1145,35 +1126,33 @@
                             <input type="time" id="konsumsi-waktu" name="waktu" required>
                         </div>
                         <div class="form-group">
-                            <label for="konsumsi-lokasi">Lokasi Acara</label>
-                            <input type="text" id="konsumsi-lokasi" name="lokasi" required>
+                            <label for="konsumsi-acara">Nama Acara/Kegiatan</label>
+                            <input type="text" id="konsumsi-acara" name="acara" required>
                         </div>
                         <div class="form-group">
-                            <label for="konsumsi-jumlah">Jumlah Peserta</label>
-                            <input type="number" id="konsumsi-jumlah" name="jumlah" min="1" required>
+                            <label for="konsumsi-jumlah-peserta">Jumlah Peserta</label>
+                            <input type="number" id="konsumsi-jumlah-peserta" name="jumlah-peserta" min="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="konsumsi-jenis">Jenis Konsumsi</label>
+                            <select id="konsumsi-jenis" name="jenis" required>
+                                <option value="">Pilih Jenis Konsumsi</option>
+                                <option value="Snack Box">Snack Box</option>
+                                <option value="Makan Siang">Makan Siang</option>
+                                <option value="Makan Malam">Makan Malam</option>
+                                <option value="Kopi/Teh">Kopi/Teh</option>
+                                <option value="Lainnya">Lainnya</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="konsumsi-budget">Estimasi Budget per Orang (Opsional)</label>
+                            <input type="number" id="konsumsi-budget" name="budget" min="0">
                         </div>
                     </div>
                     
                     <div class="form-group">
-                        <label for="konsumsi-jenis">Jenis Konsumsi</label>
-                        <select id="konsumsi-jenis" name="jenis" required>
-                            <option value="">Pilih Jenis Konsumsi</option>
-                            <option value="Snack Pagi">Snack Pagi</option>
-                            <option value="Makan Siang">Makan Siang</option>
-                            <option value="Snack Sore">Snack Sore</option>
-                            <option value="Coffee Break">Coffee Break</option>
-                            <option value="Makan Malam">Makan Malam</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="konsumsi-detail">Detail Kebutuhan</label>
-                        <textarea id="konsumsi-detail" name="detail" placeholder="Jelaskan detail kebutuhan konsumsi, termasuk menu khusus jika ada" required></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="konsumsi-keterangan">Keterangan Tambahan</label>
-                        <textarea id="konsumsi-keterangan" name="keterangan" placeholder="Tambahan informasi yang perlu diketahui pihak GA"></textarea>
+                        <label for="konsumsi-detail">Detail Konsumsi & Keterangan</label>
+                        <textarea id="konsumsi-detail" name="detail" placeholder="Jelaskan detail menu, preferensi, atau alergi jika ada"></textarea>
                     </div>
                     
                     <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Ajukan Permintaan</button>
@@ -1183,7 +1162,7 @@
                 <div id="konsumsi-confirmation" class="confirmation">
                     <div class="confirmation-icon"><i class="fas fa-check-circle"></i></div>
                     <h3>Permintaan Konsumsi Berhasil Diajukan!</h3>
-                    <p>Terima kasih telah mengajukan permintaan konsumsi. Tim General Affair akan segera memproses permintaan Anda.</p>
+                    <p>Tim General Affair akan segera menyiapkan konsumsi untuk acara Anda.</p>
                 </div>
                 
                 <div id="konsumsi-requests" class="requests-list">
@@ -1202,7 +1181,7 @@
             </div>
         </section>
 
-        <!-- Form Request IT -->
+        <!-- Form Request Laptop -->
         <section id="form-laptop" class="form-section">
             <div class="form-header">
                 <h2 class="form-title"><i class="fas fa-laptop"></i> Form Request IT</h2>
@@ -1211,6 +1190,7 @@
             <div class="form-tabs">
                 <div class="form-tab active" data-tab="form">Form Request</div>
                 <div class="form-tab" data-tab="requests" id="laptop-requests-tab">Daftar Request</div>
+                <div class="form-tab" data-tab="approved-by" id="laptop-approved-tab">Approved By</div>
             </div>
             
             <div class="form-content">
@@ -1229,31 +1209,28 @@
                             <input type="date" id="laptop-tanggal" name="tanggal" required>
                         </div>
                         <div class="form-group">
-                            <label for="laptop-jenis">Jenis Permintaan</label>
-                            <select id="laptop-jenis" name="jenis" required>
-                                <option value="">Pilih Jenis Permintaan</option>
-                                <option value="Perbaikan Hardware">Perbaikan Hardware</option>
-                                <option value="Instalasi Software">Instalasi Software</option>
-                                <option value="Permintaan Perangkat Baru">Permintaan Perangkat Baru</option>
-                                <option value="Troubleshooting">Troubleshooting</option>
-                                <option value="Lainnya">Lainnya</option>
+                            <label for="laptop-jenis-request">Jenis Request</label>
+                            <select id="laptop-jenis-request" name="jenis-request" required>
+                                <option value="">Pilih Jenis Request</option>
+                                <option value="Pengadaan Baru">Pengadaan Baru</option>
+                                <option value="Perbaikan">Perbaikan</option>
+                                <option value="Upgrade">Upgrade</option>
+                                <option value="Penggantian">Penggantian</option>
                             </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="laptop-spesifikasi">Spesifikasi Diinginkan (untuk pengadaan/upgrade)</label>
+                            <input type="text" id="laptop-spesifikasi" name="spesifikasi" placeholder="Contoh: Core i7, RAM 16GB, SSD 512GB">
+                        </div>
+                        <div class="form-group">
+                            <label for="laptop-merk-model">Merk/Model (untuk perbaikan/penggantian)</label>
+                            <input type="text" id="laptop-merk-model" name="merk-model" placeholder="Contoh: Dell Latitude 7420">
                         </div>
                     </div>
                     
                     <div class="form-group">
-                        <label for="laptop-detail">Detail Permintaan</label>
-                        <textarea id="laptop-detail" name="detail" placeholder="Jelaskan detail permasalahan atau kebutuhan IT Anda" required></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="laptop-prioritas">Tingkat Prioritas</label>
-                        <select id="laptop-prioritas" name="prioritas" required>
-                            <option value="">Pilih Tingkat Prioritas</option>
-                            <option value="Rendah">Rendah (Bisa ditunda 1-2 hari)</option>
-                            <option value="Sedang">Sedang (Perlu diselesaikan hari ini)</option>
-                            <option value="Tinggi">Tinggi (Mendesak, mengganggu pekerjaan)</option>
-                        </select>
+                        <label for="laptop-masalah-kebutuhan">Deskripsi Masalah / Kebutuhan</label>
+                        <textarea id="laptop-masalah-kebutuhan" name="masalah-kebutuhan" placeholder="Jelaskan masalah yang terjadi atau kebutuhan spesifik Anda" required></textarea>
                     </div>
                     
                     <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Ajukan Permintaan</button>
@@ -1262,8 +1239,8 @@
                 
                 <div id="laptop-confirmation" class="confirmation">
                     <div class="confirmation-icon"><i class="fas fa-check-circle"></i></div>
-                    <h3>Permintaan IT Berhasil Diajukan!</h3>
-                    <p>Terima kasih telah mengajukan permintaan IT. Tim IT akan segera memproses permintaan Anda.</p>
+                    <h3>Permintaan Barang Berhasil Diajukan!</h3>
+                    <p>Tim General Affair akan segera menindaklanjuti permintaan barang Anda.</p>
                 </div>
                 
                 <div id="laptop-requests" class="requests-list">
@@ -1279,6 +1256,19 @@
                         </div>
                     </div>
                 </div>
+
+                <div id="laptop-approved-by" class="requests-list">
+                    <div class="requests-header">
+                        <h3 class="requests-title">Persetujuan Request IT</h3>
+                        <button class="btn btn-primary" id="refresh-laptop-approved"><i class="fas fa-sync-alt"></i> Refresh</button>
+                    </div>
+                    <div id="laptop-approved-by-list">
+                        <div class="empty-state">
+                            <i class="fas fa-check-double"></i>
+                            <p>Memuat data request...</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -1290,61 +1280,60 @@
             
             <div class="form-tabs">
                 <div class="form-tab active" data-tab="form">Form Request</div>
-                <div class="form-tab" data-tab="requests" id="kartu-nama-requests-tab">Daftar Request</div>
+                <div class="form-tab" data-tab="requests" id="kartunama-requests-tab">Daftar Request</div>
             </div>
             
             <div class="form-content">
-                <form id="kartuNamaForm">
+                <form id="kartunamaForm">
                     <div class="form-grid">
                         <div class="form-group">
-                            <label for="kartu-nama-nama">Nama Lengkap</label>
-                            <input type="text" id="kartu-nama-nama" name="nama" required>
+                            <label for="kartunama-nama">Nama Lengkap</label>
+                            <input type="text" id="kartunama-nama" name="nama" required>
                         </div>
                         <div class="form-group">
-                            <label for="kartu-nama-department">Department</label>
-                            <input type="text" id="kartu-nama-department" name="department" required>
+                            <label for="kartunama-department">Department</label>
+                            <input type="text" id="kartunama-department" name="department" required>
                         </div>
                         <div class="form-group">
-                            <label for="kartu-nama-posisi">Posisi/Jabatan</label>
-                            <input type="text" id="kartu-nama-posisi" name="posisi" required>
+                            <label for="kartunama-posisi">Posisi</label>
+                            <input type="text" id="kartunama-posisi" name="posisi" required>
                         </div>
                         <div class="form-group">
-                            <label for="kartu-nama-jenis">Jenis Permintaan</label>
-                            <select id="kartu-nama-jenis" name="jenis" required>
-                                <option value="">Pilih Jenis Permintaan</option>
-                                <option value="Baru">Baru</option>
-                                <option value="Perubahan Data">Perubahan Data</option>
-                                <option value="Permintaan Ulang">Permintaan Ulang</option>
-                            </select>
+                            <label for="kartunama-email">Email Kantor</label>
+                            <input type="email" id="kartunama-email" name="email" required>
                         </div>
                         <div class="form-group">
-                            <label for="kartu-nama-jumlah">Jumlah Kartu Nama</label>
-                            <input type="number" id="kartu-nama-jumlah" name="jumlah" min="50" max="500" value="100" required>
+                            <label for="kartunama-telepon">Nomor Telepon Kantor</label>
+                            <input type="tel" id="kartunama-telepon" name="telepon" placeholder="Contoh: +6281234567890">
+                        </div>
+                        <div class="form-group">
+                            <label for="kartunama-jumlah">Jumlah Kartu Nama</label>
+                            <input type="number" id="kartunama-jumlah" name="jumlah" min="1" value="100" required>
                         </div>
                     </div>
                     
                     <div class="form-group">
-                        <label for="kartu-nama-keterangan">Keterangan Tambahan</label>
-                        <textarea id="kartu-nama-keterangan" name="keterangan" placeholder="Jelaskan jika ada informasi khusus untuk kartu nama"></textarea>
+                        <label for="kartunama-keterangan">Keterangan Tambahan (misal: desain khusus, informasi tambahan)</label>
+                        <textarea id="kartunama-keterangan" name="keterangan" placeholder=""></textarea>
                     </div>
                     
                     <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Ajukan Permintaan</button>
                     <button type="button" class="btn btn-secondary back-button"><i class="fas fa-arrow-left"></i> Kembali ke Beranda</button>
                 </form>
                 
-                <div id="kartu-nama-confirmation" class="confirmation">
+                <div id="kartunama-confirmation" class="confirmation">
                     <div class="confirmation-icon"><i class="fas fa-check-circle"></i></div>
                     <h3>Permintaan Kartu Nama Berhasil Diajukan!</h3>
-                    <p>Terima kasih telah mengajukan permintaan kartu nama. Tim General Affair akan segera memproses permintaan Anda.</p>
+                    <p>Tim General Affair akan segera memproses pencetakan kartu nama Anda.</p>
                 </div>
                 
-                <div id="kartu-nama-requests" class="requests-list">
+                <div id="kartunama-requests" class="requests-list">
                     <div class="requests-header">
                         <h3 class="requests-title">Daftar Request Kartu Nama</h3>
-                        <button class="btn btn-primary" id="refresh-kartu-nama"><i class="fas fa-sync-alt"></i> Refresh</button>
+                        <button class="btn btn-primary" id="refresh-kartunama"><i class="fas fa-sync-alt"></i> Refresh</button>
                     </div>
                     
-                    <div id="kartu-nama-requests-list">
+                    <div id="kartunama-requests-list">
                         <div class="empty-state">
                             <i class="fas fa-inbox"></i>
                             <p>Memuat data request...</p>
@@ -1357,7 +1346,7 @@
         <!-- Form Feedback untuk GA -->
         <section id="form-feedback" class="form-section">
             <div class="form-header">
-                <h2 class="form-title"><i class="fas fa-comment-alt"></i> Feedback untuk GA</h2>
+                <h2 class="form-title"><i class="fas fa-comment-alt"></i> Feedback untuk General Affair</h2>
             </div>
             
             <div class="form-tabs">
@@ -1384,29 +1373,22 @@
                             <label for="feedback-kategori">Kategori Feedback</label>
                             <select id="feedback-kategori" name="kategori" required>
                                 <option value="">Pilih Kategori</option>
-                                <option value="Saran Perbaikan">Saran Perbaikan</option>
-                                <option value="Keluhan">Keluhan</option>
-                                <option value="Pujian">Pujian</option>
-                                <option value="Permintaan Layanan Baru">Permintaan Layanan Baru</option>
+                                <option value="Layanan">Layanan</option>
+                                <option value="Fasilitas">Fasilitas</option>
+                                <option value="Proses">Proses</option>
+                                <option value="Lainnya">Lainnya</option>
                             </select>
                         </div>
                     </div>
                     
                     <div class="form-group">
-                        <label for="feedback-pesan">Pesan Feedback</label>
-                        <textarea id="feedback-pesan" name="pesan" placeholder="Tuliskan feedback, saran, atau keluhan Anda untuk layanan General Affair" required></textarea>
+                        <label for="feedback-masukan">Masukan dan Saran</label>
+                        <textarea id="feedback-masukan" name="masukan" placeholder="Berikan masukan dan saran untuk perbaikan layanan General Affair" required></textarea>
                     </div>
                     
                     <div class="form-group">
-                        <label for="feedback-rating">Rating Layanan GA</label>
-                        <select id="feedback-rating" name="rating" required>
-                            <option value="">Pilih Rating</option>
-                            <option value="5">Sangat Baik</option>
-                            <option value="4">Baik</option>
-                            <option value="3">Cukup</option>
-                            <option value="2">Kurang</option>
-                            <option value="1">Sangat Kurang</option>
-                        </select>
+                        <label for="feedback-penilaian">Penilaian Layanan (1-10)</label>
+                        <input type="number" id="feedback-penilaian" name="penilaian" min="1" max="10" required>
                     </div>
                     
                     <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Kirim Feedback</button>
@@ -1416,7 +1398,7 @@
                 <div id="feedback-confirmation" class="confirmation">
                     <div class="confirmation-icon"><i class="fas fa-check-circle"></i></div>
                     <h3>Feedback Berhasil Dikirim!</h3>
-                    <p>Terima kasih atas feedback yang telah Anda berikan. Kami akan terus berusaha meningkatkan kualitas layanan General Affair.</p>
+                    <p>Terima kasih atas masukan Anda. Tim General Affair akan menindaklanjuti feedback ini.</p>
                 </div>
                 
                 <div id="feedback-requests" class="requests-list">
@@ -1434,772 +1416,1086 @@
                 </div>
             </div>
         </section>
+
     </main>
 
+    <!-- FOOTER -->
     <footer style="display: none;">
-        <div class="container">
-            <div class="footer-content">
-                <p>&copy; 2023 Aplikasi General Affair Modern. All rights reserved.</p>
-                <p>Dibuat dengan <i class="fas fa-heart" style="color: #ef4444;"></i> untuk meningkatkan efisiensi kerja</p>
-            </div>
+        <div class="container footer-content">
+            <p>&copy; 2023 General Affair System - Aplikasi Manajemen Kebutuhan Perusahaan</p>
         </div>
     </footer>
 
     <script>
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyC4mOkOIiQUk1Yd8Qdc7w6Kt4c8lvl2tdc",
-            authDomain: "ga-system-modern.firebaseapp.com",
-            projectId: "ga-system-modern",
-            storageBucket: "ga-system-modern.appspot.com",
-            messagingSenderId: "123456789012",
-            appId: "1:123456789012:web:abcdef123456"
-        };
+        document.addEventListener('DOMContentLoaded', function() {
+            // Firebase Configuration
+            const firebaseConfig = {
+                apiKey: "AIzaSyDihA-hrOGbYojWc9WLwYFi207XoOtfjuU",
+                authDomain: "generalaffair-d18ce.firebaseapp.com",
+                projectId: "generalaffair-d18ce",
+                storageBucket: "generalaffair-d18ce.firebasestorage.app",
+                messagingSenderId: "726107738231",
+                appId: "1:726107738231:web:8385b1fa08994a2a06f672"
+            };
 
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+            // Initialize Firebase
+            firebase.initializeApp(firebaseConfig);
+            const auth = firebase.auth();
+            const db = firebase.firestore();
 
-        // User permissions mapping
-        const userPermissions = {
-            'ulandari@genetek.co.id': {
-                name: 'Ulan',
-                allowedForms: ['atk', 'idcard', 'konsumsi', 'kartu-nama']
-            },
-            'crenata@genetek.co.id': {
-                name: 'Renata',
-                allowedForms: ['atk', 'idcard', 'konsumsi', 'laptop', 'kartu-nama', 'feedback']
-            },
-            'galih@genetek.co.id': {
-                name: 'Galih',
-                allowedForms: ['laptop']
-            },
-            'maida@genetek.co.id': {
-                name: 'Maida',
-                allowedForms: ['laptop']
-            },
-            'rossiana.yl@genetek.co.id': {
-                name: 'Rossiana',
-                allowedForms: ['laptop']
+            // Mapping email ke nama
+            const emailToNameMap = {
+                'galih@genetek.co.id': 'Galih',
+                'crenata@genetek.co.id': 'Renata',
+                'rossiana.yl@genetek.co.id': 'Rossiana',
+                'maida@genetek.co.id': 'Maida',
+                'ulandari@genetek.co.id': 'Ulan',
+            };
+
+            // User permissions mapping
+            const userPermissions = {
+                'ulandari@genetek.co.id': {
+                    name: 'Ulan',
+                    allowedForms: ['atk', 'idcard', 'konsumsi', 'kartu-nama']
+                },
+                'crenata@genetek.co.id': {
+                    name: 'Renata',
+                    allowedForms: ['atk', 'idcard', 'konsumsi', 'laptop', 'kartu-nama', 'feedback']
+                },
+                'galih@genetek.co.id': {
+                    name: 'Galih',
+                    allowedForms: ['laptop']
+                },
+                'maida@genetek.co.id': {
+                    name: 'Maida',
+                    allowedForms: ['laptop']
+                },
+                'rossiana.yl@genetek.co.id': {
+                    name: 'Rossiana',
+                    allowedForms: ['laptop']
+                }
+            };
+
+            // Navigation handling
+            const cards = document.querySelectorAll('.card');
+            const sections = document.querySelectorAll('section');
+            const backButtons = document.querySelectorAll('.back-button');
+            
+            // Form elements
+            const forms = {
+                atk: document.getElementById('atkForm'),
+                idcard: document.getElementById('idcardForm'),
+                konsumsi: document.getElementById('konsumsiForm'),
+                laptop: document.getElementById('laptopForm'),
+                kartunama: document.getElementById('kartunamaForm'),
+                feedback: document.getElementById('feedbackForm')
+            };
+            
+            // Confirmation messages
+            const confirmations = {
+                atk: document.getElementById('atk-confirmation'),
+                idcard: document.getElementById('idcard-confirmation'),
+                konsumsi: document.getElementById('konsumsi-confirmation'),
+                laptop: document.getElementById('laptop-confirmation'),
+                kartunama: document.getElementById('kartunama-confirmation'),
+                feedback: document.getElementById('feedback-confirmation')
+            };
+            
+            // Requests lists
+            const requestsLists = {
+                atk: document.getElementById('atk-requests'),
+                idcard: document.getElementById('idcard-requests'),
+                konsumsi: document.getElementById('konsumsi-requests'),
+                laptop: document.getElementById('laptop-requests'),
+                kartunama: document.getElementById('kartunama-requests'),
+                feedback: document.getElementById('feedback-requests'),
+                'laptop-approved-by': document.getElementById('laptop-approved-by'),
+                'atk-approved-by': document.getElementById('atk-approved-by')
+            };
+
+            // Get all form tabs
+            const allFormTabs = document.querySelectorAll('.form-section .form-tab');
+
+            // Login elements
+            const loginPage = document.getElementById('login-page');
+            const loginForm = document.getElementById('login-form');
+            const loginEmail = document.getElementById('login-email');
+            const loginPassword = document.getElementById('login-password');
+            const guestLoginBtn = document.getElementById('guest-login-btn');
+            const loginError = document.getElementById('login-error');
+            const logoutBtn = document.getElementById('logout-btn');
+            const userInfo = document.getElementById('user-info');
+            const userName = document.getElementById('user-name');
+            const userAvatar = document.getElementById('user-avatar');
+            
+            // Photo upload elements
+            const photoUploadArea = document.getElementById('photo-upload-area');
+            const photoInput = document.getElementById('idcard-foto');
+            const photoPreview = document.getElementById('photo-preview');
+            const previewImage = document.getElementById('preview-image');
+            const photoModal = document.getElementById('photo-modal');
+            const modalPhoto = document.getElementById('modal-photo');
+            const closeModal = document.querySelector('.close-modal');
+            
+            // Function to show/hide login page and main content
+            function toggleLoginState(isLoggedIn, user = null) {
+                if (isLoggedIn && user) {
+                    // Hide login page, show main content
+                    loginPage.style.display = 'none';
+                    document.querySelector('header').style.display = 'block';
+                    document.querySelector('main').style.display = 'block';
+                    document.querySelector('footer').style.display = 'block';
+                    
+                    logoutBtn.style.display = 'inline-flex';
+                    
+                    // Tampilkan info user
+                    if (user.email) {
+                        const displayName = emailToNameMap[user.email] || user.email.split('@')[0];
+                        userName.textContent = displayName;
+                        userAvatar.textContent = displayName.charAt(0).toUpperCase();
+                        userInfo.style.display = 'flex';
+                        
+                        // Update form tabs visibility based on permissions
+                        updateFormTabsVisibility(user.email);
+                    } else {
+                        // Guest user - hide request tabs
+                        userName.textContent = 'Tamu';
+                        userAvatar.textContent = 'T';
+                        userInfo.style.display = 'flex';
+                        
+                        // Hide request tabs for guest users
+                        document.querySelectorAll('[id$="-requests-tab"], [id$="-approved-tab"]').forEach(tab => {
+                            tab.style.display = 'none';
+                        });
+                    }
+                    
+                    showSection('dashboard');
+                } else {
+                    // Show login page, hide main content
+                    loginPage.style.display = 'flex';
+                    document.querySelector('header').style.display = 'none';
+                    document.querySelector('main').style.display = 'none';
+                    document.querySelector('footer').style.display = 'none';
+                    
+                    logoutBtn.style.display = 'none';
+                    userInfo.style.display = 'none';
+                    
+                    // Reset login form
+                    if (loginForm) loginForm.reset();
+                    if (loginError) loginError.style.display = 'none';
+                }
             }
-        };
 
-        // DOM Elements
-        const loginPage = document.getElementById('login-page');
-        const loginForm = document.getElementById('login-form');
-        const guestLoginBtn = document.getElementById('guest-login-btn');
-        const loginError = document.getElementById('login-error');
-        const header = document.querySelector('header');
-        const main = document.querySelector('main');
-        const footer = document.querySelector('footer');
-        const userInfo = document.getElementById('user-info');
-        const userName = document.getElementById('user-name');
-        const userAvatar = document.getElementById('user-avatar');
-        const logoutBtn = document.getElementById('logout-btn');
-        const dashboard = document.getElementById('dashboard');
-        const formSections = document.querySelectorAll('.form-section');
-        const cards = document.querySelectorAll('.card');
-        const backButtons = document.querySelectorAll('.back-button');
-        const formTabs = document.querySelectorAll('.form-tab');
-        const confirmationMessages = document.querySelectorAll('.confirmation');
-        const requestsLists = document.querySelectorAll('.requests-list');
-        const refreshButtons = document.querySelectorAll('[id^="refresh-"]');
-
-        // Photo upload elements
-        const photoUploadArea = document.getElementById('photo-upload-area');
-        const photoInput = document.getElementById('idcard-foto');
-        const photoPreview = document.getElementById('photo-preview');
-        const previewImage = document.getElementById('preview-image');
-        const photoModal = document.getElementById('photo-modal');
-        const modalPhoto = document.getElementById('modal-photo');
-        const closeModal = document.querySelector('.close-modal');
-
-        // Current user
-        let currentUser = null;
-        let currentUserPermissions = null;
-
-        // Login functionality
-        loginForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            
-            showLoading(loginForm.querySelector('button[type="submit"]'));
-            
-            auth.signInWithEmailAndPassword(email, password)
-                .then((userCredential) => {
-                    currentUser = userCredential.user;
-                    currentUserPermissions = userPermissions[email];
-                    hideLoginError();
-                    showMainApp();
-                    showAlert('Login berhasil!', 'success');
-                })
-                .catch((error) => {
-                    hideLoading(loginForm.querySelector('button[type="submit"]'));
-                    showLoginError('Email atau password salah. Silakan coba lagi.');
-                });
-        });
-
-        guestLoginBtn.addEventListener('click', () => {
-            showLoading(guestLoginBtn);
-            // Sign in anonymously
-            auth.signInAnonymously()
-                .then((userCredential) => {
-                    currentUser = userCredential.user;
-                    currentUserPermissions = null;
-                    hideLoginError();
-                    showMainApp();
-                    showAlert('Login sebagai tamu berhasil!', 'success');
-                })
-                .catch((error) => {
-                    hideLoading(guestLoginBtn);
-                    showLoginError('Gagal login sebagai tamu. Silakan coba lagi.');
-                });
-        });
-
-        // Logout functionality
-        logoutBtn.addEventListener('click', () => {
-            auth.signOut().then(() => {
-                currentUser = null;
-                currentUserPermissions = null;
-                showLoginPage();
-                showAlert('Anda telah logout.', 'warning');
-            });
-        });
-
-        // Show login page
-        function showLoginPage() {
-            loginPage.classList.add('active');
-            header.style.display = 'none';
-            main.style.display = 'none';
-            footer.style.display = 'none';
-            document.body.classList.add('login-active');
-            userInfo.style.display = 'none';
-            logoutBtn.style.display = 'none';
-        }
-
-        // Show main app
-        function showMainApp() {
-            loginPage.classList.remove('active');
-            header.style.display = 'block';
-            main.style.display = 'block';
-            footer.style.display = 'block';
-            document.body.classList.remove('login-active');
-            
-            if (currentUser && !currentUser.isAnonymous) {
-                userInfo.style.display = 'flex';
-                logoutBtn.style.display = 'block';
-                const displayName = currentUserPermissions ? currentUserPermissions.name : currentUser.email.split('@')[0];
-                userName.textContent = displayName;
-                userAvatar.textContent = displayName.charAt(0).toUpperCase();
+            // Update form tabs visibility based on user permissions
+            function updateFormTabsVisibility(userEmail) {
+                if (!userEmail || !userPermissions[userEmail]) return;
                 
-                // Update form tabs visibility based on permissions
-                updateFormTabsVisibility();
-            } else {
-                userInfo.style.display = 'none';
-                logoutBtn.style.display = 'none';
-                // Hide all request tabs for guest users
-                document.querySelectorAll('[id$="-requests-tab"], [id$="-approved-tab"]').forEach(tab => {
-                    tab.style.display = 'none';
+                const userPermission = userPermissions[userEmail];
+                const allFormTypes = ['atk', 'idcard', 'konsumsi', 'laptop', 'kartu-nama', 'feedback'];
+                
+                allFormTypes.forEach(formType => {
+                    const requestTab = document.getElementById(`${formType}-requests-tab`);
+                    const approvedTab = document.getElementById(`${formType}-approved-tab`);
+                    
+                    if (requestTab) {
+                        requestTab.style.display = userPermission.allowedForms.includes(formType) ? 'block' : 'none';
+                    }
+                    
+                    if (approvedTab) {
+                        approvedTab.style.display = userPermission.allowedForms.includes(formType) ? 'block' : 'none';
+                    }
+                });
+            }
+
+            // Check authentication state
+            auth.onAuthStateChanged(user => {
+                console.log("Auth state changed:", user);
+                if (user) {
+                    console.log("User logged in:", user.email || "Guest");
+                    toggleLoginState(true, user);
+                } else {
+                    console.log("User logged out");
+                    toggleLoginState(false);
+                }
+            });
+
+            // Handle email/password login
+            if (loginForm) {
+                loginForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const email = loginEmail.value;
+                    const password = loginPassword.value;
+
+                    const allowedLoginEmails = [
+                        "crenata@genetek.co.id",
+                        "rossiana.yl@genetek.co.id",
+                        "galih@genetek.co.id",
+                        "maida@genetek.co.id",
+                        "ulandari@genetek.co.id",
+                    ];
+
+                    if (!allowedLoginEmails.includes(email)) {
+                        loginError.textContent = "Email tidak terdaftar sebagai approver yang diizinkan.";
+                        loginError.style.display = 'block';
+                        return;
+                    }
+
+                    // Show loading
+                    const submitBtn = loginForm.querySelector('button[type="submit"]');
+                    const originalText = submitBtn.innerHTML;
+                    submitBtn.innerHTML = '<div class="loading"></div> Login...';
+                    submitBtn.disabled = true;
+
+                    auth.signInWithEmailAndPassword(email, password)
+                        .then((userCredential) => {
+                            const user = userCredential.user;
+                            console.log("Login successful:", user.email);
+                            loginError.style.display = 'none';
+                            submitBtn.innerHTML = originalText;
+                            submitBtn.disabled = false;
+                        })
+                        .catch((error) => {
+                            const errorCode = error.code;
+                            const errorMessage = error.message;
+                            console.error("Login failed:", errorCode, errorMessage);
+                            loginError.textContent = "Login gagal: " + errorMessage;
+                            loginError.style.display = 'block';
+                            submitBtn.innerHTML = originalText;
+                            submitBtn.disabled = false;
+                        });
+                });
+            }
+
+            // Handle guest login
+            if (guestLoginBtn) {
+                guestLoginBtn.addEventListener('click', function() {
+                    // Show loading
+                    const originalText = guestLoginBtn.innerHTML;
+                    guestLoginBtn.innerHTML = '<div class="loading"></div> Login...';
+                    guestLoginBtn.disabled = true;
+
+                    auth.signInAnonymously()
+                        .then((userCredential) => {
+                            console.log("Signed in as guest:", userCredential.user.uid);
+                            loginError.style.display = 'none';
+                            guestLoginBtn.innerHTML = originalText;
+                            guestLoginBtn.disabled = false;
+                            
+                            // Show success message
+                            showAlert('Login sebagai tamu berhasil!', 'success');
+                        })
+                        .catch((error) => {
+                            const errorCode = error.code;
+                            const errorMessage = error.message;
+                            console.error("Guest login failed:", errorCode, errorMessage);
+                            
+                            // User-friendly error messages
+                            let userFriendlyError = "Gagal masuk sebagai tamu. Silakan coba lagi.";
+                            if (errorCode === 'auth/admin-restricted-operation') {
+                                userFriendlyError = "Login tamu dinonaktifkan. Silakan hubungi administrator.";
+                            } else if (errorCode === 'auth/network-request-failed') {
+                                userFriendlyError = "Koneksi internet bermasalah. Periksa koneksi Anda.";
+                            }
+                            
+                            loginError.textContent = userFriendlyError;
+                            loginError.style.display = 'block';
+                            guestLoginBtn.innerHTML = originalText;
+                            guestLoginBtn.disabled = false;
+                        });
+                });
+            }
+
+            // Handle logout
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function() {
+                    // Show loading
+                    const originalText = logoutBtn.innerHTML;
+                    logoutBtn.innerHTML = '<div class="loading"></div> Logout...';
+                    logoutBtn.disabled = true;
+
+                    auth.signOut().then(() => {
+                        console.log("User signed out");
+                        logoutBtn.innerHTML = originalText;
+                        logoutBtn.disabled = false;
+                    }).catch((error) => {
+                        console.error("Logout failed:", error);
+                        showAlert('Logout gagal', 'danger');
+                        logoutBtn.innerHTML = originalText;
+                        logoutBtn.disabled = false;
+                    });
                 });
             }
             
-            // Reset forms
-            resetForms();
-            showDashboard();
-        }
-
-        // Update form tabs visibility based on user permissions
-        function updateFormTabsVisibility() {
-            if (!currentUserPermissions) return;
-            
-            const allFormTypes = ['atk', 'idcard', 'konsumsi', 'laptop', 'kartu-nama', 'feedback'];
-            
-            allFormTypes.forEach(formType => {
-                const requestTab = document.getElementById(`${formType}-requests-tab`);
-                const approvedTab = document.getElementById(`${formType}-approved-tab`);
+            // Show section based on target
+            function showSection(targetId) {
+                sections.forEach(section => {
+                    section.classList.remove('active');
+                });
                 
-                if (requestTab) {
-                    requestTab.style.display = currentUserPermissions.allowedForms.includes(formType) ? 'block' : 'none';
+                const targetSection = document.getElementById(targetId);
+                if (targetSection) {
+                    targetSection.classList.add('active');
                 }
                 
-                if (approvedTab) {
-                    approvedTab.style.display = currentUserPermissions.allowedForms.includes(formType) ? 'block' : 'none';
+                // Show form tab by default when navigating to a form
+                if (targetId !== 'dashboard') {
+                    showFormTab(targetId.replace('form-', ''), 'form');
                 }
-            });
-        }
-
-        // Show dashboard
-        function showDashboard() {
-            dashboard.style.display = 'grid';
-            formSections.forEach(section => {
-                section.classList.remove('active');
-            });
-        }
-
-        // Show form section
-        function showFormSection(targetId) {
-            dashboard.style.display = 'none';
-            formSections.forEach(section => {
-                section.classList.remove('active');
-                if (section.id === targetId) {
-                    section.classList.add('active');
-                    // Reset form tabs to show form by default
-                    resetFormTabs(section);
-                }
-            });
-        }
-
-        // Reset form tabs
-        function resetFormTabs(section) {
-            const tabs = section.querySelectorAll('.form-tab');
-            const formContent = section.querySelector('.form-content');
+            }
             
-            tabs.forEach(tab => {
-                tab.classList.remove('active');
-                if (tab.getAttribute('data-tab') === 'form') {
-                    tab.classList.add('active');
-                }
-            });
-            
-            // Show form and hide other sections
-            const form = section.querySelector('form');
-            const confirmation = section.querySelector('.confirmation');
-            const requestsList = section.querySelector('.requests-list');
-            const approvedBy = section.querySelector('#atk-approved-by');
-            
-            if (form) form.style.display = 'block';
-            if (confirmation) confirmation.classList.remove('active');
-            if (requestsList) requestsList.classList.remove('active');
-            if (approvedBy) approvedBy.classList.remove('active');
-        }
+            // Show the appropriate tab (form or requests)
+            function showFormTab(formType, tabType) {
+                const currentFormSection = document.getElementById(`form-${formType}`);
+                if (!currentFormSection) return;
 
-        // Reset all forms
-        function resetForms() {
-            document.querySelectorAll('form').forEach(form => {
-                form.reset();
-                form.style.display = 'block';
-            });
-            
-            confirmationMessages.forEach(confirmation => {
-                confirmation.classList.remove('active');
-            });
-            
-            requestsLists.forEach(list => {
-                list.classList.remove('active');
-            });
-            
-            // Reset photo preview
-            photoPreview.style.display = 'none';
-            previewImage.src = '';
-        }
+                const formElement = currentFormSection.querySelector('form');
+                const confirmationElement = confirmations[formType];
+                const requestsElement = requestsLists[formType];
+                const approvedByElement = document.getElementById(`${formType}-approved-by`);
+                
+                // Update active tab
+                currentFormSection.querySelectorAll('.form-tab').forEach(tab => {
+                    tab.classList.remove('active');
+                    if (tab.dataset.tab === tabType) {
+                        tab.classList.add('active');
+                    }
+                });
+                
+                // Sembunyikan semua konten tab terlebih dahulu
+                if (formElement) formElement.style.display = 'none';
+                if (confirmationElement) confirmationElement.style.display = 'none';
+                if (requestsElement) requestsElement.style.display = 'none';
+                if (approvedByElement) approvedByElement.style.display = 'none';
 
-        // Card click event
-        cards.forEach(card => {
-            card.addEventListener('click', () => {
-                const targetId = card.getAttribute('data-target');
-                showFormSection(`form-${targetId}`);
-            });
-        });
-
-        // Back button click event
-        backButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                showDashboard();
-            });
-        });
-
-        // Form tab click event
-        formTabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                const section = tab.closest('.form-section');
-                const tabType = tab.getAttribute('data-tab');
-                const formType = section.id.replace('form-', '');
-                const tabs = section.querySelectorAll('.form-tab');
-                const form = section.querySelector('form');
-                const confirmation = section.querySelector('.confirmation');
-                const requestsList = section.querySelector('.requests-list');
-                const approvedBy = section.querySelector('#atk-approved-by');
+                // Cek jika user adalah tamu, jangan tampilkan daftar request
+                const currentUser = auth.currentUser;
+                const isGuest = !currentUser || currentUser.isAnonymous;
+                const userEmail = currentUser ? currentUser.email : null;
                 
                 // Check permissions for request tabs
-                if (tabType === 'requests' || tabType === 'approved-by') {
-                    if (!currentUserPermissions || !currentUserPermissions.allowedForms.includes(formType)) {
+                if ((tabType === 'requests' || tabType === 'approved-by') && userEmail) {
+                    const userPermission = userPermissions[userEmail];
+                    if (!userPermission || !userPermission.allowedForms.includes(formType)) {
                         showAlert('Anda tidak memiliki akses untuk melihat daftar request ini', 'warning');
+                        if (formElement) formElement.style.display = 'block';
                         return;
                     }
                 }
                 
-                tabs.forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                
-                if (form) form.style.display = 'none';
-                if (confirmation) confirmation.classList.remove('active');
-                if (requestsList) requestsList.classList.remove('active');
-                if (approvedBy) approvedBy.classList.remove('active');
-                
                 if (tabType === 'form') {
-                    if (form) form.style.display = 'block';
+                    if (formElement) formElement.style.display = 'block';
                 } else if (tabType === 'requests') {
-                    if (requestsList) {
-                        requestsList.classList.add('active');
+                    if (requestsElement && !isGuest) {
+                        requestsElement.style.display = 'block';
                         loadRequests(formType);
+                    } else if (isGuest) {
+                        // Untuk tamu, tetap tampilkan form
+                        if (formElement) formElement.style.display = 'block';
+                        showAlert('Fitur ini tidak tersedia untuk tamu', 'warning');
                     }
-                } else if (tabType === 'approved-by') {
-                    if (approvedBy) {
-                        approvedBy.classList.add('active');
-                        loadApprovedRequests('atk');
+                } else if (tabType === 'approved-by' && (formType === 'laptop' || formType === 'atk')) {
+                    if (approvedByElement && !isGuest) {
+                        approvedByElement.style.display = 'block';
+                        loadApprovedByRequests(formType);
+                    } else if (isGuest) {
+                        // Untuk tamu, tetap tampilkan form
+                        if (formElement) formElement.style.display = 'block';
+                        showAlert('Fitur ini tidak tersedia untuk tamu', 'warning');
                     }
                 }
-            });
-        });
-
-        // Form submission
-        document.querySelectorAll('form').forEach(form => {
-            form.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const formId = form.id;
-                const section = form.closest('.form-section');
-                const confirmation = section.querySelector('.confirmation');
-                
-                // Handle ID Card form separately to process photo
-                if (formId === 'idcardForm') {
-                    submitIdCardForm(form, confirmation);
-                } else {
-                    // For other forms
-                    submitForm(form, confirmation);
-                }
-            });
-        });
-
-        // Function to submit ID Card form with photo
-        function submitIdCardForm(form, confirmation) {
-            const formData = new FormData(form);
-            const photoFile = formData.get('foto');
-            
-            if (!photoFile || photoFile.size === 0) {
-                showAlert('Harap pilih foto untuk ID Card', 'danger');
-                return;
             }
             
-            // Convert photo to base64 for Firestore storage
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const photoBase64 = event.target.result;
-                
-                // Create request object
-                const request = {
-                    nama: formData.get('nama'),
-                    department: formData.get('department'),
-                    posisi: formData.get('posisi'),
-                    jenisRequest: formData.get('jenis-request'),
-                    keterangan: formData.get('keterangan'),
-                    foto: photoBase64, // Store base64 string in Firestore
-                    tanggal: new Date().toISOString(),
-                    status: 'Pending',
-                    userId: currentUser ? currentUser.uid : 'anonymous',
-                    userEmail: currentUser ? currentUser.email : 'guest'
-                };
-                
-                // Save to Firestore
-                db.collection('idcardRequests').add(request)
-                    .then(() => {
-                        form.reset();
-                        photoPreview.style.display = 'none';
-                        previewImage.src = '';
-                        form.style.display = 'none';
-                        confirmation.classList.add('active');
-                        showAlert('Permintaan ID Card berhasil diajukan!', 'success');
+            // Load requests for a specific form type from Firestore
+            function loadRequests(formType) {
+                const requestsListContainer = document.getElementById(`${formType}-requests-list`);
+                if (!requestsListContainer) return;
+
+                // Show loading state
+                requestsListContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="loading"></div>
+                        <p>Memuat data request...</p>
+                    </div>
+                `;
+
+                db.collection(`requests_${formType}`)
+                    .orderBy('createdAt', 'desc')
+                    .get()
+                    .then((querySnapshot) => {
+                        const requests = [];
+                        querySnapshot.forEach((doc) => {
+                            requests.push({ id: doc.id, ...doc.data() });
+                        });
+
+                        if (requests.length === 0) {
+                            requestsListContainer.innerHTML = `
+                                <div class="empty-state">
+                                    <i class="fas fa-inbox"></i>
+                                    <p>Belum ada request ${getFormTitle(formType)}</p>
+                                </div>
+                            `;
+                            return;
+                        }
+                        
+                        requestsListContainer.innerHTML = '';
+                        requests.forEach((request, index) => {
+                            // LOGIKA STATUS: 
+                            let status = request.status;
+                            let statusClass = 'status-pending';
+                            let statusText = 'Menunggu';
+                            
+                            // Untuk ATK: jika sudah disetujui Renata, status menjadi "Disetujui"
+                            if (formType === 'atk') {
+                                if (request.approvedBy && request.approvedBy.includes('Renata')) {
+                                    status = 'approved';
+                                    statusClass = 'status-approved';
+                                    statusText = 'Disetujui';
+                                } else if (request.status === 'approved') {
+                                    statusClass = 'status-approved';
+                                    statusText = 'Disetujui';
+                                } else if (request.status === 'rejected') {
+                                    statusClass = 'status-rejected';
+                                    statusText = 'Ditolak';
+                                } else {
+                                    statusText = 'Menunggu Persetujuan Renata';
+                                }
+                            } 
+                            // Untuk Laptop: jika sudah 4 user yang approve, status menjadi "Disetujui"
+                            else if (formType === 'laptop') {
+                                if (request.approvedBy && request.approvedBy.length >= 4) {
+                                    status = 'approved';
+                                    statusClass = 'status-approved';
+                                    statusText = 'Disetujui';
+                                } else if (request.status === 'approved') {
+                                    statusClass = 'status-approved';
+                                    statusText = 'Disetujui';
+                                } else if (request.status === 'rejected') {
+                                    statusClass = 'status-rejected';
+                                    statusText = 'Ditolak';
+                                } else {
+                                    // Tampilkan jumlah approval yang sudah ada
+                                    const approvedCount = request.approvedBy ? request.approvedBy.length : 0;
+                                    statusText = `Menunggu (${approvedCount}/4)`;
+                                }
+                            }
+                            // Untuk form lainnya
+                            else {
+                                if (request.status === 'approved') {
+                                    statusClass = 'status-approved';
+                                    statusText = 'Disetujui';
+                                } else if (request.status === 'rejected') {
+                                    statusClass = 'status-rejected';
+                                    statusText = 'Ditolak';
+                                }
+                            }
+                            
+                            const requestElement = document.createElement('div');
+                            
+                            // Special handling for ID Card with photo
+                            if (formType === 'idcard' && request.foto) {
+                                requestElement.className = 'request-item request-item-with-photo';
+                                requestElement.innerHTML = `
+                                    <img class="request-photo" src="${request.foto}" alt="Foto ID Card">
+                                    <div class="request-info">
+                                        <div class="request-title">${request.judul || getRequestTitle(formType, request)}</div>
+                                        <div class="request-details">
+                                            <div>Oleh: ${request.nama} • ${request.department}</div>
+                                            <div>Tanggal: ${request.tanggal} ${request.waktu ? '• ' + request.waktu : ''}</div>
+                                            ${request.approvedBy && request.approvedBy.length > 0 ? `<div>Disetujui oleh: ${request.approvedBy.join(', ')}</div>` : ''}
+                                        </div>
+                                    </div>
+                                    <div class="request-status ${statusClass}">${statusText}</div>
+                                `;
+                                
+                                // Add click event to photo for preview
+                                const photoElement = requestElement.querySelector('.request-photo');
+                                photoElement.addEventListener('click', () => {
+                                    modalPhoto.src = request.foto;
+                                    photoModal.classList.add('active');
+                                });
+                            } else {
+                                requestElement.className = 'request-item';
+                                requestElement.innerHTML = `
+                                    <div class="request-info">
+                                        <div class="request-title">${request.judul || getRequestTitle(formType, request)}</div>
+                                        <div class="request-details">
+                                            <div>Oleh: ${request.nama} • ${request.department}</div>
+                                            <div>Tanggal: ${request.tanggal} ${request.waktu ? '• ' + request.waktu : ''} ${formType === 'feedback' && request.kategori ? '• Kategori: ' + request.kategori : ''}</div>
+                                            ${request.approvedBy && request.approvedBy.length > 0 ? `<div>Disetujui oleh: ${request.approvedBy.join(', ')}</div>` : ''}
+                                        </div>
+                                    </div>
+                                    <div class="request-status ${statusClass}">${statusText}</div>
+                                `;
+                            }
+                            
+                            // Add animation delay based on index
+                            requestElement.style.animationDelay = `${index * 0.1}s`;
+                            requestsListContainer.appendChild(requestElement);
+                        });
                     })
                     .catch((error) => {
-                        console.error('Error adding document: ', error);
-                        showAlert('Terjadi kesalahan. Silakan coba lagi.', 'danger');
+                        console.error("Error loading requests:", error);
+                        requestsListContainer.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <p>Gagal memuat data request</p>
+                            </div>
+                        `;
                     });
-            };
-            
-            reader.readAsDataURL(photoFile);
-        }
-
-        // Function to submit other forms
-        function submitForm(form, confirmation) {
-            const formData = new FormData(form);
-            const request = {};
-            
-            for (let [key, value] of formData.entries()) {
-                request[key] = value;
             }
-            
-            request.tanggal = new Date().toISOString();
-            request.status = 'Pending';
-            request.userId = currentUser ? currentUser.uid : 'anonymous';
-            request.userEmail = currentUser ? currentUser.email : 'guest';
-            
-            const formType = form.id.replace('Form', '');
-            const collectionName = formType === 'atk' ? 'atkRequests' : 
-                                 formType === 'konsumsi' ? 'konsumsiRequests' :
-                                 formType === 'laptop' ? 'laptopRequests' :
-                                 formType === 'kartuNama' ? 'kartuNamaRequests' :
-                                 'feedbackRequests';
-            
-            db.collection(collectionName).add(request)
+
+            // Fungsi untuk memuat daftar request yang perlu disetujui dari Firestore
+            function loadApprovedByRequests(formType) {
+                const approvedByListContainer = document.getElementById(`${formType}-approved-by-list`);
+                if (!approvedByListContainer) return;
+
+                // Show loading state
+                approvedByListContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="loading"></div>
+                        <p>Memuat data request...</p>
+                    </div>
+                `;
+
+                db.collection(`requests_${formType}`)
+                    .where('status', 'in', ['pending', 'approved'])
+                    .orderBy('createdAt', 'desc')
+                    .get()
+                    .then((querySnapshot) => {
+                        const pendingRequests = [];
+                        querySnapshot.forEach((doc) => {
+                            pendingRequests.push({ id: doc.id, ...doc.data() });
+                        });
+
+                        if (pendingRequests.length === 0) {
+                            approvedByListContainer.innerHTML = `
+                                <div class="empty-state">
+                                    <i class="fas fa-check-double"></i>
+                                    <p>Tidak ada request ${getFormTitle(formType)} yang menunggu persetujuan.</p>
+                                </div>
+                            `;
+                            return;
+                        }
+
+                        approvedByListContainer.innerHTML = '';
+                        
+                        // Tentukan approver berdasarkan form type
+                        let approvers = [];
+                        if (formType === 'laptop') {
+                            approvers = ['Renata', 'Rossiana', 'Galih', 'Maida'];
+                        } else if (formType === 'atk') {
+                            approvers = ['Renata']; // Hanya Renata yang bisa menyetujui ATK
+                        }
+                        
+                        const currentUserEmail = auth.currentUser ? auth.currentUser.email : null;
+                        const currentUserName = currentUserEmail ? emailToNameMap[currentUserEmail] : null;
+
+                        pendingRequests.forEach((request, index) => {
+                            // LOGIKA STATUS: Cek apakah request sudah disetujui
+                            let isApproved = false;
+                            let approvalText = '';
+                            
+                            if (formType === 'laptop') {
+                                const approvedCount = request.approvedBy ? request.approvedBy.length : 0;
+                                isApproved = approvedCount >= 4;
+                                approvalText = isApproved ? 'Sudah disetujui semua (4/4)' : `Menunggu (${approvedCount}/4)`;
+                                
+                                // Update status di database jika sudah disetujui semua
+                                if (isApproved && request.status !== 'approved') {
+                                    db.collection(`requests_${formType}`).doc(request.id).update({
+                                        status: 'approved'
+                                    });
+                                }
+                            } else if (formType === 'atk') {
+                                isApproved = request.approvedBy && request.approvedBy.includes('Renata');
+                                approvalText = isApproved ? 'Sudah disetujui Renata' : 'Menunggu Persetujuan Renata';
+                                
+                                // Update status di database jika sudah disetujui
+                                if (isApproved && request.status !== 'approved') {
+                                    db.collection(`requests_${formType}`).doc(request.id).update({
+                                        status: 'approved'
+                                    });
+                                }
+                            }
+                            
+                            const requestElement = document.createElement('div');
+                            requestElement.className = 'request-item';
+                            requestElement.style.flexDirection = 'column';
+                            requestElement.style.alignItems = 'flex-start';
+                            requestElement.style.gap = '10px';
+                            
+                            // Generate content berdasarkan form type
+                            let requestDetails = '';
+                            if (formType === 'atk') {
+                                requestDetails = `
+                                    <div>Oleh: ${request.nama} • ${request.department}</div>
+                                    <div>Tanggal: ${request.tanggal}</div>
+                                    <div>Jenis ATK: ${request.jenis}</div>
+                                    <div>Detail: ${request.detail}</div>
+                                    <div>Alasan: ${request.alasan}</div>
+                                    <div>Status Persetujuan: ${approvalText}</div>
+                                `;
+                            } else if (formType === 'laptop') {
+                                requestDetails = `
+                                    <div>Oleh: ${request.nama} • ${request.department}</div>
+                                    <div>Tanggal: ${request.tanggal}</div>
+                                    <div>Jenis Request: ${request['jenis-request']}</div>
+                                    ${request.spesifikasi ? `<div>Spesifikasi: ${request.spesifikasi}</div>` : ''}
+                                    ${request['merk-model'] ? `<div>Merk/Model: ${request['merk-model']}</div>` : ''}
+                                    <div>Deskripsi: ${request['masalah-kebutuhan']}</div>
+                                    <div>Status Persetujuan: ${approvalText}</div>
+                                `;
+                            }
+                            
+                            requestElement.innerHTML = `
+                                <div class="request-info" style="width: 100%;">
+                                    <div class="request-title">${request.judul || getRequestTitle(formType, request)}</div>
+                                    <div class="request-details">
+                                        ${requestDetails}
+                                    </div>
+                                </div>
+                                <div class="approved-by-options" style="width: 100%; border-top: 1px solid var(--border); padding-top: 10px; margin-top: 10px;">
+                                    <label style="font-weight: 600; margin-bottom: 5px;">Status Persetujuan:</label>
+                                    <div class="approver-checkboxes">
+                                        ${approvers.map(approver => {
+                                            const isCurrentUserApprover = (currentUserName === approver);
+                                            const isChecked = request.approvedBy && request.approvedBy.includes(approver);
+
+                                            return `
+                                                <div class="approver-option">
+                                                    <input type="checkbox" id="approve-${request.id}-${approver}"
+                                                        data-request-id="${request.id}"
+                                                        data-approver="${approver}"
+                                                        ${isChecked ? 'checked' : ''}
+                                                        ${!isCurrentUserApprover ? 'disabled' : ''}>
+                                                    <label for="approve-${request.id}-${approver}" style="margin-bottom: 0;">${approver}</label>
+                                                </div>
+                                            `;
+                                        }).join('')}
+                                    </div>
+                                    <div class="action-buttons">
+                                        <button class="btn btn-primary btn-sm approve-btn" data-request-id="${request.id}" ${!currentUserName ? 'disabled' : ''}>
+                                            <i class="fas fa-check"></i> Setujui
+                                        </button>
+                                        <button class="btn btn-danger btn-sm reject-btn" data-request-id="${request.id}" ${!currentUserName ? 'disabled' : ''}>
+                                            <i class="fas fa-times"></i> Tolak
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+
+                            approvedByListContainer.appendChild(requestElement);
+                        });
+
+                        // Event listener untuk tombol Setujui
+                        approvedByListContainer.querySelectorAll('.approve-btn').forEach(button => {
+                            button.addEventListener('click', function() {
+                                const requestId = this.dataset.requestId;
+                                const currentUserEmail = auth.currentUser ? auth.currentUser.email : null;
+                                const currentUserName = currentUserEmail ? emailToNameMap[currentUserEmail] : null;
+                                
+                                if (currentUserName) {
+                                    // Setujui request dan centang checkbox user saat ini
+                                    updateApprovalStatus(formType, requestId, currentUserName, true);
+                                    
+                                    // Cek apakah semua sudah menyetujui
+                                    db.collection(`requests_${formType}`).doc(requestId).get()
+                                        .then((doc) => {
+                                            if (doc.exists) {
+                                                const request = doc.data();
+                                                
+                                                if (formType === 'laptop') {
+                                                    const approvedCount = request.approvedBy ? request.approvedBy.length : 0;
+                                                    const allApproved = approvedCount >= 4;
+                                                    
+                                                    if (allApproved) {
+                                                        db.collection(`requests_${formType}`).doc(requestId).update({
+                                                            status: 'approved'
+                                                        });
+                                                        showAlert('Request telah disetujui oleh semua approver!', 'success');
+                                                    } else {
+                                                        showAlert('Anda telah menyetujui request ini!', 'success');
+                                                    }
+                                                } else if (formType === 'atk') {
+                                                    const isApprovedByRenata = request.approvedBy && request.approvedBy.includes('Renata');
+                                                    
+                                                    if (isApprovedByRenata) {
+                                                        db.collection(`requests_${formType}`).doc(requestId).update({
+                                                            status: 'approved'
+                                                        });
+                                                        showAlert('Request ATK telah disetujui!', 'success');
+                                                    } else {
+                                                        showAlert('Anda telah menyetujui request ini!', 'success');
+                                                    }
+                                                }
+                                            }
+                                        });
+                                }
+                            });
+                        });
+
+                        // Event listener untuk tombol Tolak
+                        approvedByListContainer.querySelectorAll('.reject-btn').forEach(button => {
+                            button.addEventListener('click', function() {
+                                const requestId = this.dataset.requestId;
+                                updateRequestStatus(formType, requestId, 'rejected');
+                                showAlert('Request telah ditolak!', 'danger');
+                            });
+                        });
+                    })
+                    .catch((error) => {
+                        console.error("Error loading approved by requests:", error);
+                        approvedByListContainer.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <p>Gagal memuat data request</p>
+                            </div>
+                        `;
+                    });
+            }
+
+            // Fungsi untuk memperbarui status persetujuan di Firestore
+            function updateApprovalStatus(formType, requestId, approverName, isApproved) {
+                db.collection(`requests_${formType}`).doc(requestId).get()
+                    .then((doc) => {
+                        if (doc.exists) {
+                            const request = doc.data();
+                            const approvedBy = request.approvedBy || [];
+                            
+                            if (isApproved) {
+                                if (!approvedBy.includes(approverName)) {
+                                    approvedBy.push(approverName);
+                                }
+                            } else {
+                                const index = approvedBy.indexOf(approverName);
+                                if (index > -1) {
+                                    approvedBy.splice(index, 1);
+                                }
+                            }
+                            
+                            return db.collection(`requests_${formType}`).doc(requestId).update({
+                                approvedBy: approvedBy
+                            });
+                        }
+                    })
+                    .then(() => {
+                        // Muat ulang daftar untuk update
+                        loadApprovedByRequests(formType);
+                        loadRequests(formType);
+                    })
+                    .catch((error) => {
+                        console.error("Error updating approval status:", error);
+                        showAlert('Gagal memperbarui status persetujuan', 'danger');
+                    });
+            }
+
+            // Fungsi untuk memperbarui status request di Firestore
+            function updateRequestStatus(formType, requestId, newStatus) {
+                db.collection(`requests_${formType}`).doc(requestId).update({
+                    status: newStatus
+                })
                 .then(() => {
-                    form.reset();
-                    form.style.display = 'none';
-                    confirmation.classList.add('active');
-                    showAlert('Permintaan berhasil diajukan!', 'success');
+                    loadApprovedByRequests(formType);
+                    loadRequests(formType);
                 })
                 .catch((error) => {
-                    console.error('Error adding document: ', error);
-                    showAlert('Terjadi kesalahan. Silakan coba lagi.', 'danger');
+                    console.error("Error updating request status:", error);
+                    showAlert('Gagal memperbarui status request', 'danger');
                 });
-        }
+            }
 
-        // Load requests for a specific form type
-        function loadRequests(formType) {
-            const collectionName = formType === 'atk' ? 'atkRequests' : 
-                                 formType === 'idcard' ? 'idcardRequests' :
-                                 formType === 'konsumsi' ? 'konsumsiRequests' :
-                                 formType === 'laptop' ? 'laptopRequests' :
-                                 formType === 'kartu-nama' ? 'kartuNamaRequests' :
-                                 'feedbackRequests';
-            
-            const requestsList = document.getElementById(`${formType}-requests-list`);
-            requestsList.innerHTML = '<div class="empty-state"><i class="fas fa-spinner loading"></i><p>Memuat data request...</p></div>';
-            
-            let query = db.collection(collectionName).orderBy('tanggal', 'desc');
-            
-            // If user has limited permissions, show all requests (not just their own)
-            // This allows approvers to see all requests in their allowed categories
-            if (currentUserPermissions && !currentUserPermissions.allowedForms.includes('all')) {
-                // For users with specific permissions, show all requests in their allowed categories
-                // No need to filter by userId since approvers need to see all requests
-            } else if (currentUser && !currentUser.isAnonymous) {
-                // For regular users, only show their own requests
-                query = query.where('userId', '==', currentUser.uid);
-            } else if (currentUser && currentUser.isAnonymous) {
-                // For guest users, only show their own requests
-                query = query.where('userId', '==', currentUser.uid);
+            // Fungsi untuk menampilkan alert custom
+            function showAlert(message, type = 'success') {
+                const alert = document.createElement('div');
+                alert.className = `custom-alert alert-${type}`;
+                alert.innerHTML = `
+                    <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'danger' ? 'fa-times-circle' : 'fa-exclamation-circle'}"></i>
+                    ${message}
+                `;
+                
+                document.body.appendChild(alert);
+                
+                // Hapus alert setelah 3 detik
+                setTimeout(() => {
+                    if (alert.parentNode) {
+                        alert.remove();
+                    }
+                }, 3000);
             }
             
-            query.get().then((querySnapshot) => {
-                if (querySnapshot.empty) {
-                    requestsList.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada data request</p></div>';
+            // Helper function to get form title
+            function getFormTitle(formType) {
+                const titles = {
+                    atk: 'ATK',
+                    idcard: 'ID Card',
+                    konsumsi: 'Konsumsi',
+                    laptop: 'Laptop',
+                    kartunama: 'Kartu Nama',
+                    feedback: 'Feedback'
+                };
+                return titles[formType] || '';
+            }
+            
+            // Helper function to generate request title
+            function getRequestTitle(formType, request) {
+                switch(formType) {
+                    case 'atk': return `Permintaan ${request.jenis}`;
+                    case 'idcard': return `Permintaan ID Card - ${request.nama}`;
+                    case 'konsumsi': return `Konsumsi ${request.acara}`;
+                    case 'laptop': return `Permintaan ${request['jenis-request']} Laptop`;
+                    case 'kartunama': return `Permintaan Kartu Nama - ${request.nama}`;
+                    case 'feedback': return `Feedback ${request.kategori} - ${request.nama}`;
+                    default: return 'Permintaan';
+                }
+            }
+            
+            // Card event listeners
+            cards.forEach(card => {
+                card.addEventListener('click', function() {
+                    showSection(this.dataset.target);
+                });
+            });
+            
+            // Back button event listeners
+            backButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    showSection('dashboard');
+                });
+            });
+            
+            // Form tab event listeners
+            allFormTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const formId = this.closest('.form-section').id.replace('form-', '');
+                    showFormTab(formId, this.dataset.tab);
+                });
+            });
+            
+            // Form submission handlers - Save to Firestore
+            Object.keys(forms).forEach(formKey => {
+                if (forms[formKey]) {
+                    forms[formKey].addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        
+                        // Handle ID Card form separately to process photo
+                        if (formKey === 'idcard') {
+                            const photoFile = document.getElementById('idcard-foto').files[0];
+                            if (!photoFile) {
+                                showAlert('Harap pilih foto untuk ID Card', 'danger');
+                                return;
+                            }
+                            
+                            // Convert photo to base64
+                            const reader = new FileReader();
+                            reader.onload = function(event) {
+                                const photoBase64 = event.target.result;
+                                submitFormData(formKey, this, photoBase64);
+                            };
+                            reader.readAsDataURL(photoFile);
+                        } else {
+                            submitFormData(formKey, this);
+                        }
+                    });
+                }
+            });
+
+            // Function to submit form data
+            function submitFormData(formKey, formElement, photoBase64 = null) {
+                const formData = new FormData(formElement);
+                const formObject = {
+                    status: 'pending',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    tanggal: new Date().toLocaleDateString('id-ID'),
+                    waktu: new Date().toLocaleTimeString('id-ID'),
+                    approvedBy: []
+                };
+                
+                // Add form-specific data
+                formData.forEach((value, key) => {
+                    formObject[key] = value;
+                });
+                
+                // Add photo for ID Card
+                if (formKey === 'idcard' && photoBase64) {
+                    formObject.foto = photoBase64;
+                }
+                
+                // Add judul for the request
+                formObject.judul = getRequestTitle(formKey, formObject);
+                
+                // Store form data to Firestore
+                db.collection(`requests_${formKey}`).add(formObject)
+                    .then((docRef) => {
+                        console.log("Document written with ID: ", docRef.id);
+                        
+                        // Hide form and show confirmation
+                        formElement.style.display = 'none';
+                        if (confirmations[formKey]) {
+                            confirmations[formKey].classList.add('active');
+                        }
+                        
+                        // Reset form fields
+                        formElement.reset();
+                        
+                        // Reset photo preview for ID Card
+                        if (formKey === 'idcard') {
+                            photoPreview.style.display = 'none';
+                            previewImage.src = '';
+                        }
+
+                        // Auto hide confirmation after 3 seconds and show form again
+                        setTimeout(() => {
+                            if (confirmations[formKey]) {
+                                confirmations[formKey].classList.remove('active');
+                            }
+                            formElement.style.display = 'block';
+                        }, 3000);
+                    })
+                    .catch((error) => {
+                        console.error("Error adding document: ", error);
+                        showAlert('Gagal mengajukan permintaan', 'danger');
+                    });
+            }
+            
+            // Set minimum date to today for date inputs
+            const today = new Date().toISOString().split('T')[0];
+            document.querySelectorAll('input[type="date"]').forEach(input => {
+                if (input) {
+                    input.min = today;
+                }
+            });
+            
+            // Refresh buttons for request lists
+            document.querySelectorAll('[id^="refresh-"]').forEach(button => {
+                if (button) {
+                    button.addEventListener('click', function() {
+                        const formType = this.id.replace('refresh-', '');
+                        if (formType.includes('approved')) {
+                            const baseFormType = formType.replace('-approved', '');
+                            loadApprovedByRequests(baseFormType);
+                        } else {
+                            loadRequests(formType);
+                        }
+                        
+                        // Add rotation animation
+                        const icon = this.querySelector('i');
+                        if (icon) {
+                            icon.style.transition = 'transform 0.5s';
+                            icon.style.transform = 'rotate(360deg)';
+                            setTimeout(() => {
+                                icon.style.transform = 'rotate(0deg)';
+                            }, 500);
+                        }
+                    });
+                }
+            });
+
+            // Photo upload functionality
+            if (photoInput) {
+                photoInput.addEventListener('change', function(e) {
+                    handlePhotoSelection(this.files[0]);
+                });
+            }
+
+            // Drag and drop for photo upload
+            if (photoUploadArea) {
+                photoUploadArea.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    this.classList.add('dragover');
+                });
+
+                photoUploadArea.addEventListener('dragleave', function(e) {
+                    e.preventDefault();
+                    this.classList.remove('dragover');
+                });
+
+                photoUploadArea.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    this.classList.remove('dragover');
+                    
+                    if (e.dataTransfer.files.length) {
+                        handlePhotoSelection(e.dataTransfer.files[0]);
+                    }
+                });
+            }
+
+            // Function to handle photo selection
+            function handlePhotoSelection(file) {
+                if (!file) return;
+                
+                // Check file type
+                if (!file.type.match('image/jpeg') && !file.type.match('image/png')) {
+                    showAlert('Format file tidak didukung. Harap pilih file JPG atau PNG.', 'danger');
                     return;
                 }
                 
-                requestsList.innerHTML = '';
-                querySnapshot.forEach((doc) => {
-                    const request = doc.data();
-                    const requestItem = createRequestItem(request, formType, doc.id);
-                    requestsList.appendChild(requestItem);
-                });
-            }).catch((error) => {
-                console.error('Error getting documents: ', error);
-                requestsList.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Gagal memuat data</p></div>';
-            });
-        }
-
-        // Create request item for display
-        function createRequestItem(request, formType, docId) {
-            const item = document.createElement('div');
-            item.className = 'request-item';
-            
-            // Format date
-            const requestDate = new Date(request.tanggal);
-            const formattedDate = requestDate.toLocaleDateString('id-ID', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric'
-            });
-            
-            let statusClass = 'status-pending';
-            if (request.status === 'Approved') statusClass = 'status-approved';
-            if (request.status === 'Rejected') statusClass = 'status-rejected';
-            
-            // Special handling for ID Card requests with photo
-            if (formType === 'idcard' && request.foto) {
-                item.classList.add('request-item-with-photo');
-                item.innerHTML = `
-                    <img class="request-photo" src="${request.foto}" alt="Foto ID Card" data-photo="${request.foto}">
-                    <div class="request-info">
-                        <div class="request-title">${request.nama} - ${request.department}</div>
-                        <div class="request-details">${request.jenisRequest} • ${formattedDate}</div>
-                        <div class="request-details">${request.keterangan || 'Tidak ada keterangan tambahan'}</div>
-                        <div class="request-details">Diajukan oleh: ${request.userEmail || 'Unknown'}</div>
-                    </div>
-                    <div class="request-status ${statusClass}">${request.status}</div>
-                `;
-                
-                // Add click event to photo for preview
-                const photoElement = item.querySelector('.request-photo');
-                photoElement.addEventListener('click', () => {
-                    modalPhoto.src = request.foto;
-                    photoModal.classList.add('active');
-                });
-            } else {
-                // For other request types
-                let title = request.nama || 'Tidak ada nama';
-                let details = '';
-                
-                if (formType === 'atk') {
-                    details = `${request.jenis} • ${formattedDate}`;
-                } else if (formType === 'konsumsi') {
-                    details = `${request.jenis} • ${request.jumlah} orang • ${formattedDate}`;
-                } else if (formType === 'laptop') {
-                    details = `${request.jenis} • ${formattedDate}`;
-                } else if (formType === 'kartu-nama') {
-                    details = `${request.jenis} • ${request.jumlah} kartu • ${formattedDate}`;
-                } else if (formType === 'feedback') {
-                    details = `${request.kategori} • ${formattedDate}`;
+                // Check file size (max 2MB)
+                if (file.size > 2 * 1024 * 1024) {
+                    showAlert('Ukuran file terlalu besar. Maksimal 2MB.', 'danger');
+                    return;
                 }
                 
-                item.innerHTML = `
-                    <div class="request-info">
-                        <div class="request-title">${title}</div>
-                        <div class="request-details">${details}</div>
-                        <div class="request-details">${request.detail || request.pesan || request.keterangan || 'Tidak ada detail'}</div>
-                        <div class="request-details">Diajukan oleh: ${request.userEmail || 'Unknown'}</div>
-                    </div>
-                    <div class="request-status ${statusClass}">${request.status}</div>
-                `;
+                // Preview image
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImage.src = e.target.result;
+                    photoPreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
             }
-            
-            return item;
-        }
 
-        // Load approved requests (for approvers)
-        function loadApprovedRequests(formType) {
-            const collectionName = `${formType}Requests`;
-            const approvedList = document.getElementById(`${formType}-approved-by-list`);
-            approvedList.innerHTML = '<div class="empty-state"><i class="fas fa-spinner loading"></i><p>Memuat data request...</p></div>';
-            
-            db.collection(collectionName).orderBy('tanggal', 'desc').get()
-                .then((querySnapshot) => {
-                    if (querySnapshot.empty) {
-                        approvedList.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada data request</p></div>';
-                        return;
+            // Close photo modal
+            if (closeModal) {
+                closeModal.addEventListener('click', () => {
+                    photoModal.classList.remove('active');
+                });
+            }
+
+            // Close modal when clicking outside the image
+            if (photoModal) {
+                photoModal.addEventListener('click', (e) => {
+                    if (e.target === photoModal) {
+                        photoModal.classList.remove('active');
                     }
-                    
-                    approvedList.innerHTML = '';
-                    querySnapshot.forEach((doc) => {
-                        const request = doc.data();
-                        const requestItem = createApprovedRequestItem(request, formType, doc.id);
-                        approvedList.appendChild(requestItem);
+                });
+            }
+
+            // Initialize real-time listeners for approved-by tab
+            function initializeRealtimeListeners() {
+                // Real-time listener untuk laptop requests
+                db.collection('requests_laptop')
+                    .where('status', 'in', ['pending', 'approved'])
+                    .onSnapshot((snapshot) => {
+                        const activeFormSection = document.querySelector('.form-section.active');
+                        if (activeFormSection && activeFormSection.id === 'form-laptop') {
+                            const activeTab = activeFormSection.querySelector('.form-tab.active');
+                            if (activeTab && activeTab.dataset.tab === 'approved-by') {
+                                loadApprovedByRequests('laptop');
+                            }
+                        }
                     });
-                })
-                .catch((error) => {
-                    console.error('Error getting documents: ', error);
-                    approvedList.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Gagal memuat data</p></div>';
-                });
-        }
-
-        // Create approved request item for display
-        function createApprovedRequestItem(request, formType, docId) {
-            const item = document.createElement('div');
-            item.className = 'request-item';
-            
-            // Format date
-            const requestDate = new Date(request.tanggal);
-            const formattedDate = requestDate.toLocaleDateString('id-ID', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric'
-            });
-            
-            let statusClass = 'status-pending';
-            if (request.status === 'Approved') statusClass = 'status-approved';
-            if (request.status === 'Rejected') statusClass = 'status-rejected';
-            
-            let title = request.nama || 'Tidak ada nama';
-            let details = '';
-            
-            if (formType === 'atk') {
-                details = `${request.jenis} • ${formattedDate}`;
+                    
+                // Real-time listener untuk atk requests
+                db.collection('requests_atk')
+                    .where('status', 'in', ['pending', 'approved'])
+                    .onSnapshot((snapshot) => {
+                        const activeFormSection = document.querySelector('.form-section.active');
+                        if (activeFormSection && activeFormSection.id === 'form-atk') {
+                            const activeTab = activeFormSection.querySelector('.form-tab.active');
+                            if (activeTab && activeTab.dataset.tab === 'approved-by') {
+                                loadApprovedByRequests('atk');
+                            }
+                        }
+                    });
             }
-            
-            item.innerHTML = `
-                <div class="request-info">
-                    <div class="request-title">${title}</div>
-                    <div class="request-details">${details}</div>
-                    <div class="request-details">${request.detail || 'Tidak ada detail'}</div>
-                    <div class="request-details">Diajukan oleh: ${request.userEmail || 'Unknown'}</div>
-                </div>
-                <div class="action-buttons">
-                    <button class="btn btn-primary btn-sm approve-btn" data-id="${docId}">Approve</button>
-                    <button class="btn btn-danger btn-sm reject-btn" data-id="${docId}">Reject</button>
-                    <div class="request-status ${statusClass}">${request.status}</div>
-                </div>
-            `;
-            
-            // Add event listeners for approve/reject buttons
-            const approveBtn = item.querySelector('.approve-btn');
-            const rejectBtn = item.querySelector('.reject-btn');
-            
-            approveBtn.addEventListener('click', () => {
-                updateRequestStatus(docId, formType, 'Approved');
-            });
-            
-            rejectBtn.addEventListener('click', () => {
-                updateRequestStatus(docId, formType, 'Rejected');
-            });
-            
-            return item;
-        }
 
-        // Update request status
-        function updateRequestStatus(docId, formType, status) {
-            const collectionName = `${formType}Requests`;
-            
-            db.collection(collectionName).doc(docId).update({
-                status: status
-            })
-            .then(() => {
-                showAlert(`Request ${status.toLowerCase()}!`, 'success');
-                loadApprovedRequests(formType);
-            })
-            .catch((error) => {
-                console.error('Error updating document: ', error);
-                showAlert('Gagal mengupdate status request', 'danger');
-            });
-        }
-
-        // Refresh buttons
-        refreshButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const formType = button.id.replace('refresh-', '');
-                loadRequests(formType);
-            });
-        });
-
-        // Photo upload functionality
-        photoInput.addEventListener('change', function(e) {
-            handlePhotoSelection(this.files[0]);
-        });
-
-        // Drag and drop for photo upload
-        photoUploadArea.addEventListener('dragover', function(e) {
-            e.preventDefault();
-            this.classList.add('dragover');
-        });
-
-        photoUploadArea.addEventListener('dragleave', function(e) {
-            e.preventDefault();
-            this.classList.remove('dragover');
-        });
-
-        photoUploadArea.addEventListener('drop', function(e) {
-            e.preventDefault();
-            this.classList.remove('dragover');
-            
-            if (e.dataTransfer.files.length) {
-                handlePhotoSelection(e.dataTransfer.files[0]);
-            }
-        });
-
-        // Function to handle photo selection
-        function handlePhotoSelection(file) {
-            if (!file) return;
-            
-            // Check file type
-            if (!file.type.match('image/jpeg') && !file.type.match('image/png')) {
-                showAlert('Format file tidak didukung. Harap pilih file JPG atau PNG.', 'danger');
-                return;
-            }
-            
-            // Check file size (max 2MB)
-            if (file.size > 2 * 1024 * 1024) {
-                showAlert('Ukuran file terlalu besar. Maksimal 2MB.', 'danger');
-                return;
-            }
-            
-            // Preview image
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                previewImage.src = e.target.result;
-                photoPreview.style.display = 'block';
-            };
-            reader.readAsDataURL(file);
-        }
-
-        // Close photo modal
-        closeModal.addEventListener('click', () => {
-            photoModal.classList.remove('active');
-        });
-
-        // Close modal when clicking outside the image
-        photoModal.addEventListener('click', (e) => {
-            if (e.target === photoModal) {
-                photoModal.classList.remove('active');
-            }
-        });
-
-        // Utility functions
-        function showLoginError(message) {
-            loginError.textContent = message;
-            loginError.style.display = 'block';
-        }
-
-        function hideLoginError() {
-            loginError.style.display = 'none';
-        }
-
-        function showAlert(message, type) {
-            const alert = document.createElement('div');
-            alert.className = `custom-alert alert-${type}`;
-            alert.innerHTML = `
-                <i class="fas fa-${type === 'success' ? 'check' : type === 'danger' ? 'exclamation-triangle' : 'info'}"></i>
-                ${message}
-            `;
-            
-            document.body.appendChild(alert);
-            
-            setTimeout(() => {
-                alert.remove();
-            }, 3000);
-        }
-
-        function showLoading(button) {
-            const originalText = button.innerHTML;
-            button.innerHTML = '<div class="loading"></div> Memproses...';
-            button.disabled = true;
-            button.dataset.originalText = originalText;
-        }
-
-        function hideLoading(button) {
-            if (button.dataset.originalText) {
-                button.innerHTML = button.dataset.originalText;
-                button.disabled = false;
-            }
-        }
-
-        // Initialize app
-        function initApp() {
-            // Check auth state
-            auth.onAuthStateChanged((user) => {
+            // Initialize real-time listeners after login
+            auth.onAuthStateChanged(user => {
                 if (user) {
-                    currentUser = user;
-                    // Get user permissions based on email
-                    if (user.email && userPermissions[user.email]) {
-                        currentUserPermissions = userPermissions[user.email];
-                    } else {
-                        currentUserPermissions = null;
-                    }
-                    hideLoginError();
-                    showMainApp();
-                } else {
-                    showLoginPage();
+                    initializeRealtimeListeners();
                 }
             });
-            
-            // Set current date for all date inputs
-            const today = new Date().toISOString().split('T')[0];
-            document.querySelectorAll('input[type="date"]').forEach(input => {
-                input.value = today;
-            });
-        }
-
-        // Initialize the application
-        initApp();
+        });
     </script>
 </body>
 </html>
