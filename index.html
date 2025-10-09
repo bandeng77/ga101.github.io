@@ -2285,19 +2285,46 @@
                                 return;
                             }
                             
-                            // Convert photo to base64
-                            const reader = new FileReader();
-                            reader.onload = function(event) {
-                                const photoBase64 = event.target.result;
-                                submitFormData(formKey, this, photoBase64);
-                            };
-                            reader.readAsDataURL(photoFile);
+                            // Reduce image resolution to 25%
+                            reduceImageResolution(photoFile, 0.25, function(resizedDataUrl) {
+                                submitFormData(formKey, this, resizedDataUrl);
+                            });
                         } else {
                             submitFormData(formKey, this);
                         }
                     });
                 }
             });
+
+            // Function to reduce image resolution
+            function reduceImageResolution(file, scaleFactor, callback) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        
+                        // Calculate new dimensions
+                        const newWidth = Math.floor(img.width * scaleFactor);
+                        const newHeight = Math.floor(img.height * scaleFactor);
+                        
+                        canvas.width = newWidth;
+                        canvas.height = newHeight;
+                        
+                        // Draw image with reduced size
+                        ctx.drawImage(img, 0, 0, newWidth, newHeight);
+                        
+                        // Convert to data URL with reduced quality
+                        const resizedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                        callback(resizedDataUrl);
+                    };
+                    img.src = e.target.result;
+                };
+                
+                reader.readAsDataURL(file);
+            }
 
             // Function to submit form data
             function submitFormData(formKey, formElement, photoBase64 = null) {
