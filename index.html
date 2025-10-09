@@ -778,6 +778,13 @@
                 <p class="card-desc">Ajukan permintaan atau perbaikan perangkat</p>
             </div>
             
+            <!-- Kartu Nama Card - Posisi Baru -->
+            <div class="card" data-target="form-kartunama">
+                <div class="card-icon"><i class="fas fa-id-card"></i></div>
+                <h3 class="card-title">Form Request Kartu Nama</h3>
+                <p class="card-desc">Ajukan pembuatan kartu nama untuk keperluan profesional</p>
+            </div>
+            
             <div class="card" data-target="form-feedback">
                 <div class="card-icon"><i class="fas fa-comment-alt"></i></div>
                 <h3 class="card-title">Feedback untuk GA</h3>
@@ -1116,6 +1123,77 @@
             </div>
         </section>
 
+        <!-- Form Request Kartu Nama - Form Baru -->
+        <section id="form-kartunama" class="form-section">
+            <div class="form-header">
+                <h2 class="form-title"><i class="fas fa-id-card"></i> Form Request Kartu Nama</h2>
+            </div>
+            
+            <div class="form-tabs">
+                <div class="form-tab active" data-tab="form">Form Request</div>
+                <div class="form-tab" data-tab="requests" id="kartunama-requests-tab">Daftar Request</div>
+            </div>
+            
+            <div class="form-content">
+                <form id="kartunamaForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="kartunama-nama">Nama Lengkap</label>
+                            <input type="text" id="kartunama-nama" name="nama" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="kartunama-department">Department</label>
+                            <input type="text" id="kartunama-department" name="department" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="kartunama-posisi">Posisi</label>
+                            <input type="text" id="kartunama-posisi" name="posisi" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="kartunama-email">Email Kantor</label>
+                            <input type="email" id="kartunama-email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="kartunama-telpon">Nomor Telepon</label>
+                            <input type="tel" id="kartunama-telpon" name="telpon" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="kartunama-jumlah">Jumlah Kartu Nama</label>
+                            <input type="number" id="kartunama-jumlah" name="jumlah" min="1" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="kartunama-keterangan">Keterangan Tambahan</label>
+                        <textarea id="kartunama-keterangan" name="keterangan" placeholder="Tambahkan keterangan atau catatan khusus untuk kartu nama"></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Ajukan Permintaan</button>
+                    <button type="button" class="btn btn-secondary back-button"><i class="fas fa-arrow-left"></i> Kembali ke Beranda</button>
+                </form>
+                
+                <div id="kartunama-confirmation" class="confirmation">
+                    <div class="confirmation-icon"><i class="fas fa-check-circle"></i></div>
+                    <h3>Permintaan Kartu Nama Berhasil Diajukan!</h3>
+                    <p>Terima kasih telah mengajukan permintaan kartu nama. Tim General Affair akan segera memproses permintaan Anda.</p>
+                </div>
+                
+                <div id="kartunama-requests" class="requests-list">
+                    <div class="requests-header">
+                        <h3 class="requests-title">Daftar Request Kartu Nama</h3>
+                        <button class="btn btn-primary" id="refresh-kartunama"><i class="fas fa-sync-alt"></i> Refresh</button>
+                    </div>
+                    
+                    <div id="kartunama-requests-list">
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <p>Memuat data request...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Form Feedback untuk GA -->
         <section id="form-feedback" class="form-section">
             <div class="form-header">
@@ -1225,15 +1303,15 @@
                 'ulandari@genetek.co.id': 'Ulan',
             };
 
-            // User permissions mapping
+            // User permissions mapping - DITAMBAHKAN KARTUNAMA
             const userPermissions = {
                 'ulandari@genetek.co.id': {
                     name: 'Ulan',
-                    allowedForms: ['atk', 'idcard', 'konsumsi'] // Tidak termasuk laptop dan feedback
+                    allowedForms: ['atk', 'idcard', 'konsumsi', 'kartunama'] // Ditambahkan kartunama
                 },
                 'crenata@genetek.co.id': {
                     name: 'Renata',
-                    allowedForms: ['atk', 'idcard', 'konsumsi', 'laptop', 'feedback'] // Semua form
+                    allowedForms: ['atk', 'idcard', 'konsumsi', 'laptop', 'feedback', 'kartunama'] // Ditambahkan kartunama
                 },
                 'galih@genetek.co.id': {
                     name: 'Galih',
@@ -1254,30 +1332,33 @@
             const sections = document.querySelectorAll('section');
             const backButtons = document.querySelectorAll('.back-button');
             
-            // Form elements
+            // Form elements - DITAMBAHKAN KARTUNAMA
             const forms = {
                 atk: document.getElementById('atkForm'),
                 idcard: document.getElementById('idcardForm'),
                 konsumsi: document.getElementById('konsumsiForm'),
                 laptop: document.getElementById('laptopForm'),
+                kartunama: document.getElementById('kartunamaForm'), // Ditambahkan
                 feedback: document.getElementById('feedbackForm')
             };
             
-            // Confirmation messages
+            // Confirmation messages - DITAMBAHKAN KARTUNAMA
             const confirmations = {
                 atk: document.getElementById('atk-confirmation'),
                 idcard: document.getElementById('idcard-confirmation'),
                 konsumsi: document.getElementById('konsumsi-confirmation'),
                 laptop: document.getElementById('laptop-confirmation'),
+                kartunama: document.getElementById('kartunama-confirmation'), // Ditambahkan
                 feedback: document.getElementById('feedback-confirmation')
             };
             
-            // Requests lists
+            // Requests lists - DITAMBAHKAN KARTUNAMA
             const requestsLists = {
                 atk: document.getElementById('atk-requests'),
                 idcard: document.getElementById('idcard-requests'),
                 konsumsi: document.getElementById('konsumsi-requests'),
                 laptop: document.getElementById('laptop-requests'),
+                kartunama: document.getElementById('kartunama-requests'), // Ditambahkan
                 feedback: document.getElementById('feedback-requests'),
                 'laptop-approved-by': document.getElementById('laptop-approved-by'),
                 'atk-approved-by': document.getElementById('atk-approved-by')
@@ -1347,12 +1428,12 @@
                 }
             }
 
-            // Update form tabs visibility based on user permissions
+            // Update form tabs visibility based on user permissions - DIPERBARUI DENGAN KARTUNAMA
             function updateFormTabsVisibility(userEmail) {
                 if (!userEmail || !userPermissions[userEmail]) return;
                 
                 const userPermission = userPermissions[userEmail];
-                const allFormTypes = ['atk', 'idcard', 'konsumsi', 'laptop', 'feedback'];
+                const allFormTypes = ['atk', 'idcard', 'konsumsi', 'laptop', 'feedback', 'kartunama']; // Ditambahkan kartunama
                 
                 allFormTypes.forEach(formType => {
                     const requestTab = document.getElementById(`${formType}-requests-tab`);
@@ -1533,7 +1614,7 @@
                 const isGuest = !currentUser || currentUser.isAnonymous;
                 const userEmail = currentUser ? currentUser.email : null;
                 
-                // Check permissions for request tabs
+                // Check permissions for request tabs - DITAMBAHKAN KARTUNAMA
                 if ((tabType === 'requests' || tabType === 'approved-by') && userEmail) {
                     const userPermission = userPermissions[userEmail];
                     if (!userPermission || !userPermission.allowedForms.includes(formType)) {
@@ -1566,7 +1647,7 @@
                 }
             }
             
-            // Load requests for a specific form type from Firestore
+            // Load requests for a specific form type from Firestore - DITAMBAHKAN KARTUNAMA
             function loadRequests(formType) {
                 const requestsListContainer = document.getElementById(`${formType}-requests-list`);
                 if (!requestsListContainer) return;
@@ -1645,7 +1726,7 @@
                                     statusText = `Menunggu (${approvedCount}/4)`;
                                 }
                             }
-                            // Untuk form lainnya
+                            // Untuk form lainnya termasuk kartunama
                             else {
                                 if (request.status === 'approved') {
                                     statusClass = 'status-approved';
@@ -1659,7 +1740,7 @@
                             const requestElement = document.createElement('div');
                             requestElement.className = 'request-item';
                             
-                            // Generate request details based on form type
+                            // Generate request details based on form type - DITAMBAHKAN KARTUNAMA
                             let requestDetails = '';
                             
                             if (formType === 'atk') {
@@ -1690,6 +1771,15 @@
                                     <div>Tanggal: ${request.tanggal}</div>
                                     <div>Jenis Request: ${request['jenis-request']}</div>
                                     ${request.spesifikasi ? `<div>Spesifikasi: ${request.spesifikasi}</div>` : ''}
+                                `;
+                            } else if (formType === 'kartunama') { // Ditambahkan untuk kartunama
+                                requestDetails = `
+                                    <div>Oleh: ${request.nama} • ${request.department}</div>
+                                    <div>Posisi: ${request.posisi}</div>
+                                    <div>Email: ${request.email}</div>
+                                    <div>Telpon: ${request.telpon}</div>
+                                    <div>Jumlah: ${request.jumlah} kartu</div>
+                                    ${request.keterangan ? `<div>Keterangan: ${request.keterangan}</div>` : ''}
                                 `;
                             } else if (formType === 'feedback') {
                                 requestDetails = `
@@ -2008,25 +2098,27 @@
                 }, 3000);
             }
             
-            // Helper function to get form title
+            // Helper function to get form title - DITAMBAHKAN KARTUNAMA
             function getFormTitle(formType) {
                 const titles = {
                     atk: 'ATK',
                     idcard: 'ID Card',
                     konsumsi: 'Konsumsi',
                     laptop: 'Laptop',
+                    kartunama: 'Kartu Nama', // Ditambahkan
                     feedback: 'Feedback'
                 };
                 return titles[formType] || '';
             }
             
-            // Helper function to generate request title
+            // Helper function to generate request title - DITAMBAHKAN KARTUNAMA
             function getRequestTitle(formType, request) {
                 switch(formType) {
                     case 'atk': return `Permintaan ${request.jenis}`;
                     case 'idcard': return `Permintaan ID Card - ${request.nama}`;
                     case 'konsumsi': return `Konsumsi ${request.acara}`;
                     case 'laptop': return `Permintaan ${request['jenis-request']} Laptop`;
+                    case 'kartunama': return `Permintaan Kartu Nama - ${request.nama}`; // Ditambahkan
                     case 'feedback': return `Feedback ${request.kategori} - ${request.nama}`;
                     default: return 'Permintaan';
                 }
@@ -2054,7 +2146,7 @@
                 });
             });
             
-            // Form submission handlers - Save to Firestore
+            // Form submission handlers - Save to Firestore - DITAMBAHKAN KARTUNAMA
             Object.keys(forms).forEach(formKey => {
                 if (forms[formKey]) {
                     forms[formKey].addEventListener('submit', function(e) {
@@ -2123,7 +2215,7 @@
                 }
             });
             
-            // Refresh buttons for request lists
+            // Refresh buttons for request lists - DITAMBAHKAN KARTUNAMA
             document.querySelectorAll('[id^="refresh-"]').forEach(button => {
                 if (button) {
                     button.addEventListener('click', function() {
