@@ -698,6 +698,61 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* Foto di daftar request */
+        .request-photo {
+            width: 60px;
+            height: 60px;
+            border-radius: 0.5rem;
+            object-fit: cover;
+            margin-right: 1rem;
+            border: 1px solid var(--border);
+        }
+
+        .request-item-with-photo {
+            display: flex;
+            align-items: center;
+        }
+
+        .photo-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1002;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .photo-modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            max-width: 90%;
+            max-height: 90%;
+            position: relative;
+        }
+
+        .modal-content img {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 0.5rem;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
     </style>
 </head>
 <body>
@@ -727,6 +782,14 @@
                 <button type="button" id="guest-login-btn" class="btn btn-secondary">Masuk Sebagai Tamu</button>
                 <p class="error-message" id="login-error"></p>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal untuk preview foto -->
+    <div id="photo-modal" class="photo-modal">
+        <div class="modal-content">
+            <button class="close-modal"><i class="fas fa-times"></i></button>
+            <img id="modal-photo" src="" alt="Preview Foto">
         </div>
     </div>
 
@@ -1378,9 +1441,11 @@
             const userName = document.getElementById('user-name');
             const userAvatar = document.getElementById('user-avatar');
             
-            // Global variables
-            let currentUser = null;
-
+            // Photo modal elements
+            const photoModal = document.getElementById('photo-modal');
+            const modalPhoto = document.getElementById('modal-photo');
+            const closeModal = document.querySelector('.close-modal');
+            
             // Function to show/hide login page and main content
             function toggleLoginState(isLoggedIn, user = null) {
                 if (isLoggedIn && user) {
@@ -1391,7 +1456,6 @@
                     document.querySelector('footer').style.display = 'block';
                     
                     logoutBtn.style.display = 'inline-flex';
-                    currentUser = user;
                     
                     // Tampilkan info user
                     if (user.email) {
@@ -1424,7 +1488,6 @@
                     
                     logoutBtn.style.display = 'none';
                     userInfo.style.display = 'none';
-                    currentUser = null;
                     
                     // Reset login form
                     if (loginForm) loginForm.reset();
@@ -1441,12 +1504,17 @@
                 
                 allFormTypes.forEach(formType => {
                     const requestTab = document.getElementById(`${formType}-requests-tab`);
-                    const approvedTab = document.getElementById(`${formType}-approved-tab`);
                     
                     if (requestTab) {
-                        requestTab.style.display = userPermission.allowedForms.includes(formType) ? 'block' : 'none';
+                        // Hanya ulandari@genetek.co.id dan crenata@genetek.co.id yang bisa melihat daftar request kartu nama
+                        if (formType === 'kartunama') {
+                            requestTab.style.display = (userEmail === 'ulandari@genetek.co.id' || userEmail === 'crenata@genetek.co.id') ? 'block' : 'none';
+                        } else {
+                            requestTab.style.display = userPermission.allowedForms.includes(formType) ? 'block' : 'none';
+                        }
                     }
                     
+                    const approvedTab = document.getElementById(`${formType}-approved-tab`);
                     if (approvedTab) {
                         approvedTab.style.display = userPermission.allowedForms.includes(formType) ? 'block' : 'none';
                     }
@@ -1614,16 +1682,26 @@
                 if (approvedByElement) approvedByElement.style.display = 'none';
 
                 // Cek jika user adalah tamu, jangan tampilkan daftar request
+                const currentUser = auth.currentUser;
                 const isGuest = !currentUser || currentUser.isAnonymous;
                 const userEmail = currentUser ? currentUser.email : null;
                 
                 // Check permissions for request tabs
                 if ((tabType === 'requests' || tabType === 'approved-by') && userEmail) {
-                    const userPermission = userPermissions[userEmail];
-                    if (!userPermission || !userPermission.allowedForms.includes(formType)) {
-                        showAlert('Anda tidak memiliki akses untuk melihat daftar request ini', 'warning');
-                        if (formElement) formElement.style.display = 'block';
-                        return;
+                    // Untuk kartu nama, hanya ulandari@genetek.co.id dan crenata@genetek.co.id yang bisa melihat
+                    if (formType === 'kartunama' && tabType === 'requests') {
+                        if (userEmail !== 'ulandari@genetek.co.id' && userEmail !== 'crenata@genetek.co.id') {
+                            showAlert('Anda tidak memiliki akses untuk melihat daftar request kartu nama', 'warning');
+                            if (formElement) formElement.style.display = 'block';
+                            return;
+                        }
+                    } else {
+                        const userPermission = userPermissions[userEmail];
+                        if (!userPermission || !userPermission.allowedForms.includes(formType)) {
+                            showAlert('Anda tidak memiliki akses untuk melihat daftar request ini', 'warning');
+                            if (formElement) formElement.style.display = 'block';
+                            return;
+                        }
                     }
                 }
                 
@@ -1663,23 +1741,14 @@
                     </div>
                 `;
 
-                const collectionName = formType === 'feedback' ? 'feedback' : `requests_${formType}`;
-                
-                console.log(`Loading requests for ${formType} from collection ${collectionName}`);
-                
-                // Query sederhana tanpa composite index
-                let query = db.collection(collectionName)
-                    .where('userId', '==', currentUser.uid)
-                    .limit(50);
-
-                query.get()
+                db.collection(`requests_${formType}`)
+                    .orderBy('createdAt', 'desc')
+                    .get()
                     .then((querySnapshot) => {
                         const requests = [];
                         querySnapshot.forEach((doc) => {
                             requests.push({ id: doc.id, ...doc.data() });
                         });
-
-                        console.log(`Found ${requests.length} requests for ${formType}`);
 
                         if (requests.length === 0) {
                             requestsListContainer.innerHTML = `
@@ -1690,13 +1759,6 @@
                             `;
                             return;
                         }
-                        
-                        // Sort manually by createdAt if available
-                        requests.sort((a, b) => {
-                            const dateA = a.createdAt ? a.createdAt.toDate() : new Date(0);
-                            const dateB = b.createdAt ? b.createdAt.toDate() : new Date(0);
-                            return dateB - dateA; // Descending order
-                        });
                         
                         requestsListContainer.innerHTML = '';
                         requests.forEach((request, index) => {
@@ -1751,22 +1813,63 @@
                             }
                             
                             const requestElement = document.createElement('div');
+                            requestElement.className = 'request-item';
                             
-                            // Format tanggal untuk display
-                            let displayDate = request.tanggal;
-                            if (request.createdAt) {
-                                const date = request.createdAt.toDate();
-                                displayDate = date.toLocaleDateString('id-ID');
+                            // Generate request details based on form type
+                            let requestDetails = '';
+                            
+                            if (formType === 'atk') {
+                                requestDetails = `
+                                    <div>Oleh: ${request.nama} • ${request.department}</div>
+                                    <div>Tanggal: ${request.tanggal}</div>
+                                    <div>Jenis ATK: ${request.jenis}</div>
+                                    <div>Detail: ${request.detail}</div>
+                                `;
+                            } else if (formType === 'idcard') {
+                                requestDetails = `
+                                    <div>Oleh: ${request.nama} • ${request.department}</div>
+                                    <div>Posisi: ${request.posisi}</div>
+                                    <div>Jenis Request: ${request['jenis-request']}</div>
+                                    <div>Keterangan: ${request.keterangan || '-'}</div>
+                                `;
+                            } else if (formType === 'konsumsi') {
+                                requestDetails = `
+                                    <div>Oleh: ${request.nama} • ${request.department}</div>
+                                    <div>Acara: ${request.acara}</div>
+                                    <div>Tanggal: ${request.tanggal} • Waktu: ${request.waktu}</div>
+                                    <div>Jumlah Peserta: ${request['jumlah-peserta']}</div>
+                                    <div>Jenis Konsumsi: ${request.jenis}</div>
+                                `;
+                            } else if (formType === 'laptop') {
+                                requestDetails = `
+                                    <div>Oleh: ${request.nama} • ${request.department}</div>
+                                    <div>Tanggal: ${request.tanggal}</div>
+                                    <div>Jenis Request: ${request['jenis-request']}</div>
+                                    ${request.spesifikasi ? `<div>Spesifikasi: ${request.spesifikasi}</div>` : ''}
+                                `;
+                            } else if (formType === 'kartunama') {
+                                requestDetails = `
+                                    <div>Oleh: ${request.nama} • ${request.department}</div>
+                                    <div>Posisi: ${request.posisi}</div>
+                                    <div>Email: ${request.email}</div>
+                                    <div>Telepon: ${request.telepon || '-'}</div>
+                                    <div>Jumlah: ${request.jumlah}</div>
+                                    <div>Keterangan: ${request.keterangan || '-'}</div>
+                                `;
+                            } else if (formType === 'feedback') {
+                                requestDetails = `
+                                    <div>Oleh: ${request.nama} • ${request.department}</div>
+                                    <div>Tanggal: ${request.tanggal}</div>
+                                    <div>Kategori: ${request.kategori}</div>
+                                    <div>Penilaian: ${request.penilaian}/10</div>
+                                `;
                             }
                             
-                            requestElement.className = 'request-item';
                             requestElement.innerHTML = `
                                 <div class="request-info">
                                     <div class="request-title">${request.judul || getRequestTitle(formType, request)}</div>
                                     <div class="request-details">
-                                        <div>Oleh: ${request.nama} • ${request.department}</div>
-                                        <div>Tanggal: ${displayDate} ${request.waktu ? '• ' + request.waktu : ''} ${formType === 'feedback' && request.kategori ? '• Kategori: ' + request.kategori : ''}</div>
-                                        ${formType === 'kartunama' ? `<div>Jumlah: ${request.jumlah} kartu</div>` : ''}
+                                        ${requestDetails}
                                         ${request.approvedBy && request.approvedBy.length > 0 ? `<div>Disetujui oleh: ${request.approvedBy.join(', ')}</div>` : ''}
                                     </div>
                                 </div>
@@ -1784,7 +1887,6 @@
                             <div class="empty-state">
                                 <i class="fas fa-exclamation-triangle"></i>
                                 <p>Gagal memuat data request</p>
-                                <p style="font-size: 0.8rem; margin-top: 0.5rem;">${error.message}</p>
                             </div>
                         `;
                     });
@@ -1805,6 +1907,7 @@
 
                 db.collection(`requests_${formType}`)
                     .where('status', 'in', ['pending', 'approved'])
+                    .orderBy('createdAt', 'desc')
                     .get()
                     .then((querySnapshot) => {
                         const pendingRequests = [];
@@ -1832,7 +1935,7 @@
                             approvers = ['Renata']; // Hanya Renata yang bisa menyetujui ATK
                         }
                         
-                        const currentUserEmail = currentUser ? currentUser.email : null;
+                        const currentUserEmail = auth.currentUser ? auth.currentUser.email : null;
                         const currentUserName = currentUserEmail ? emailToNameMap[currentUserEmail] : null;
 
                         pendingRequests.forEach((request, index) => {
@@ -1936,7 +2039,7 @@
                         approvedByListContainer.querySelectorAll('.approve-btn').forEach(button => {
                             button.addEventListener('click', function() {
                                 const requestId = this.dataset.requestId;
-                                const currentUserEmail = currentUser ? currentUser.email : null;
+                                const currentUserEmail = auth.currentUser ? auth.currentUser.email : null;
                                 const currentUserName = currentUserEmail ? emailToNameMap[currentUserEmail] : null;
                                 
                                 if (currentUserName) {
@@ -1994,7 +2097,6 @@
                             <div class="empty-state">
                                 <i class="fas fa-exclamation-triangle"></i>
                                 <p>Gagal memuat data request</p>
-                                <p style="font-size: 0.8rem; margin-top: 0.5rem;">${error.message}</p>
                             </div>
                         `;
                     });
@@ -2129,47 +2231,25 @@
 
             // Function to submit form data
             function submitFormData(formKey, formElement) {
-                console.log("Submitting form:", formKey);
-                
-                // Collect form data manually
-                const formData = {};
-                const inputs = formElement.querySelectorAll('input, select, textarea');
-                
-                inputs.forEach(input => {
-                    if (input.type === 'checkbox' || input.type === 'radio') {
-                        if (input.checked) {
-                            formData[input.name] = input.value;
-                        }
-                    } else {
-                        formData[input.name] = input.value;
-                    }
-                });
-                
+                const formData = new FormData(formElement);
                 const formObject = {
                     status: 'pending',
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                     tanggal: new Date().toLocaleDateString('id-ID'),
                     waktu: new Date().toLocaleTimeString('id-ID'),
-                    approvedBy: [],
-                    userId: currentUser ? currentUser.uid : 'guest'
+                    approvedBy: []
                 };
                 
                 // Add form-specific data
-                Object.keys(formData).forEach(key => {
-                    formObject[key] = formData[key];
+                formData.forEach((value, key) => {
+                    formObject[key] = value;
                 });
                 
                 // Add judul for the request
                 formObject.judul = getRequestTitle(formKey, formObject);
                 
-                // Tentukan collection name
-                const collectionName = formKey === 'feedback' ? 'feedback' : `requests_${formKey}`;
-                
-                console.log("Saving to collection:", collectionName);
-                console.log("Form data:", formObject);
-                
                 // Store form data to Firestore
-                db.collection(collectionName).add(formObject)
+                db.collection(`requests_${formKey}`).add(formObject)
                     .then((docRef) => {
                         console.log("Document written with ID: ", docRef.id);
                         
@@ -2181,7 +2261,7 @@
                         
                         // Reset form fields
                         formElement.reset();
-
+                        
                         // Auto hide confirmation after 3 seconds and show form again
                         setTimeout(() => {
                             if (confirmations[formKey]) {
@@ -2189,16 +2269,10 @@
                             }
                             formElement.style.display = 'block';
                         }, 3000);
-                        
-                        showAlert('Permintaan berhasil diajukan!', 'success');
                     })
                     .catch((error) => {
                         console.error("Error adding document: ", error);
-                        if (error.code === 'permission-denied') {
-                            showAlert('Tidak memiliki izin untuk mengajukan permintaan. Silakan login dengan akun yang sesuai.', 'danger');
-                        } else {
-                            showAlert('Gagal mengajukan permintaan: ' + error.message, 'danger');
-                        }
+                        showAlert('Gagal mengajukan permintaan', 'danger');
                     });
             }
             
@@ -2235,6 +2309,22 @@
                 }
             });
 
+            // Close photo modal
+            if (closeModal) {
+                closeModal.addEventListener('click', () => {
+                    photoModal.classList.remove('active');
+                });
+            }
+
+            // Close modal when clicking outside the image
+            if (photoModal) {
+                photoModal.addEventListener('click', (e) => {
+                    if (e.target === photoModal) {
+                        photoModal.classList.remove('active');
+                    }
+                });
+            }
+
             // Initialize real-time listeners for approved-by tab
             function initializeRealtimeListeners() {
                 // Real-time listener untuk laptop requests
@@ -2248,8 +2338,6 @@
                                 loadApprovedByRequests('laptop');
                             }
                         }
-                    }, (error) => {
-                        console.error("Error in laptop real-time listener:", error);
                     });
                     
                 // Real-time listener untuk atk requests
@@ -2263,14 +2351,12 @@
                                 loadApprovedByRequests('atk');
                             }
                         }
-                    }, (error) => {
-                        console.error("Error in atk real-time listener:", error);
                     });
             }
 
             // Initialize real-time listeners after login
             auth.onAuthStateChanged(user => {
-                if (user && !user.isAnonymous) {
+                if (user) {
                     initializeRealtimeListeners();
                 }
             });
