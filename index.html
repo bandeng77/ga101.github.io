@@ -11,7 +11,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
 
     <style>
-        /* CSS tetap sama seperti sebelumnya */
         :root {
             --primary: #3b82f6;
             --primary-dark: #2563eb;
@@ -699,130 +698,6 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-
-        /* UPLOAD FOTO ID CARD */
-        .photo-upload-container {
-            border: 2px dashed var(--border);
-            border-radius: 0.5rem;
-            padding: 1.5rem;
-            text-align: center;
-            margin-bottom: 1.2rem;
-            transition: all 0.3s;
-        }
-
-        .photo-upload-container:hover {
-            border-color: var(--primary);
-        }
-
-        .photo-upload-container.dragover {
-            background-color: rgba(59, 130, 246, 0.05);
-            border-color: var(--primary);
-        }
-
-        .photo-preview {
-            max-width: 200px;
-            max-height: 200px;
-            margin: 0 auto 1rem;
-            display: none;
-            border-radius: 0.5rem;
-            overflow: hidden;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-
-        .photo-preview img {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
-
-        .upload-instructions {
-            color: var(--secondary);
-            margin-bottom: 1rem;
-            font-size: 0.9rem;
-        }
-
-        .upload-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 0.75rem 1.5rem;
-            background: var(--gradient-primary);
-            color: white;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 500;
-        }
-
-        .upload-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
-        }
-
-        .upload-btn input {
-            display: none;
-        }
-
-        .photo-requirements {
-            font-size: 0.8rem;
-            color: var(--secondary);
-            margin-top: 0.5rem;
-        }
-
-        /* Foto di daftar request */
-        .request-photo {
-            width: 60px;
-            height: 60px;
-            border-radius: 0.5rem;
-            object-fit: cover;
-            margin-right: 1rem;
-            border: 1px solid var(--border);
-        }
-
-        .request-item-with-photo {
-            display: flex;
-            align-items: center;
-        }
-
-        .photo-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
-            z-index: 1002;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .photo-modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            max-width: 90%;
-            max-height: 90%;
-            position: relative;
-        }
-
-        .modal-content img {
-            max-width: 100%;
-            max-height: 100%;
-            border-radius: 0.5rem;
-        }
-
-        .close-modal {
-            position: absolute;
-            top: -40px;
-            right: 0;
-            color: white;
-            font-size: 1.5rem;
-            cursor: pointer;
-            background: none;
-            border: none;
-        }
     </style>
 </head>
 <body>
@@ -852,14 +727,6 @@
                 <button type="button" id="guest-login-btn" class="btn btn-secondary">Masuk Sebagai Tamu</button>
                 <p class="error-message" id="login-error"></p>
             </form>
-        </div>
-    </div>
-
-    <!-- Modal untuk preview foto -->
-    <div id="photo-modal" class="photo-modal">
-        <div class="modal-content">
-            <button class="close-modal"><i class="fas fa-times"></i></button>
-            <img id="modal-photo" src="" alt="Preview Foto">
         </div>
     </div>
 
@@ -1044,24 +911,6 @@
                                 <option value="Penggantian (Hilang/Rusak)">Penggantian (Hilang/Rusak)</option>
                                 <option value="Perubahan Data">Perubahan Data</option>
                             </select>
-                        </div>
-                    </div>
-                    
-                    <!-- Upload Foto Section -->
-                    <div class="form-group">
-                        <label for="idcard-foto">Foto untuk ID Card</label>
-                        <div class="photo-upload-container" id="photo-upload-area">
-                            <div class="photo-preview" id="photo-preview">
-                                <img id="preview-image" src="" alt="Preview Foto">
-                            </div>
-                            <div class="upload-instructions">
-                                <p>Klik untuk memilih foto atau seret dan lepas file di sini</p>
-                                <p class="photo-requirements">Format: JPG, PNG | Maksimal: 2MB</p>
-                            </div>
-                            <label class="upload-btn">
-                                <i class="fas fa-camera"></i> Pilih Foto
-                                <input type="file" id="idcard-foto" name="foto" accept="image/jpeg,image/png" required>
-                            </label>
                         </div>
                     </div>
                     
@@ -1529,18 +1378,8 @@
             const userName = document.getElementById('user-name');
             const userAvatar = document.getElementById('user-avatar');
             
-            // Photo upload elements
-            const photoUploadArea = document.getElementById('photo-upload-area');
-            const photoInput = document.getElementById('idcard-foto');
-            const photoPreview = document.getElementById('photo-preview');
-            const previewImage = document.getElementById('preview-image');
-            const photoModal = document.getElementById('photo-modal');
-            const modalPhoto = document.getElementById('modal-photo');
-            const closeModal = document.querySelector('.close-modal');
-            
             // Global variables
             let currentUser = null;
-            let photoFile = null;
 
             // Function to show/hide login page and main content
             function toggleLoginState(isLoggedIn, user = null) {
@@ -1826,10 +1665,12 @@
 
                 const collectionName = formType === 'feedback' ? 'feedback' : `requests_${formType}`;
                 
-                // Query untuk mendapatkan data berdasarkan userId
+                console.log(`Loading requests for ${formType} from collection ${collectionName}`);
+                
+                // Query sederhana tanpa composite index
                 let query = db.collection(collectionName)
                     .where('userId', '==', currentUser.uid)
-                    .orderBy('createdAt', 'desc');
+                    .limit(50);
 
                 query.get()
                     .then((querySnapshot) => {
@@ -1837,6 +1678,8 @@
                         querySnapshot.forEach((doc) => {
                             requests.push({ id: doc.id, ...doc.data() });
                         });
+
+                        console.log(`Found ${requests.length} requests for ${formType}`);
 
                         if (requests.length === 0) {
                             requestsListContainer.innerHTML = `
@@ -1847,6 +1690,13 @@
                             `;
                             return;
                         }
+                        
+                        // Sort manually by createdAt if available
+                        requests.sort((a, b) => {
+                            const dateA = a.createdAt ? a.createdAt.toDate() : new Date(0);
+                            const dateB = b.createdAt ? b.createdAt.toDate() : new Date(0);
+                            return dateB - dateA; // Descending order
+                        });
                         
                         requestsListContainer.innerHTML = '';
                         requests.forEach((request, index) => {
@@ -1902,42 +1752,26 @@
                             
                             const requestElement = document.createElement('div');
                             
-                            // Special handling for ID Card with photo
-                            if (formType === 'idcard' && request.foto) {
-                                requestElement.className = 'request-item request-item-with-photo';
-                                requestElement.innerHTML = `
-                                    <img class="request-photo" src="${request.foto}" alt="Foto ID Card">
-                                    <div class="request-info">
-                                        <div class="request-title">${request.judul || getRequestTitle(formType, request)}</div>
-                                        <div class="request-details">
-                                            <div>Oleh: ${request.nama} • ${request.department}</div>
-                                            <div>Tanggal: ${request.tanggal} ${request.waktu ? '• ' + request.waktu : ''}</div>
-                                            ${request.approvedBy && request.approvedBy.length > 0 ? `<div>Disetujui oleh: ${request.approvedBy.join(', ')}</div>` : ''}
-                                        </div>
-                                    </div>
-                                    <div class="request-status ${statusClass}">${statusText}</div>
-                                `;
-                                
-                                // Add click event to photo for preview
-                                const photoElement = requestElement.querySelector('.request-photo');
-                                photoElement.addEventListener('click', () => {
-                                    modalPhoto.src = request.foto;
-                                    photoModal.classList.add('active');
-                                });
-                            } else {
-                                requestElement.className = 'request-item';
-                                requestElement.innerHTML = `
-                                    <div class="request-info">
-                                        <div class="request-title">${request.judul || getRequestTitle(formType, request)}</div>
-                                        <div class="request-details">
-                                            <div>Oleh: ${request.nama} • ${request.department}</div>
-                                            <div>Tanggal: ${request.tanggal} ${request.waktu ? '• ' + request.waktu : ''} ${formType === 'feedback' && request.kategori ? '• Kategori: ' + request.kategori : ''}</div>
-                                            ${request.approvedBy && request.approvedBy.length > 0 ? `<div>Disetujui oleh: ${request.approvedBy.join(', ')}</div>` : ''}
-                                        </div>
-                                    </div>
-                                    <div class="request-status ${statusClass}">${statusText}</div>
-                                `;
+                            // Format tanggal untuk display
+                            let displayDate = request.tanggal;
+                            if (request.createdAt) {
+                                const date = request.createdAt.toDate();
+                                displayDate = date.toLocaleDateString('id-ID');
                             }
+                            
+                            requestElement.className = 'request-item';
+                            requestElement.innerHTML = `
+                                <div class="request-info">
+                                    <div class="request-title">${request.judul || getRequestTitle(formType, request)}</div>
+                                    <div class="request-details">
+                                        <div>Oleh: ${request.nama} • ${request.department}</div>
+                                        <div>Tanggal: ${displayDate} ${request.waktu ? '• ' + request.waktu : ''} ${formType === 'feedback' && request.kategori ? '• Kategori: ' + request.kategori : ''}</div>
+                                        ${formType === 'kartunama' ? `<div>Jumlah: ${request.jumlah} kartu</div>` : ''}
+                                        ${request.approvedBy && request.approvedBy.length > 0 ? `<div>Disetujui oleh: ${request.approvedBy.join(', ')}</div>` : ''}
+                                    </div>
+                                </div>
+                                <div class="request-status ${statusClass}">${statusText}</div>
+                            `;
                             
                             // Add animation delay based on index
                             requestElement.style.animationDelay = `${index * 0.1}s`;
@@ -1971,7 +1805,6 @@
 
                 db.collection(`requests_${formType}`)
                     .where('status', 'in', ['pending', 'approved'])
-                    .orderBy('createdAt', 'desc')
                     .get()
                     .then((querySnapshot) => {
                         const pendingRequests = [];
@@ -2284,88 +2117,18 @@
                 });
             });
             
-            // PERBAIKAN: Form submission handlers - Save to Firestore
+            // Form submission handlers - Save to Firestore
             Object.keys(forms).forEach(formKey => {
                 if (forms[formKey]) {
                     forms[formKey].addEventListener('submit', function(e) {
                         e.preventDefault();
-                        
-                        // Handle ID Card form separately to process photo
-                        if (formKey === 'idcard') {
-                            const photoFile = document.getElementById('idcard-foto').files[0];
-                            if (!photoFile) {
-                                showAlert('Harap pilih foto untuk ID Card', 'danger');
-                                return;
-                            }
-                            
-                            // Show loading state
-                            const submitBtn = this.querySelector('button[type="submit"]');
-                            const originalText = submitBtn.innerHTML;
-                            submitBtn.innerHTML = '<div class="loading"></div> Mengupload foto...';
-                            submitBtn.disabled = true;
-                            
-                            // Reduce image resolution to 25%
-                            reduceImageResolution(photoFile, 0.25, (resizedDataUrl) => {
-                                submitFormData(formKey, this, resizedDataUrl);
-                                // Reset button state
-                                submitBtn.innerHTML = originalText;
-                                submitBtn.disabled = false;
-                            });
-                        } else {
-                            submitFormData(formKey, this);
-                        }
+                        submitFormData(formKey, this);
                     });
                 }
             });
 
-            // PERBAIKAN: Function to reduce image resolution
-            function reduceImageResolution(file, scaleFactor, callback) {
-                console.log("Reducing image resolution:", file.name, "scale:", scaleFactor);
-                
-                const reader = new FileReader();
-                
-                reader.onload = function(e) {
-                    const img = new Image();
-                    img.onload = function() {
-                        const canvas = document.createElement('canvas');
-                        const ctx = canvas.getContext('2d');
-                        
-                        // Calculate new dimensions
-                        const newWidth = Math.floor(img.width * scaleFactor);
-                        const newHeight = Math.floor(img.height * scaleFactor);
-                        
-                        console.log("Original size:", img.width, "x", img.height);
-                        console.log("Reduced size:", newWidth, "x", newHeight);
-                        
-                        canvas.width = newWidth;
-                        canvas.height = newHeight;
-                        
-                        // Draw image with reduced size
-                        ctx.drawImage(img, 0, 0, newWidth, newHeight);
-                        
-                        // Convert to data URL with reduced quality
-                        const resizedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
-                        console.log("Resized image data URL length:", resizedDataUrl.length);
-                        
-                        callback(resizedDataUrl);
-                    };
-                    img.onerror = function() {
-                        console.error("Error loading image");
-                        showAlert('Error memproses foto', 'danger');
-                    };
-                    img.src = e.target.result;
-                };
-                
-                reader.onerror = function() {
-                    console.error("Error reading file");
-                    showAlert('Error membaca file foto', 'danger');
-                };
-                
-                reader.readAsDataURL(file);
-            }
-
-            // PERBAIKAN: Function to submit form data
-            function submitFormData(formKey, formElement, photoBase64 = null) {
+            // Function to submit form data
+            function submitFormData(formKey, formElement) {
                 console.log("Submitting form:", formKey);
                 
                 // Collect form data manually
@@ -2373,11 +2136,6 @@
                 const inputs = formElement.querySelectorAll('input, select, textarea');
                 
                 inputs.forEach(input => {
-                    // Skip file input for ID Card
-                    if (formKey === 'idcard' && input.type === 'file') {
-                        return;
-                    }
-                    
                     if (input.type === 'checkbox' || input.type === 'radio') {
                         if (input.checked) {
                             formData[input.name] = input.value;
@@ -2401,12 +2159,6 @@
                     formObject[key] = formData[key];
                 });
                 
-                // Add photo for ID Card
-                if (formKey === 'idcard' && photoBase64) {
-                    formObject.foto = photoBase64;
-                    console.log("Photo added to form data, size:", photoBase64.length);
-                }
-                
                 // Add judul for the request
                 formObject.judul = getRequestTitle(formKey, formObject);
                 
@@ -2429,13 +2181,6 @@
                         
                         // Reset form fields
                         formElement.reset();
-                        
-                        // Reset photo preview for ID Card
-                        if (formKey === 'idcard') {
-                            photoPreview.style.display = 'none';
-                            previewImage.src = '';
-                            photoFile = null;
-                        }
 
                         // Auto hide confirmation after 3 seconds and show form again
                         setTimeout(() => {
@@ -2489,78 +2234,6 @@
                     });
                 }
             });
-
-            // Photo upload functionality
-            if (photoInput) {
-                photoInput.addEventListener('change', function(e) {
-                    handlePhotoSelection(this.files[0]);
-                });
-            }
-
-            // Drag and drop for photo upload
-            if (photoUploadArea) {
-                photoUploadArea.addEventListener('dragover', function(e) {
-                    e.preventDefault();
-                    this.classList.add('dragover');
-                });
-
-                photoUploadArea.addEventListener('dragleave', function(e) {
-                    e.preventDefault();
-                    this.classList.remove('dragover');
-                });
-
-                photoUploadArea.addEventListener('drop', function(e) {
-                    e.preventDefault();
-                    this.classList.remove('dragover');
-                    
-                    if (e.dataTransfer.files.length) {
-                        handlePhotoSelection(e.dataTransfer.files[0]);
-                    }
-                });
-            }
-
-            // Function to handle photo selection
-            function handlePhotoSelection(file) {
-                if (!file) return;
-                
-                // Check file type
-                if (!file.type.match('image/jpeg') && !file.type.match('image/png')) {
-                    showAlert('Format file tidak didukung. Harap pilih file JPG atau PNG.', 'danger');
-                    return;
-                }
-                
-                // Check file size (max 2MB)
-                if (file.size > 2 * 1024 * 1024) {
-                    showAlert('Ukuran file terlalu besar. Maksimal 2MB.', 'danger');
-                    return;
-                }
-                
-                photoFile = file;
-                
-                // Preview image
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    previewImage.src = e.target.result;
-                    photoPreview.style.display = 'block';
-                };
-                reader.readAsDataURL(file);
-            }
-
-            // Close photo modal
-            if (closeModal) {
-                closeModal.addEventListener('click', () => {
-                    photoModal.classList.remove('active');
-                });
-            }
-
-            // Close modal when clicking outside the image
-            if (photoModal) {
-                photoModal.addEventListener('click', (e) => {
-                    if (e.target === photoModal) {
-                        photoModal.classList.remove('active');
-                    }
-                });
-            }
 
             // Initialize real-time listeners for approved-by tab
             function initializeRealtimeListeners() {
