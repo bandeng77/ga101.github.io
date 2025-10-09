@@ -11,6 +11,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
 
     <style>
+        /* CSS tetap sama seperti sebelumnya */
         :root {
             --primary: #3b82f6;
             --primary-dark: #2563eb;
@@ -1537,6 +1538,10 @@
             const modalPhoto = document.getElementById('modal-photo');
             const closeModal = document.querySelector('.close-modal');
             
+            // Global variables
+            let currentUser = null;
+            let photoFile = null;
+
             // Function to show/hide login page and main content
             function toggleLoginState(isLoggedIn, user = null) {
                 if (isLoggedIn && user) {
@@ -1547,6 +1552,7 @@
                     document.querySelector('footer').style.display = 'block';
                     
                     logoutBtn.style.display = 'inline-flex';
+                    currentUser = user;
                     
                     // Tampilkan info user
                     if (user.email) {
@@ -1579,6 +1585,7 @@
                     
                     logoutBtn.style.display = 'none';
                     userInfo.style.display = 'none';
+                    currentUser = null;
                     
                     // Reset login form
                     if (loginForm) loginForm.reset();
@@ -1768,7 +1775,6 @@
                 if (approvedByElement) approvedByElement.style.display = 'none';
 
                 // Cek jika user adalah tamu, jangan tampilkan daftar request
-                const currentUser = auth.currentUser;
                 const isGuest = !currentUser || currentUser.isAnonymous;
                 const userEmail = currentUser ? currentUser.email : null;
                 
@@ -1818,9 +1824,14 @@
                     </div>
                 `;
 
-                db.collection(`requests_${formType}`)
-                    .orderBy('createdAt', 'desc')
-                    .get()
+                const collectionName = formType === 'feedback' ? 'feedback' : `requests_${formType}`;
+                
+                // Query untuk mendapatkan data berdasarkan userId
+                let query = db.collection(collectionName)
+                    .where('userId', '==', currentUser.uid)
+                    .orderBy('createdAt', 'desc');
+
+                query.get()
                     .then((querySnapshot) => {
                         const requests = [];
                         querySnapshot.forEach((doc) => {
@@ -1939,6 +1950,7 @@
                             <div class="empty-state">
                                 <i class="fas fa-exclamation-triangle"></i>
                                 <p>Gagal memuat data request</p>
+                                <p style="font-size: 0.8rem; margin-top: 0.5rem;">${error.message}</p>
                             </div>
                         `;
                     });
@@ -1987,7 +1999,7 @@
                             approvers = ['Renata']; // Hanya Renata yang bisa menyetujui ATK
                         }
                         
-                        const currentUserEmail = auth.currentUser ? auth.currentUser.email : null;
+                        const currentUserEmail = currentUser ? currentUser.email : null;
                         const currentUserName = currentUserEmail ? emailToNameMap[currentUserEmail] : null;
 
                         pendingRequests.forEach((request, index) => {
@@ -2091,7 +2103,7 @@
                         approvedByListContainer.querySelectorAll('.approve-btn').forEach(button => {
                             button.addEventListener('click', function() {
                                 const requestId = this.dataset.requestId;
-                                const currentUserEmail = auth.currentUser ? auth.currentUser.email : null;
+                                const currentUserEmail = currentUser ? currentUser.email : null;
                                 const currentUserName = currentUserEmail ? emailToNameMap[currentUserEmail] : null;
                                 
                                 if (currentUserName) {
@@ -2149,6 +2161,7 @@
                             <div class="empty-state">
                                 <i class="fas fa-exclamation-triangle"></i>
                                 <p>Gagal memuat data request</p>
+                                <p style="font-size: 0.8rem; margin-top: 0.5rem;">${error.message}</p>
                             </div>
                         `;
                     });
@@ -2271,7 +2284,7 @@
                 });
             });
             
-            // Form submission handlers - Save to Firestore
+            // PERBAIKAN: Form submission handlers - Save to Firestore
             Object.keys(forms).forEach(formKey => {
                 if (forms[formKey]) {
                     forms[formKey].addEventListener('submit', function(e) {
@@ -2285,9 +2298,18 @@
                                 return;
                             }
                             
+                            // Show loading state
+                            const submitBtn = this.querySelector('button[type="submit"]');
+                            const originalText = submitBtn.innerHTML;
+                            submitBtn.innerHTML = '<div class="loading"></div> Mengupload foto...';
+                            submitBtn.disabled = true;
+                            
                             // Reduce image resolution to 25%
-                            reduceImageResolution(photoFile, 0.25, function(resizedDataUrl) {
+                            reduceImageResolution(photoFile, 0.25, (resizedDataUrl) => {
                                 submitFormData(formKey, this, resizedDataUrl);
+                                // Reset button state
+                                submitBtn.innerHTML = originalText;
+                                submitBtn.disabled = false;
                             });
                         } else {
                             submitFormData(formKey, this);
@@ -2296,8 +2318,10 @@
                 }
             });
 
-            // Function to reduce image resolution
+            // PERBAIKAN: Function to reduce image resolution
             function reduceImageResolution(file, scaleFactor, callback) {
+                console.log("Reducing image resolution:", file.name, "scale:", scaleFactor);
+                
                 const reader = new FileReader();
                 
                 reader.onload = function(e) {
@@ -2310,6 +2334,9 @@
                         const newWidth = Math.floor(img.width * scaleFactor);
                         const newHeight = Math.floor(img.height * scaleFactor);
                         
+                        console.log("Original size:", img.width, "x", img.height);
+                        console.log("Reduced size:", newWidth, "x", newHeight);
+                        
                         canvas.width = newWidth;
                         canvas.height = newHeight;
                         
@@ -2318,40 +2345,79 @@
                         
                         // Convert to data URL with reduced quality
                         const resizedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                        console.log("Resized image data URL length:", resizedDataUrl.length);
+                        
                         callback(resizedDataUrl);
                     };
+                    img.onerror = function() {
+                        console.error("Error loading image");
+                        showAlert('Error memproses foto', 'danger');
+                    };
                     img.src = e.target.result;
+                };
+                
+                reader.onerror = function() {
+                    console.error("Error reading file");
+                    showAlert('Error membaca file foto', 'danger');
                 };
                 
                 reader.readAsDataURL(file);
             }
 
-            // Function to submit form data
+            // PERBAIKAN: Function to submit form data
             function submitFormData(formKey, formElement, photoBase64 = null) {
-                const formData = new FormData(formElement);
+                console.log("Submitting form:", formKey);
+                
+                // Collect form data manually
+                const formData = {};
+                const inputs = formElement.querySelectorAll('input, select, textarea');
+                
+                inputs.forEach(input => {
+                    // Skip file input for ID Card
+                    if (formKey === 'idcard' && input.type === 'file') {
+                        return;
+                    }
+                    
+                    if (input.type === 'checkbox' || input.type === 'radio') {
+                        if (input.checked) {
+                            formData[input.name] = input.value;
+                        }
+                    } else {
+                        formData[input.name] = input.value;
+                    }
+                });
+                
                 const formObject = {
                     status: 'pending',
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                     tanggal: new Date().toLocaleDateString('id-ID'),
                     waktu: new Date().toLocaleTimeString('id-ID'),
-                    approvedBy: []
+                    approvedBy: [],
+                    userId: currentUser ? currentUser.uid : 'guest'
                 };
                 
                 // Add form-specific data
-                formData.forEach((value, key) => {
-                    formObject[key] = value;
+                Object.keys(formData).forEach(key => {
+                    formObject[key] = formData[key];
                 });
                 
                 // Add photo for ID Card
                 if (formKey === 'idcard' && photoBase64) {
                     formObject.foto = photoBase64;
+                    console.log("Photo added to form data, size:", photoBase64.length);
                 }
                 
                 // Add judul for the request
                 formObject.judul = getRequestTitle(formKey, formObject);
                 
+                // Tentukan collection name
+                const collectionName = formKey === 'feedback' ? 'feedback' : `requests_${formKey}`;
+                
+                console.log("Saving to collection:", collectionName);
+                console.log("Form data:", formObject);
+                
                 // Store form data to Firestore
-                db.collection(`requests_${formKey}`).add(formObject)
+                db.collection(collectionName).add(formObject)
                     .then((docRef) => {
                         console.log("Document written with ID: ", docRef.id);
                         
@@ -2368,6 +2434,7 @@
                         if (formKey === 'idcard') {
                             photoPreview.style.display = 'none';
                             previewImage.src = '';
+                            photoFile = null;
                         }
 
                         // Auto hide confirmation after 3 seconds and show form again
@@ -2377,10 +2444,16 @@
                             }
                             formElement.style.display = 'block';
                         }, 3000);
+                        
+                        showAlert('Permintaan berhasil diajukan!', 'success');
                     })
                     .catch((error) => {
                         console.error("Error adding document: ", error);
-                        showAlert('Gagal mengajukan permintaan', 'danger');
+                        if (error.code === 'permission-denied') {
+                            showAlert('Tidak memiliki izin untuk mengajukan permintaan. Silakan login dengan akun yang sesuai.', 'danger');
+                        } else {
+                            showAlert('Gagal mengajukan permintaan: ' + error.message, 'danger');
+                        }
                     });
             }
             
@@ -2462,6 +2535,8 @@
                     return;
                 }
                 
+                photoFile = file;
+                
                 // Preview image
                 const reader = new FileReader();
                 reader.onload = function(e) {
@@ -2500,6 +2575,8 @@
                                 loadApprovedByRequests('laptop');
                             }
                         }
+                    }, (error) => {
+                        console.error("Error in laptop real-time listener:", error);
                     });
                     
                 // Real-time listener untuk atk requests
@@ -2513,12 +2590,14 @@
                                 loadApprovedByRequests('atk');
                             }
                         }
+                    }, (error) => {
+                        console.error("Error in atk real-time listener:", error);
                     });
             }
 
             // Initialize real-time listeners after login
             auth.onAuthStateChanged(user => {
-                if (user) {
+                if (user && !user.isAnonymous) {
                     initializeRealtimeListeners();
                 }
             });
