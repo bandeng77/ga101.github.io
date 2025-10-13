@@ -698,6 +698,42 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* CSS untuk dropdown status */
+        .status-dropdown {
+            padding: 0.4rem 0.8rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border);
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            background: white;
+            min-width: 120px;
+        }
+        
+        .status-dropdown:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+        
+        .status-dropdown.pending {
+            background-color: #fef3c7;
+            color: #d97706;
+            border-color: #f59e0b;
+        }
+        
+        .status-dropdown.approved {
+            background-color: #d1fae5;
+            color: #059669;
+            border-color: #10b981;
+        }
+        
+        .status-dropdown.rejected {
+            background-color: #fee2e2;
+            color: #dc2626;
+            border-color: #ef4444;
+        }
     </style>
 </head>
 <body>
@@ -1688,21 +1724,21 @@
                         requestsListContainer.innerHTML = '';
                         requests.forEach((request, index) => {
                             // LOGIKA STATUS: 
-                            let status = request.status;
-                            let statusClass = 'status-pending';
+                            let status = request.status || 'pending';
+                            let statusClass = 'pending';
                             let statusText = 'Menunggu';
                             
                             // Untuk ATK: jika sudah disetujui Renata, status menjadi "Disetujui"
                             if (formType === 'atk') {
                                 if (request.approvedBy && request.approvedBy.includes('Renata')) {
                                     status = 'approved';
-                                    statusClass = 'status-approved';
+                                    statusClass = 'approved';
                                     statusText = 'Disetujui';
                                 } else if (request.status === 'approved') {
-                                    statusClass = 'status-approved';
+                                    statusClass = 'approved';
                                     statusText = 'Disetujui';
                                 } else if (request.status === 'rejected') {
-                                    statusClass = 'status-rejected';
+                                    statusClass = 'rejected';
                                     statusText = 'Ditolak';
                                 } else {
                                     statusText = 'Menunggu Persetujuan Renata';
@@ -1712,13 +1748,13 @@
                             else if (formType === 'laptop') {
                                 if (request.approvedBy && request.approvedBy.length >= 4) {
                                     status = 'approved';
-                                    statusClass = 'status-approved';
+                                    statusClass = 'approved';
                                     statusText = 'Disetujui';
                                 } else if (request.status === 'approved') {
-                                    statusClass = 'status-approved';
+                                    statusClass = 'approved';
                                     statusText = 'Disetujui';
                                 } else if (request.status === 'rejected') {
-                                    statusClass = 'status-rejected';
+                                    statusClass = 'rejected';
                                     statusText = 'Ditolak';
                                 } else {
                                     // Tampilkan jumlah approval yang sudah ada
@@ -1726,14 +1762,17 @@
                                     statusText = `Menunggu (${approvedCount}/4)`;
                                 }
                             }
-                            // Untuk form lainnya termasuk kartunama
+                            // Untuk form lainnya termasuk kartunama, idcard, konsumsi
                             else {
                                 if (request.status === 'approved') {
-                                    statusClass = 'status-approved';
+                                    statusClass = 'approved';
                                     statusText = 'Disetujui';
                                 } else if (request.status === 'rejected') {
-                                    statusClass = 'status-rejected';
+                                    statusClass = 'rejected';
                                     statusText = 'Ditolak';
+                                } else {
+                                    statusClass = 'pending';
+                                    statusText = 'Menunggu';
                                 }
                             }
                             
@@ -1790,6 +1829,27 @@
                                 `;
                             }
                             
+                            // Cek apakah user memiliki akses untuk mengubah status
+                            const currentUser = auth.currentUser;
+                            const userEmail = currentUser ? currentUser.email : null;
+                            const userPermission = userEmail ? userPermissions[userEmail] : null;
+                            const canEditStatus = userPermission && userPermission.allowedForms.includes(formType);
+                            
+                            // Buat dropdown untuk form kartunama, idcard, dan konsumsi
+                            let statusControl;
+                            if (['kartunama', 'idcard', 'konsumsi'].includes(formType) && canEditStatus) {
+                                statusControl = `
+                                    <select class="status-dropdown ${statusClass}" data-request-id="${request.id}" data-form-type="${formType}">
+                                        <option value="pending" ${status === 'pending' ? 'selected' : ''}>Menunggu</option>
+                                        <option value="approved" ${status === 'approved' ? 'selected' : ''}>Disetujui</option>
+                                        <option value="rejected" ${status === 'rejected' ? 'selected' : ''}>Ditolak</option>
+                                    </select>
+                                `;
+                            } else {
+                                // Untuk form lain atau user tanpa akses, tampilkan status biasa
+                                statusControl = `<div class="request-status status-${statusClass}">${statusText}</div>`;
+                            }
+                            
                             requestElement.innerHTML = `
                                 <div class="request-info">
                                     <div class="request-title">${request.judul || getRequestTitle(formType, request)}</div>
@@ -1798,12 +1858,29 @@
                                         ${request.approvedBy && request.approvedBy.length > 0 ? `<div>Disetujui oleh: ${request.approvedBy.join(', ')}</div>` : ''}
                                     </div>
                                 </div>
-                                <div class="request-status ${statusClass}">${statusText}</div>
+                                ${statusControl}
                             `;
                             
                             // Add animation delay based on index
                             requestElement.style.animationDelay = `${index * 0.1}s`;
                             requestsListContainer.appendChild(requestElement);
+                        });
+                        
+                        // Tambahkan event listener untuk dropdown status
+                        requestsListContainer.querySelectorAll('.status-dropdown').forEach(dropdown => {
+                            dropdown.addEventListener('change', function() {
+                                const requestId = this.dataset.requestId;
+                                const formType = this.dataset.formType;
+                                const newStatus = this.value;
+                                
+                                // Update status di Firestore
+                                updateRequestStatus(formType, requestId, newStatus);
+                                
+                                // Update class dropdown berdasarkan status baru
+                                this.className = `status-dropdown ${newStatus}`;
+                                
+                                showAlert(`Status berhasil diubah menjadi ${getStatusText(newStatus)}`, 'success');
+                            });
                         });
                     })
                     .catch((error) => {
@@ -1816,6 +1893,16 @@
                             </div>
                         `;
                     });
+            }
+
+            // Helper function untuk mendapatkan teks status
+            function getStatusText(status) {
+                const statusTexts = {
+                    'pending': 'Menunggu',
+                    'approved': 'Disetujui',
+                    'rejected': 'Ditolak'
+                };
+                return statusTexts[status] || status;
             }
 
             // Fungsi untuk memuat daftar request yang perlu disetujui dari Firestore
@@ -2067,11 +2154,11 @@
             // Fungsi untuk memperbarui status request di Firestore
             function updateRequestStatus(formType, requestId, newStatus) {
                 db.collection(`requests_${formType}`).doc(requestId).update({
-                    status: newStatus
+                    status: newStatus,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 })
                 .then(() => {
-                    loadApprovedByRequests(formType);
-                    loadRequests(formType);
+                    console.log(`Status updated to ${newStatus} for request ${requestId}`);
                 })
                 .catch((error) => {
                     console.error("Error updating request status:", error);
