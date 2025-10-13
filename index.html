@@ -142,6 +142,173 @@
             font-weight: 500;
         }
 
+        /* Notification Bell */
+        .notification-container {
+            position: relative;
+            margin-right: 10px;
+        }
+
+        .notification-bell {
+            position: relative;
+            background: rgba(255, 255, 255, 0.2);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .notification-bell:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        .notification-count {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--danger);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 600;
+            animation: pulse 2s infinite;
+        }
+
+        .notification-dropdown {
+            position: absolute;
+            top: 50px;
+            right: 0;
+            width: 350px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            display: none;
+            overflow: hidden;
+        }
+
+        .notification-dropdown.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .notification-header {
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--gradient-primary);
+            color: white;
+        }
+
+        .notification-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .mark-all-read {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: background 0.3s;
+        }
+
+        .mark-all-read:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .notification-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .notification-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .notification-item:hover {
+            background: #f8fafc;
+        }
+
+        .notification-item.unread {
+            background: #f0f9ff;
+            border-left: 3px solid var(--primary);
+        }
+
+        .notification-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 0.8rem;
+        }
+
+        .notification-icon.pending {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .notification-icon.approved {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .notification-icon.rejected {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-message {
+            font-size: 0.85rem;
+            margin-bottom: 3px;
+            line-height: 1.4;
+        }
+
+        .notification-time {
+            font-size: 0.75rem;
+            color: var(--secondary);
+        }
+
+        .notification-empty {
+            padding: 20px;
+            text-align: center;
+            color: var(--secondary);
+        }
+
+        .notification-empty i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: var(--gray);
+        }
+
         /* MAIN CONTENT */
         main {
             padding: 3rem 0;
@@ -459,6 +626,44 @@
             color: #dc2626;
         }
 
+        /* Status dropdown yang lebih kecil */
+        .status-dropdown {
+            padding: 0.3rem 0.6rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border);
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            background: white;
+            min-width: 100px;
+            max-width: 120px;
+            margin-left: auto;
+        }
+
+        .status-dropdown:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+        }
+
+        .status-dropdown.pending {
+            background-color: #fef3c7;
+            color: #d97706;
+            border-color: #f59e0b;
+        }
+
+        .status-dropdown.approved {
+            background-color: #d1fae5;
+            color: #059669;
+            border-color: #10b981;
+        }
+
+        .status-dropdown.rejected {
+            background-color: #fee2e2;
+            color: #dc2626;
+            border-color: #ef4444;
+        }
+
         .empty-state {
             text-align: center;
             padding: 2rem;
@@ -518,6 +723,11 @@
             
             .user-name {
                 display: none;
+            }
+
+            .notification-dropdown {
+                width: 300px;
+                right: -50px;
             }
 
             footer {
@@ -698,42 +908,6 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-
-        /* CSS untuk dropdown status */
-        .status-dropdown {
-            padding: 0.4rem 0.8rem;
-            border-radius: 0.5rem;
-            border: 1px solid var(--border);
-            font-size: 0.8rem;
-            font-weight: 500;
-            cursor: pointer;
-            background: white;
-            min-width: 120px;
-        }
-        
-        .status-dropdown:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
-        }
-        
-        .status-dropdown.pending {
-            background-color: #fef3c7;
-            color: #d97706;
-            border-color: #f59e0b;
-        }
-        
-        .status-dropdown.approved {
-            background-color: #d1fae5;
-            color: #059669;
-            border-color: #10b981;
-        }
-        
-        .status-dropdown.rejected {
-            background-color: #fee2e2;
-            color: #dc2626;
-            border-color: #ef4444;
-        }
     </style>
 </head>
 <body>
@@ -778,6 +952,24 @@
                 </div>
             </div>
             <div class="header-right">
+                <div class="notification-container">
+                    <div class="notification-bell" id="notification-bell">
+                        <i class="fas fa-bell"></i>
+                        <div class="notification-count" id="notification-count" style="display: none;">0</div>
+                    </div>
+                    <div class="notification-dropdown" id="notification-dropdown">
+                        <div class="notification-header">
+                            <div class="notification-title">Notifikasi</div>
+                            <button class="mark-all-read" id="mark-all-read">Tandai Sudah Dibaca</button>
+                        </div>
+                        <div class="notification-list" id="notification-list">
+                            <div class="notification-empty">
+                                <i class="fas fa-bell-slash"></i>
+                                <p>Tidak ada notifikasi</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div id="user-info" class="user-info" style="display: none;">
                     <div class="user-avatar" id="user-avatar">U</div>
                     <span class="user-name" id="user-name"></span>
@@ -1415,6 +1607,13 @@
             const userName = document.getElementById('user-name');
             const userAvatar = document.getElementById('user-avatar');
             
+            // Notification elements
+            const notificationBell = document.getElementById('notification-bell');
+            const notificationCount = document.getElementById('notification-count');
+            const notificationDropdown = document.getElementById('notification-dropdown');
+            const notificationList = document.getElementById('notification-list');
+            const markAllReadBtn = document.getElementById('mark-all-read');
+            
             // Function to show/hide login page and main content
             function toggleLoginState(isLoggedIn, user = null) {
                 if (isLoggedIn && user) {
@@ -1435,6 +1634,9 @@
                         
                         // Update form tabs visibility based on permissions
                         updateFormTabsVisibility(user.email);
+                        
+                        // Load notifications for logged in user
+                        loadNotifications(user.email);
                     } else {
                         // Guest user - hide request tabs
                         userName.textContent = 'Tamu';
@@ -1445,6 +1647,9 @@
                         document.querySelectorAll('[id$="-requests-tab"], [id$="-approved-tab"]').forEach(tab => {
                             tab.style.display = 'none';
                         });
+                        
+                        // Hide notifications for guest
+                        notificationBell.style.display = 'none';
                     }
                     
                     showSection('dashboard');
@@ -1601,6 +1806,38 @@
                         logoutBtn.innerHTML = originalText;
                         logoutBtn.disabled = false;
                     });
+                });
+            }
+            
+            // Notification bell click event
+            if (notificationBell) {
+                notificationBell.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    notificationDropdown.classList.toggle('active');
+                });
+            }
+            
+            // Mark all notifications as read
+            if (markAllReadBtn) {
+                markAllReadBtn.addEventListener('click', function() {
+                    const currentUser = auth.currentUser;
+                    if (!currentUser || !currentUser.email) return;
+                    
+                    markAllNotificationsAsRead(currentUser.email);
+                });
+            }
+            
+            // Close notification dropdown when clicking outside
+            document.addEventListener('click', function() {
+                if (notificationDropdown.classList.contains('active')) {
+                    notificationDropdown.classList.remove('active');
+                }
+            });
+            
+            // Prevent dropdown from closing when clicking inside
+            if (notificationDropdown) {
+                notificationDropdown.addEventListener('click', function(e) {
+                    e.stopPropagation();
                 });
             }
             
@@ -2362,6 +2599,207 @@
                     initializeRealtimeListeners();
                 }
             });
+
+            // ========== NOTIFICATION SYSTEM ==========
+            
+            // Function to load notifications for a user
+            function loadNotifications(userEmail) {
+                if (!userEmail) return;
+                
+                // Clear existing notifications
+                notificationList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="loading"></div>
+                        <p>Memuat notifikasi...</p>
+                    </div>
+                `;
+                
+                // Get user's name from email
+                const userName = emailToNameMap[userEmail] || userEmail.split('@')[0];
+                
+                // Array to collect all notifications
+                let allNotifications = [];
+                
+                // Get all form types
+                const formTypes = ['atk', 'idcard', 'konsumsi', 'laptop', 'kartunama', 'feedback'];
+                
+                // Create promises for each form type
+                const notificationPromises = formTypes.map(formType => {
+                    return db.collection(`requests_${formType}`)
+                        .where('status', 'in', ['pending', 'approved', 'rejected'])
+                        .orderBy('createdAt', 'desc')
+                        .get()
+                        .then((querySnapshot) => {
+                            querySnapshot.forEach((doc) => {
+                                const request = { id: doc.id, formType, ...doc.data() };
+                                
+                                // Check if this notification is relevant for the current user
+                                if (isNotificationRelevant(request, userName, userEmail)) {
+                                    allNotifications.push({
+                                        id: `${formType}_${doc.id}`,
+                                        formType,
+                                        request,
+                                        timestamp: request.createdAt ? request.createdAt.toDate() : new Date(),
+                                        read: false // Default to unread
+                                    });
+                                }
+                            });
+                        });
+                });
+                
+                // Wait for all promises to complete
+                Promise.all(notificationPromises)
+                    .then(() => {
+                        // Sort notifications by timestamp (newest first)
+                        allNotifications.sort((a, b) => b.timestamp - a.timestamp);
+                        
+                        // Display notifications
+                        displayNotifications(allNotifications);
+                        
+                        // Update notification count
+                        updateNotificationCount(allNotifications);
+                    })
+                    .catch((error) => {
+                        console.error("Error loading notifications:", error);
+                        notificationList.innerHTML = `
+                            <div class="notification-empty">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <p>Gagal memuat notifikasi</p>
+                            </div>
+                        `;
+                    });
+            }
+            
+            // Function to check if a notification is relevant for the user
+            function isNotificationRelevant(request, userName, userEmail) {
+                // For approvers: show notifications for requests they can approve
+                const userPermission = userPermissions[userEmail];
+                if (userPermission) {
+                    // Check if user can approve this form type
+                    if (userPermission.allowedForms.includes(request.formType)) {
+                        // For ATK: only show to Renata
+                        if (request.formType === 'atk' && userName === 'Renata') {
+                            return true;
+                        }
+                        // For Laptop: show to all approvers
+                        else if (request.formType === 'laptop' && 
+                                ['Renata', 'Rossiana', 'Galih', 'Maida'].includes(userName)) {
+                            return true;
+                        }
+                        // For other forms: show to users with permission
+                        else if (['kartunama', 'idcard', 'konsumsi'].includes(request.formType)) {
+                            return true;
+                        }
+                    }
+                }
+                
+                // For requesters: show notifications for their own requests
+                if (request.nama && request.nama.includes(userName)) {
+                    return true;
+                }
+                
+                return false;
+            }
+            
+            // Function to display notifications in the dropdown
+            function displayNotifications(notifications) {
+                if (notifications.length === 0) {
+                    notificationList.innerHTML = `
+                        <div class="notification-empty">
+                            <i class="fas fa-bell-slash"></i>
+                            <p>Tidak ada notifikasi</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                notificationList.innerHTML = '';
+                
+                notifications.forEach(notification => {
+                    const notificationItem = document.createElement('div');
+                    notificationItem.className = `notification-item ${notification.read ? '' : 'unread'}`;
+                    notificationItem.dataset.notificationId = notification.id;
+                    
+                    // Determine icon and message based on status and form type
+                    let iconClass = '';
+                    let message = '';
+                    
+                    if (notification.request.status === 'approved') {
+                        iconClass = 'approved';
+                        message = `Request ${getFormTitle(notification.formType)} Anda telah disetujui`;
+                    } else if (notification.request.status === 'rejected') {
+                        iconClass = 'rejected';
+                        message = `Request ${getFormTitle(notification.formType)} Anda telah ditolak`;
+                    } else {
+                        iconClass = 'pending';
+                        if (notification.request.formType === 'atk') {
+                            message = `Request ATK dari ${notification.request.nama} menunggu persetujuan`;
+                        } else if (notification.request.formType === 'laptop') {
+                            const approvedCount = notification.request.approvedBy ? notification.request.approvedBy.length : 0;
+                            message = `Request IT dari ${notification.request.nama} (${approvedCount}/4 persetujuan)`;
+                        } else {
+                            message = `Request ${getFormTitle(notification.formType)} dari ${notification.request.nama} menunggu persetujuan`;
+                        }
+                    }
+                    
+                    // Format timestamp
+                    const timeAgo = getTimeAgo(notification.timestamp);
+                    
+                    notificationItem.innerHTML = `
+                        <div class="notification-icon ${iconClass}">
+                            <i class="fas ${iconClass === 'approved' ? 'fa-check' : iconClass === 'rejected' ? 'fa-times' : 'fa-clock'}"></i>
+                        </div>
+                        <div class="notification-content">
+                            <div class="notification-message">${message}</div>
+                            <div class="notification-time">${timeAgo}</div>
+                        </div>
+                    `;
+                    
+                    notificationList.appendChild(notificationItem);
+                });
+            }
+            
+            // Function to update notification count badge
+            function updateNotificationCount(notifications) {
+                const unreadCount = notifications.filter(n => !n.read).length;
+                
+                if (unreadCount > 0) {
+                    notificationCount.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                    notificationCount.style.display = 'flex';
+                } else {
+                    notificationCount.style.display = 'none';
+                }
+            }
+            
+            // Function to mark all notifications as read
+            function markAllNotificationsAsRead(userEmail) {
+                // In a real implementation, you would update the read status in the database
+                // For now, we'll just update the UI
+                
+                const notificationItems = notificationList.querySelectorAll('.notification-item');
+                notificationItems.forEach(item => {
+                    item.classList.remove('unread');
+                });
+                
+                notificationCount.style.display = 'none';
+                showAlert('Semua notifikasi telah ditandai sebagai sudah dibaca', 'success');
+            }
+            
+            // Helper function to format time ago
+            function getTimeAgo(timestamp) {
+                const now = new Date();
+                const diffMs = now - timestamp;
+                const diffMins = Math.floor(diffMs / 60000);
+                const diffHours = Math.floor(diffMins / 60);
+                const diffDays = Math.floor(diffHours / 24);
+                
+                if (diffMins < 1) return 'Baru saja';
+                if (diffMins < 60) return `${diffMins} menit lalu`;
+                if (diffHours < 24) return `${diffHours} jam lalu`;
+                if (diffDays < 7) return `${diffDays} hari lalu`;
+                
+                return timestamp.toLocaleDateString('id-ID');
+            }
         });
     </script>
 </body>
