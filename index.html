@@ -188,7 +188,7 @@
             position: absolute;
             top: 50px;
             right: 0;
-            width: 350px;
+            width: 400px;
             background: white;
             border-radius: 12px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
@@ -233,7 +233,7 @@
         }
 
         .notification-list {
-            max-height: 300px;
+            max-height: 400px;
             overflow-y: auto;
         }
 
@@ -241,19 +241,21 @@
             padding: 12px 15px;
             border-bottom: 1px solid var(--border);
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.2s ease;
             display: flex;
             align-items: flex-start;
             gap: 10px;
         }
 
         .notification-item:hover {
-            background: #f8fafc;
+            background: #e0f7fa !important;
+            transform: translateX(5px);
         }
 
         .notification-item.unread {
             background: #f0f9ff;
             border-left: 3px solid var(--primary);
+            font-weight: 500;
         }
 
         .notification-icon {
@@ -290,6 +292,10 @@
             font-size: 0.85rem;
             margin-bottom: 3px;
             line-height: 1.4;
+        }
+
+        .notification-message strong {
+            color: var(--dark);
         }
 
         .notification-time {
@@ -726,7 +732,7 @@
             }
 
             .notification-dropdown {
-                width: 300px;
+                width: 320px;
                 right: -50px;
             }
 
@@ -907,6 +913,12 @@
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+
+        /* Highlight effect for requested items */
+        .request-highlight {
+            background-color: #e0f2fe !important;
+            transition: background-color 0.3s;
         }
     </style>
 </head>
@@ -1531,27 +1543,27 @@
                 'ulandari@genetek.co.id': 'Ulan',
             };
 
-            // User permissions mapping - DITAMBAHKAN KARTUNAMA
+            // User permissions mapping
             const userPermissions = {
                 'ulandari@genetek.co.id': {
                     name: 'Ulan',
-                    allowedForms: ['atk', 'idcard', 'konsumsi', 'kartunama'] // Ditambahkan kartunama
+                    allowedForms: ['atk', 'idcard', 'konsumsi', 'kartunama']
                 },
                 'crenata@genetek.co.id': {
                     name: 'Renata',
-                    allowedForms: ['atk', 'idcard', 'konsumsi', 'laptop', 'feedback', 'kartunama'] // Ditambahkan kartunama
+                    allowedForms: ['atk', 'idcard', 'konsumsi', 'laptop', 'feedback', 'kartunama']
                 },
                 'galih@genetek.co.id': {
                     name: 'Galih',
-                    allowedForms: ['laptop'] // Hanya laptop
+                    allowedForms: ['laptop']
                 },
                 'maida@genetek.co.id': {
                     name: 'Maida',
-                    allowedForms: ['laptop'] // Hanya laptop
+                    allowedForms: ['laptop']
                 },
                 'rossiana.yl@genetek.co.id': {
                     name: 'Rossiana',
-                    allowedForms: ['laptop'] // Hanya laptop
+                    allowedForms: ['laptop']
                 }
             };
 
@@ -1560,33 +1572,33 @@
             const sections = document.querySelectorAll('section');
             const backButtons = document.querySelectorAll('.back-button');
             
-            // Form elements - DITAMBAHKAN KARTUNAMA
+            // Form elements
             const forms = {
                 atk: document.getElementById('atkForm'),
                 idcard: document.getElementById('idcardForm'),
                 konsumsi: document.getElementById('konsumsiForm'),
                 laptop: document.getElementById('laptopForm'),
-                kartunama: document.getElementById('kartunamaForm'), // Ditambahkan
+                kartunama: document.getElementById('kartunamaForm'),
                 feedback: document.getElementById('feedbackForm')
             };
             
-            // Confirmation messages - DITAMBAHKAN KARTUNAMA
+            // Confirmation messages
             const confirmations = {
                 atk: document.getElementById('atk-confirmation'),
                 idcard: document.getElementById('idcard-confirmation'),
                 konsumsi: document.getElementById('konsumsi-confirmation'),
                 laptop: document.getElementById('laptop-confirmation'),
-                kartunama: document.getElementById('kartunama-confirmation'), // Ditambahkan
+                kartunama: document.getElementById('kartunama-confirmation'),
                 feedback: document.getElementById('feedback-confirmation')
             };
             
-            // Requests lists - DITAMBAHKAN KARTUNAMA
+            // Requests lists
             const requestsLists = {
                 atk: document.getElementById('atk-requests'),
                 idcard: document.getElementById('idcard-requests'),
                 konsumsi: document.getElementById('konsumsi-requests'),
                 laptop: document.getElementById('laptop-requests'),
-                kartunama: document.getElementById('kartunama-requests'), // Ditambahkan
+                kartunama: document.getElementById('kartunama-requests'),
                 feedback: document.getElementById('feedback-requests'),
                 'laptop-approved-by': document.getElementById('laptop-approved-by'),
                 'atk-approved-by': document.getElementById('atk-approved-by')
@@ -1614,6 +1626,305 @@
             const notificationList = document.getElementById('notification-list');
             const markAllReadBtn = document.getElementById('mark-all-read');
             
+            // ========== REALTIME NOTIFICATION SYSTEM ==========
+            let notificationUnsubscribeFunctions = [];
+
+            // Function to initialize realtime notifications
+            function initializeRealtimeNotifications(userEmail) {
+                if (!userEmail) return;
+                
+                // Clear existing listeners
+                notificationUnsubscribeFunctions.forEach(unsubscribe => unsubscribe());
+                notificationUnsubscribeFunctions = [];
+                
+                // Get all form types
+                const formTypes = ['atk', 'idcard', 'konsumsi', 'laptop', 'kartunama', 'feedback'];
+                
+                // Create realtime listeners for each form type
+                formTypes.forEach(formType => {
+                    const unsubscribe = db.collection(`requests_${formType}`)
+                        .orderBy('createdAt', 'desc')
+                        .limit(30)
+                        .onSnapshot((querySnapshot) => {
+                            console.log(`Realtime update for ${formType}`);
+                            loadRealtimeNotifications(userEmail);
+                        }, (error) => {
+                            console.error(`Error in realtime listener for ${formType}:`, error);
+                        });
+                    
+                    notificationUnsubscribeFunctions.push(unsubscribe);
+                });
+            }
+
+            // Function to load notifications in realtime
+            function loadRealtimeNotifications(userEmail) {
+                if (!userEmail) return;
+                
+                const userName = emailToNameMap[userEmail] || userEmail.split('@')[0];
+                let allNotifications = [];
+                
+                const formTypes = ['atk', 'idcard', 'konsumsi', 'laptop', 'kartunama', 'feedback'];
+                const notificationPromises = formTypes.map(formType => {
+                    return db.collection(`requests_${formType}`)
+                        .orderBy('createdAt', 'desc')
+                        .limit(20)
+                        .get()
+                        .then((querySnapshot) => {
+                            querySnapshot.forEach((doc) => {
+                                const request = { id: doc.id, formType, ...doc.data() };
+                                
+                                if (isNotificationRelevant(request, userName, userEmail)) {
+                                    allNotifications.push({
+                                        id: `${formType}_${doc.id}`,
+                                        formType,
+                                        requestId: doc.id,
+                                        request,
+                                        timestamp: request.createdAt ? request.createdAt.toDate() : new Date(),
+                                        read: getNotificationReadStatus(`${formType}_${doc.id}`)
+                                    });
+                                }
+                            });
+                        });
+                });
+                
+                Promise.all(notificationPromises)
+                    .then(() => {
+                        allNotifications.sort((a, b) => b.timestamp - a.timestamp);
+                        displayNotifications(allNotifications);
+                        updateNotificationCount(allNotifications);
+                    })
+                    .catch((error) => {
+                        console.error("Error loading realtime notifications:", error);
+                    });
+            }
+
+            // Function to check if notification is relevant for user
+            function isNotificationRelevant(request, userName, userEmail) {
+                const userPermission = userPermissions[userEmail];
+                const status = request.status || 'pending';
+                
+                // Skip if status is not one we track
+                if (!['pending', 'approved', 'rejected'].includes(status)) {
+                    return false;
+                }
+                
+                // For approvers: show notifications for requests they can approve
+                if (userPermission && userPermission.allowedForms.includes(request.formType)) {
+                    if (request.formType === 'atk' && userName === 'Renata') {
+                        return true;
+                    }
+                    if (request.formType === 'laptop' && 
+                        ['Renata', 'Rossiana', 'Galih', 'Maida'].includes(userName)) {
+                        return true;
+                    }
+                    if (['kartunama', 'idcard', 'konsumsi'].includes(request.formType)) {
+                        return true;
+                    }
+                }
+                
+                // For requesters: show notifications for their own requests
+                if (request.nama && (request.nama.includes(userName) || request.nama === userName)) {
+                    return true;
+                }
+                
+                return false;
+            }
+
+            // Function to display notifications
+            function displayNotifications(notifications) {
+                if (notifications.length === 0) {
+                    notificationList.innerHTML = `
+                        <div class="notification-empty">
+                            <i class="fas fa-bell-slash"></i>
+                            <p>Tidak ada notifikasi</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                notificationList.innerHTML = '';
+                
+                notifications.forEach(notification => {
+                    const notificationItem = document.createElement('div');
+                    notificationItem.className = `notification-item ${notification.read ? '' : 'unread'}`;
+                    notificationItem.dataset.notificationId = notification.id;
+                    notificationItem.dataset.formType = notification.formType;
+                    notificationItem.dataset.requestId = notification.requestId;
+                    
+                    const { iconClass, message } = getNotificationContent(notification);
+                    const timeAgo = getTimeAgo(notification.timestamp);
+                    
+                    notificationItem.innerHTML = `
+                        <div class="notification-icon ${iconClass}">
+                            <i class="fas ${iconClass === 'approved' ? 'fa-check' : iconClass === 'rejected' ? 'fa-times' : 'fa-clock'}"></i>
+                        </div>
+                        <div class="notification-content">
+                            <div class="notification-message">${message}</div>
+                            <div class="notification-time">${timeAgo}</div>
+                        </div>
+                    `;
+                    
+                    // Add click event to navigate to relevant form
+                    notificationItem.addEventListener('click', function() {
+                        handleNotificationClick(this);
+                    });
+                    
+                    notificationList.appendChild(notificationItem);
+                });
+            }
+
+            // Function to get notification content based on type and status
+            function getNotificationContent(notification) {
+                const { formType, request } = notification;
+                const status = request.status || 'pending';
+                const formTitle = getFormTitle(formType);
+                
+                let iconClass = '';
+                let message = '';
+                
+                if (status === 'approved') {
+                    iconClass = 'approved';
+                    message = `✅ <strong>Request ${formTitle} Disetujui</strong><br>${request.judul || request.nama}`;
+                } else if (status === 'rejected') {
+                    iconClass = 'rejected';
+                    message = `❌ <strong>Request ${formTitle} Ditolak</strong><br>${request.judul || request.nama}`;
+                } else {
+                    iconClass = 'pending';
+                    if (formType === 'atk') {
+                        message = `⏳ <strong>Request ATK Menunggu Persetujuan</strong><br>Dari: ${request.nama}`;
+                    } else if (formType === 'laptop') {
+                        const approvedCount = request.approvedBy ? request.approvedBy.length : 0;
+                        message = `⏳ <strong>Request IT Menunggu (${approvedCount}/4)</strong><br>Dari: ${request.nama}`;
+                    } else {
+                        message = `⏳ <strong>Request ${formTitle} Menunggu Persetujuan</strong><br>Dari: ${request.nama}`;
+                    }
+                }
+                
+                return { iconClass, message };
+            }
+
+            // Function to handle notification click
+            function handleNotificationClick(notificationElement) {
+                const formType = notificationElement.dataset.formType;
+                const requestId = notificationElement.dataset.requestId;
+                const notificationId = notificationElement.dataset.notificationId;
+                
+                // Mark as read
+                markNotificationAsRead(notificationId);
+                notificationElement.classList.remove('unread');
+                
+                // Navigate to the relevant form section
+                showSection(`form-${formType}`);
+                
+                // Show requests tab and highlight the specific request
+                setTimeout(() => {
+                    showFormTab(formType, 'requests');
+                    
+                    // Scroll to and highlight the specific request if possible
+                    setTimeout(() => {
+                        const requestElement = document.querySelector(`[data-request-id="${requestId}"]`);
+                        if (requestElement) {
+                            requestElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            requestElement.classList.add('request-highlight');
+                            
+                            setTimeout(() => {
+                                requestElement.classList.remove('request-highlight');
+                            }, 3000);
+                        }
+                    }, 500);
+                }, 300);
+                
+                // Close notification dropdown
+                notificationDropdown.classList.remove('active');
+                
+                // Update notification count
+                loadRealtimeNotifications(auth.currentUser.email);
+            }
+
+            // Local storage functions for notification read status
+            function getNotificationReadStatus(notificationId) {
+                const readNotifications = JSON.parse(localStorage.getItem('readNotifications') || '{}');
+                return !!readNotifications[notificationId];
+            }
+
+            function markNotificationAsRead(notificationId) {
+                const readNotifications = JSON.parse(localStorage.getItem('readNotifications') || '{}');
+                readNotifications[notificationId] = true;
+                localStorage.setItem('readNotifications', JSON.stringify(readNotifications));
+            }
+
+            function markAllNotificationsAsRead() {
+                const notificationItems = notificationList.querySelectorAll('.notification-item');
+                const readNotifications = JSON.parse(localStorage.getItem('readNotifications') || '{}');
+                
+                notificationItems.forEach(item => {
+                    const notificationId = item.dataset.notificationId;
+                    readNotifications[notificationId] = true;
+                    item.classList.remove('unread');
+                });
+                
+                localStorage.setItem('readNotifications', JSON.stringify(readNotifications));
+                updateNotificationCount([]);
+                showAlert('Semua notifikasi telah ditandai sebagai sudah dibaca', 'success');
+            }
+
+            // Function to update notification count
+            function updateNotificationCount(notifications) {
+                if (notifications.length === 0) {
+                    // Count unread from DOM
+                    const unreadCount = notificationList.querySelectorAll('.notification-item.unread').length;
+                    if (unreadCount > 0) {
+                        notificationCount.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                        notificationCount.style.display = 'flex';
+                    } else {
+                        notificationCount.style.display = 'none';
+                    }
+                    return;
+                }
+                
+                const unreadCount = notifications.filter(n => !n.read).length;
+                
+                if (unreadCount > 0) {
+                    notificationCount.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                    notificationCount.style.display = 'flex';
+                    
+                    // Show desktop notification for new unread notifications
+                    if (unreadCount > 0 && 'Notification' in window && Notification.permission === 'granted') {
+                        new Notification('GA System', {
+                            body: `Anda memiliki ${unreadCount} notifikasi baru`,
+                            icon: '/favicon.ico'
+                        });
+                    }
+                } else {
+                    notificationCount.style.display = 'none';
+                }
+            }
+
+            // Request notification permission
+            function requestNotificationPermission() {
+                if ('Notification' in window && Notification.permission === 'default') {
+                    Notification.requestPermission();
+                }
+            }
+
+            // Helper function to format time ago
+            function getTimeAgo(timestamp) {
+                const now = new Date();
+                const diffMs = now - timestamp;
+                const diffMins = Math.floor(diffMs / 60000);
+                const diffHours = Math.floor(diffMins / 60);
+                const diffDays = Math.floor(diffHours / 24);
+                
+                if (diffMins < 1) return 'Baru saja';
+                if (diffMins < 60) return `${diffMins} menit lalu`;
+                if (diffHours < 24) return `${diffHours} jam lalu`;
+                if (diffDays < 7) return `${diffDays} hari lalu`;
+                
+                return timestamp.toLocaleDateString('id-ID');
+            }
+
+            // ========== MAIN APPLICATION CODE ==========
+
             // Function to show/hide login page and main content
             function toggleLoginState(isLoggedIn, user = null) {
                 if (isLoggedIn && user) {
@@ -1635,8 +1946,9 @@
                         // Update form tabs visibility based on permissions
                         updateFormTabsVisibility(user.email);
                         
-                        // Load notifications for logged in user
-                        loadNotifications(user.email);
+                        // Initialize realtime notifications
+                        initializeRealtimeNotifications(user.email);
+                        requestNotificationPermission();
                     } else {
                         // Guest user - hide request tabs
                         userName.textContent = 'Tamu';
@@ -1666,15 +1978,19 @@
                     // Reset login form
                     if (loginForm) loginForm.reset();
                     if (loginError) loginError.style.display = 'none';
+                    
+                    // Clean up realtime listeners
+                    notificationUnsubscribeFunctions.forEach(unsubscribe => unsubscribe());
+                    notificationUnsubscribeFunctions = [];
                 }
             }
 
-            // Update form tabs visibility based on user permissions - DIPERBARUI DENGAN KARTUNAMA
+            // Update form tabs visibility based on user permissions
             function updateFormTabsVisibility(userEmail) {
                 if (!userEmail || !userPermissions[userEmail]) return;
                 
                 const userPermission = userPermissions[userEmail];
-                const allFormTypes = ['atk', 'idcard', 'konsumsi', 'laptop', 'feedback', 'kartunama']; // Ditambahkan kartunama
+                const allFormTypes = ['atk', 'idcard', 'konsumsi', 'laptop', 'feedback', 'kartunama'];
                 
                 allFormTypes.forEach(formType => {
                     const requestTab = document.getElementById(`${formType}-requests-tab`);
@@ -1814,16 +2130,21 @@
                 notificationBell.addEventListener('click', function(e) {
                     e.stopPropagation();
                     notificationDropdown.classList.toggle('active');
+                    
+                    // Refresh notifications when dropdown is opened
+                    if (notificationDropdown.classList.contains('active')) {
+                        const currentUser = auth.currentUser;
+                        if (currentUser && currentUser.email) {
+                            loadRealtimeNotifications(currentUser.email);
+                        }
+                    }
                 });
             }
             
             // Mark all notifications as read
             if (markAllReadBtn) {
                 markAllReadBtn.addEventListener('click', function() {
-                    const currentUser = auth.currentUser;
-                    if (!currentUser || !currentUser.email) return;
-                    
-                    markAllNotificationsAsRead(currentUser.email);
+                    markAllNotificationsAsRead();
                 });
             }
             
@@ -1887,7 +2208,7 @@
                 const isGuest = !currentUser || currentUser.isAnonymous;
                 const userEmail = currentUser ? currentUser.email : null;
                 
-                // Check permissions for request tabs - DITAMBAHKAN KARTUNAMA
+                // Check permissions for request tabs
                 if ((tabType === 'requests' || tabType === 'approved-by') && userEmail) {
                     const userPermission = userPermissions[userEmail];
                     if (!userPermission || !userPermission.allowedForms.includes(formType)) {
@@ -1920,7 +2241,7 @@
                 }
             }
             
-            // Load requests for a specific form type from Firestore - DITAMBAHKAN KARTUNAMA
+            // Load requests for a specific form type from Firestore
             function loadRequests(formType) {
                 const requestsListContainer = document.getElementById(`${formType}-requests-list`);
                 if (!requestsListContainer) return;
@@ -2015,8 +2336,9 @@
                             
                             const requestElement = document.createElement('div');
                             requestElement.className = 'request-item';
+                            requestElement.dataset.requestId = request.id;
                             
-                            // Generate request details based on form type - DITAMBAHKAN KARTUNAMA
+                            // Generate request details based on form type
                             let requestDetails = '';
                             
                             if (formType === 'atk') {
@@ -2048,7 +2370,7 @@
                                     <div>Jenis Request: ${request['jenis-request']}</div>
                                     ${request.spesifikasi ? `<div>Spesifikasi: ${request.spesifikasi}</div>` : ''}
                                 `;
-                            } else if (formType === 'kartunama') { // Ditambahkan untuk kartunama
+                            } else if (formType === 'kartunama') {
                                 requestDetails = `
                                     <div>Oleh: ${request.nama} • ${request.department}</div>
                                     <div>Posisi: ${request.posisi}</div>
@@ -2422,27 +2744,27 @@
                 }, 3000);
             }
             
-            // Helper function to get form title - DITAMBAHKAN KARTUNAMA
+            // Helper function to get form title
             function getFormTitle(formType) {
                 const titles = {
                     atk: 'ATK',
                     idcard: 'ID Card',
                     konsumsi: 'Konsumsi',
                     laptop: 'Laptop',
-                    kartunama: 'Kartu Nama', // Ditambahkan
+                    kartunama: 'Kartu Nama',
                     feedback: 'Feedback'
                 };
                 return titles[formType] || '';
             }
             
-            // Helper function to generate request title - DITAMBAHKAN KARTUNAMA
+            // Helper function to generate request title
             function getRequestTitle(formType, request) {
                 switch(formType) {
                     case 'atk': return `Permintaan ${request.jenis}`;
                     case 'idcard': return `Permintaan ID Card - ${request.nama}`;
                     case 'konsumsi': return `Konsumsi ${request.acara}`;
                     case 'laptop': return `Permintaan ${request['jenis-request']} Laptop`;
-                    case 'kartunama': return `Permintaan Kartu Nama - ${request.nama}`; // Ditambahkan
+                    case 'kartunama': return `Permintaan Kartu Nama - ${request.nama}`;
                     case 'feedback': return `Feedback ${request.kategori} - ${request.nama}`;
                     default: return 'Permintaan';
                 }
@@ -2470,7 +2792,7 @@
                 });
             });
             
-            // Form submission handlers - Save to Firestore - DITAMBAHKAN KARTUNAMA
+            // Form submission handlers - Save to Firestore
             Object.keys(forms).forEach(formKey => {
                 if (forms[formKey]) {
                     forms[formKey].addEventListener('submit', function(e) {
@@ -2539,7 +2861,7 @@
                 }
             });
             
-            // Refresh buttons for request lists - DITAMBAHKAN KARTUNAMA
+            // Refresh buttons for request lists
             document.querySelectorAll('[id^="refresh-"]').forEach(button => {
                 if (button) {
                     button.addEventListener('click', function() {
@@ -2564,7 +2886,7 @@
                 }
             });
 
-            // Initialize real-time listeners for approved-by tab
+            // Initialize realtime listeners for approved-by tab
             function initializeRealtimeListeners() {
                 // Real-time listener untuk laptop requests
                 db.collection('requests_laptop')
@@ -2593,230 +2915,12 @@
                     });
             }
 
-            // Initialize real-time listeners after login
+            // Initialize realtime listeners after login
             auth.onAuthStateChanged(user => {
                 if (user) {
                     initializeRealtimeListeners();
                 }
             });
-
-            // ========== NOTIFICATION SYSTEM ==========
-            
-            // Function to load notifications for a user
-            // Function to load notifications for a user
-function loadNotifications(userEmail) {
-    if (!userEmail) return;
-    
-    // Clear existing notifications
-    notificationList.innerHTML = `
-        <div class="empty-state">
-            <div class="loading"></div>
-            <p>Memuat notifikasi...</p>
-        </div>
-    `;
-    
-    // Get user's name from email
-    const userName = emailToNameMap[userEmail] || userEmail.split('@')[0];
-    
-    // Array to collect all notifications
-    let allNotifications = [];
-    
-    // Get all form types
-    const formTypes = ['atk', 'idcard', 'konsumsi', 'laptop', 'kartunama', 'feedback'];
-    
-    // Create promises for each form type
-    const notificationPromises = formTypes.map(formType => {
-        // Query tanpa filter status untuk menghindari kebutuhan composite index
-        return db.collection(`requests_${formType}`)
-            .orderBy('createdAt', 'desc')
-            .limit(50) // Batasi jumlah dokumen untuk performa
-            .get()
-            .then((querySnapshot) => {
-                querySnapshot.forEach((doc) => {
-                    const request = { id: doc.id, formType, ...doc.data() };
-                    
-                    // Filter di client side untuk menghindari composite index
-                    const status = request.status || 'pending';
-                    if (!['pending', 'approved', 'rejected'].includes(status)) {
-                        return; // Skip jika status tidak valid
-                    }
-                    
-                    // Check if this notification is relevant for the current user
-                    if (isNotificationRelevant(request, userName, userEmail)) {
-                        allNotifications.push({
-                            id: `${formType}_${doc.id}`,
-                            formType,
-                            request,
-                            timestamp: request.createdAt ? request.createdAt.toDate() : new Date(),
-                            read: false // Default to unread
-                        });
-                    }
-                });
-            })
-            .catch((error) => {
-                console.error(`Error loading ${formType} requests:`, error);
-                // Continue dengan collection lain meskipun satu gagal
-                return [];
-            });
-    });
-    
-    // Wait for all promises to complete
-    Promise.all(notificationPromises)
-        .then(() => {
-            // Sort notifications by timestamp (newest first)
-            allNotifications.sort((a, b) => b.timestamp - a.timestamp);
-            
-            // Limit to 30 notifikasi terbaru untuk performa
-            allNotifications = allNotifications.slice(0, 30);
-            
-            // Display notifications
-            displayNotifications(allNotifications);
-            
-            // Update notification count
-            updateNotificationCount(allNotifications);
-        })
-        .catch((error) => {
-            console.error("Error loading notifications:", error);
-            notificationList.innerHTML = `
-                <div class="notification-empty">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <p>Gagal memuat notifikasi</p>
-                    <p style="font-size: 0.7rem; margin-top: 5px;">Silakan refresh halaman</p>
-                </div>
-            `;
-        });
-}
-            
-            // Function to check if a notification is relevant for the user
-            function isNotificationRelevant(request, userName, userEmail) {
-                // For approvers: show notifications for requests they can approve
-                const userPermission = userPermissions[userEmail];
-                if (userPermission) {
-                    // Check if user can approve this form type
-                    if (userPermission.allowedForms.includes(request.formType)) {
-                        // For ATK: only show to Renata
-                        if (request.formType === 'atk' && userName === 'Renata') {
-                            return true;
-                        }
-                        // For Laptop: show to all approvers
-                        else if (request.formType === 'laptop' && 
-                                ['Renata', 'Rossiana', 'Galih', 'Maida'].includes(userName)) {
-                            return true;
-                        }
-                        // For other forms: show to users with permission
-                        else if (['kartunama', 'idcard', 'konsumsi'].includes(request.formType)) {
-                            return true;
-                        }
-                    }
-                }
-                
-                // For requesters: show notifications for their own requests
-                if (request.nama && request.nama.includes(userName)) {
-                    return true;
-                }
-                
-                return false;
-            }
-            
-            // Function to display notifications in the dropdown
-            function displayNotifications(notifications) {
-                if (notifications.length === 0) {
-                    notificationList.innerHTML = `
-                        <div class="notification-empty">
-                            <i class="fas fa-bell-slash"></i>
-                            <p>Tidak ada notifikasi</p>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                notificationList.innerHTML = '';
-                
-                notifications.forEach(notification => {
-                    const notificationItem = document.createElement('div');
-                    notificationItem.className = `notification-item ${notification.read ? '' : 'unread'}`;
-                    notificationItem.dataset.notificationId = notification.id;
-                    
-                    // Determine icon and message based on status and form type
-                    let iconClass = '';
-                    let message = '';
-                    
-                    if (notification.request.status === 'approved') {
-                        iconClass = 'approved';
-                        message = `Request ${getFormTitle(notification.formType)} Anda telah disetujui`;
-                    } else if (notification.request.status === 'rejected') {
-                        iconClass = 'rejected';
-                        message = `Request ${getFormTitle(notification.formType)} Anda telah ditolak`;
-                    } else {
-                        iconClass = 'pending';
-                        if (notification.request.formType === 'atk') {
-                            message = `Request ATK dari ${notification.request.nama} menunggu persetujuan`;
-                        } else if (notification.request.formType === 'laptop') {
-                            const approvedCount = notification.request.approvedBy ? notification.request.approvedBy.length : 0;
-                            message = `Request IT dari ${notification.request.nama} (${approvedCount}/4 persetujuan)`;
-                        } else {
-                            message = `Request ${getFormTitle(notification.formType)} dari ${notification.request.nama} menunggu persetujuan`;
-                        }
-                    }
-                    
-                    // Format timestamp
-                    const timeAgo = getTimeAgo(notification.timestamp);
-                    
-                    notificationItem.innerHTML = `
-                        <div class="notification-icon ${iconClass}">
-                            <i class="fas ${iconClass === 'approved' ? 'fa-check' : iconClass === 'rejected' ? 'fa-times' : 'fa-clock'}"></i>
-                        </div>
-                        <div class="notification-content">
-                            <div class="notification-message">${message}</div>
-                            <div class="notification-time">${timeAgo}</div>
-                        </div>
-                    `;
-                    
-                    notificationList.appendChild(notificationItem);
-                });
-            }
-            
-            // Function to update notification count badge
-            function updateNotificationCount(notifications) {
-                const unreadCount = notifications.filter(n => !n.read).length;
-                
-                if (unreadCount > 0) {
-                    notificationCount.textContent = unreadCount > 99 ? '99+' : unreadCount;
-                    notificationCount.style.display = 'flex';
-                } else {
-                    notificationCount.style.display = 'none';
-                }
-            }
-            
-            // Function to mark all notifications as read
-            function markAllNotificationsAsRead(userEmail) {
-                // In a real implementation, you would update the read status in the database
-                // For now, we'll just update the UI
-                
-                const notificationItems = notificationList.querySelectorAll('.notification-item');
-                notificationItems.forEach(item => {
-                    item.classList.remove('unread');
-                });
-                
-                notificationCount.style.display = 'none';
-                showAlert('Semua notifikasi telah ditandai sebagai sudah dibaca', 'success');
-            }
-            
-            // Helper function to format time ago
-            function getTimeAgo(timestamp) {
-                const now = new Date();
-                const diffMs = now - timestamp;
-                const diffMins = Math.floor(diffMs / 60000);
-                const diffHours = Math.floor(diffMins / 60);
-                const diffDays = Math.floor(diffHours / 24);
-                
-                if (diffMins < 1) return 'Baru saja';
-                if (diffMins < 60) return `${diffMins} menit lalu`;
-                if (diffHours < 24) return `${diffHours} jam lalu`;
-                if (diffDays < 7) return `${diffDays} hari lalu`;
-                
-                return timestamp.toLocaleDateString('id-ID');
-            }
         });
     </script>
 </body>
