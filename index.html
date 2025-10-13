@@ -2603,72 +2603,89 @@
             // ========== NOTIFICATION SYSTEM ==========
             
             // Function to load notifications for a user
-            function loadNotifications(userEmail) {
-                if (!userEmail) return;
-                
-                // Clear existing notifications
-                notificationList.innerHTML = `
-                    <div class="empty-state">
-                        <div class="loading"></div>
-                        <p>Memuat notifikasi...</p>
-                    </div>
-                `;
-                
-                // Get user's name from email
-                const userName = emailToNameMap[userEmail] || userEmail.split('@')[0];
-                
-                // Array to collect all notifications
-                let allNotifications = [];
-                
-                // Get all form types
-                const formTypes = ['atk', 'idcard', 'konsumsi', 'laptop', 'kartunama', 'feedback'];
-                
-                // Create promises for each form type
-                const notificationPromises = formTypes.map(formType => {
-                    return db.collection(`requests_${formType}`)
-                        .where('status', 'in', ['pending', 'approved', 'rejected'])
-                        .orderBy('createdAt', 'desc')
-                        .get()
-                        .then((querySnapshot) => {
-                            querySnapshot.forEach((doc) => {
-                                const request = { id: doc.id, formType, ...doc.data() };
-                                
-                                // Check if this notification is relevant for the current user
-                                if (isNotificationRelevant(request, userName, userEmail)) {
-                                    allNotifications.push({
-                                        id: `${formType}_${doc.id}`,
-                                        formType,
-                                        request,
-                                        timestamp: request.createdAt ? request.createdAt.toDate() : new Date(),
-                                        read: false // Default to unread
-                                    });
-                                }
-                            });
+            // Function to load notifications for a user
+function loadNotifications(userEmail) {
+    if (!userEmail) return;
+    
+    // Clear existing notifications
+    notificationList.innerHTML = `
+        <div class="empty-state">
+            <div class="loading"></div>
+            <p>Memuat notifikasi...</p>
+        </div>
+    `;
+    
+    // Get user's name from email
+    const userName = emailToNameMap[userEmail] || userEmail.split('@')[0];
+    
+    // Array to collect all notifications
+    let allNotifications = [];
+    
+    // Get all form types
+    const formTypes = ['atk', 'idcard', 'konsumsi', 'laptop', 'kartunama', 'feedback'];
+    
+    // Create promises for each form type
+    const notificationPromises = formTypes.map(formType => {
+        // Query tanpa filter status untuk menghindari kebutuhan composite index
+        return db.collection(`requests_${formType}`)
+            .orderBy('createdAt', 'desc')
+            .limit(50) // Batasi jumlah dokumen untuk performa
+            .get()
+            .then((querySnapshot) => {
+                querySnapshot.forEach((doc) => {
+                    const request = { id: doc.id, formType, ...doc.data() };
+                    
+                    // Filter di client side untuk menghindari composite index
+                    const status = request.status || 'pending';
+                    if (!['pending', 'approved', 'rejected'].includes(status)) {
+                        return; // Skip jika status tidak valid
+                    }
+                    
+                    // Check if this notification is relevant for the current user
+                    if (isNotificationRelevant(request, userName, userEmail)) {
+                        allNotifications.push({
+                            id: `${formType}_${doc.id}`,
+                            formType,
+                            request,
+                            timestamp: request.createdAt ? request.createdAt.toDate() : new Date(),
+                            read: false // Default to unread
                         });
+                    }
                 });
-                
-                // Wait for all promises to complete
-                Promise.all(notificationPromises)
-                    .then(() => {
-                        // Sort notifications by timestamp (newest first)
-                        allNotifications.sort((a, b) => b.timestamp - a.timestamp);
-                        
-                        // Display notifications
-                        displayNotifications(allNotifications);
-                        
-                        // Update notification count
-                        updateNotificationCount(allNotifications);
-                    })
-                    .catch((error) => {
-                        console.error("Error loading notifications:", error);
-                        notificationList.innerHTML = `
-                            <div class="notification-empty">
-                                <i class="fas fa-exclamation-triangle"></i>
-                                <p>Gagal memuat notifikasi</p>
-                            </div>
-                        `;
-                    });
-            }
+            })
+            .catch((error) => {
+                console.error(`Error loading ${formType} requests:`, error);
+                // Continue dengan collection lain meskipun satu gagal
+                return [];
+            });
+    });
+    
+    // Wait for all promises to complete
+    Promise.all(notificationPromises)
+        .then(() => {
+            // Sort notifications by timestamp (newest first)
+            allNotifications.sort((a, b) => b.timestamp - a.timestamp);
+            
+            // Limit to 30 notifikasi terbaru untuk performa
+            allNotifications = allNotifications.slice(0, 30);
+            
+            // Display notifications
+            displayNotifications(allNotifications);
+            
+            // Update notification count
+            updateNotificationCount(allNotifications);
+        })
+        .catch((error) => {
+            console.error("Error loading notifications:", error);
+            notificationList.innerHTML = `
+                <div class="notification-empty">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Gagal memuat notifikasi</p>
+                    <p style="font-size: 0.7rem; margin-top: 5px;">Silakan refresh halaman</p>
+                </div>
+            `;
+        });
+}
             
             // Function to check if a notification is relevant for the user
             function isNotificationRelevant(request, userName, userEmail) {
