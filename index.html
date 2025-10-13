@@ -171,7 +171,7 @@
             position: absolute;
             top: -5px;
             right: -5px;
-            background: var(--danger);
+            background: var(--primary);
             color: white;
             border-radius: 50%;
             width: 20px;
@@ -184,11 +184,20 @@
             animation: pulse 2s infinite;
         }
 
+        .notification-count.high {
+            background: var(--danger);
+            animation: pulse 1s infinite;
+        }
+
+        .notification-count.medium {
+            background: var(--warning);
+        }
+
         .notification-dropdown {
             position: absolute;
             top: 50px;
             right: 0;
-            width: 400px;
+            width: 450px;
             background: white;
             border-radius: 12px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
@@ -233,8 +242,24 @@
         }
 
         .notification-list {
-            max-height: 400px;
+            max-height: 500px;
             overflow-y: auto;
+        }
+
+        /* Notification Groups */
+        .notification-group {
+            margin-bottom: 10px;
+        }
+
+        .notification-group-title {
+            font-size: 0.75rem;
+            color: var(--secondary);
+            padding: 8px 15px;
+            background: #f8fafc;
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .notification-item {
@@ -245,17 +270,49 @@
             display: flex;
             align-items: flex-start;
             gap: 10px;
+            position: relative;
         }
 
         .notification-item:hover {
-            background: #e0f7fa !important;
-            transform: translateX(5px);
+            background: #f8fafc !important;
         }
 
         .notification-item.unread {
             background: #f0f9ff;
             border-left: 3px solid var(--primary);
-            font-weight: 500;
+        }
+
+        .notification-item.read {
+            opacity: 0.7;
+            background: #fafafa;
+        }
+
+        .notification-item.read .notification-message {
+            color: var(--secondary);
+        }
+
+        /* Indicator untuk notifikasi belum dibaca */
+        .unread-indicator {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 8px;
+            height: 8px;
+            background: var(--primary);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        /* Badge untuk notifikasi baru */
+        .new-badge {
+            background: var(--danger);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.6rem;
+            font-weight: 600;
+            margin-right: 5px;
+            animation: pulse 1.5s infinite;
         }
 
         .notification-icon {
@@ -284,6 +341,12 @@
             color: #dc2626;
         }
 
+        .notification-icon.important {
+            background: #fef3c7;
+            color: #d97706;
+            animation: pulse 1.5s infinite;
+        }
+
         .notification-content {
             flex: 1;
         }
@@ -304,15 +367,35 @@
         }
 
         .notification-empty {
-            padding: 20px;
+            padding: 30px 20px;
             text-align: center;
             color: var(--secondary);
         }
 
         .notification-empty i {
-            font-size: 2rem;
-            margin-bottom: 10px;
+            font-size: 3rem;
+            margin-bottom: 15px;
             color: var(--gray);
+        }
+
+        /* Notification Settings */
+        .notification-settings {
+            border-top: 1px solid var(--border);
+            margin-top: 10px;
+            padding: 15px;
+            background: #f8fafc;
+        }
+
+        .notification-settings .btn {
+            width: 100%;
+            justify-content: center;
+            font-size: 0.75rem;
+            padding: 8px 12px;
+        }
+
+        .notification-settings .btn:hover {
+            transform: none;
+            box-shadow: none;
         }
 
         /* MAIN CONTENT */
@@ -682,6 +765,13 @@
             color: var(--gray);
         }
 
+        /* Highlight effect for requested items */
+        .request-highlight {
+            background-color: #e0f2fe !important;
+            transition: background-color 0.3s;
+            border-left: 4px solid var(--primary);
+        }
+
         /* FOOTER */
         footer {
             background-color: var(--dark);
@@ -747,9 +837,9 @@
 
         /* Animations */
         @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
         }
 
         .pulse {
@@ -914,12 +1004,6 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-
-        /* Highlight effect for requested items */
-        .request-highlight {
-            background-color: #e0f2fe !important;
-            transition: background-color 0.3s;
-        }
     </style>
 </head>
 <body>
@@ -979,6 +1063,13 @@
                                 <i class="fas fa-bell-slash"></i>
                                 <p>Tidak ada notifikasi</p>
                             </div>
+                        </div>
+                        <div class="notification-settings" id="notification-settings" style="display: none;">
+                            <div style="font-size: 0.8rem; color: var(--secondary); margin-bottom: 5px;">Pengaturan Notifikasi</div>
+                            <button id="enable-notifications" class="btn btn-sm" style="background: var(--primary); color: white; padding: 5px 10px; font-size: 0.7rem;">
+                                <i class="fas fa-bell"></i> Aktifkan Notifikasi Browser
+                            </button>
+                            <div id="notification-status" style="font-size: 0.7rem; margin-top: 5px;"></div>
                         </div>
                     </div>
                 </div>
@@ -1625,9 +1716,16 @@
             const notificationDropdown = document.getElementById('notification-dropdown');
             const notificationList = document.getElementById('notification-list');
             const markAllReadBtn = document.getElementById('mark-all-read');
-            
+            const notificationSettings = document.getElementById('notification-settings');
+            const enableNotificationsBtn = document.getElementById('enable-notifications');
+            const notificationStatus = document.getElementById('notification-status');
+
             // ========== REALTIME NOTIFICATION SYSTEM ==========
+
             let notificationUnsubscribeFunctions = [];
+            let lastNotificationCheck = {};
+            let lastBrowserNotification = 0;
+            const BROWSER_NOTIFICATION_COOLDOWN = 30000; // 30 detik cooldown
 
             // Function to initialize realtime notifications
             function initializeRealtimeNotifications(userEmail) {
@@ -1647,7 +1745,10 @@
                         .limit(30)
                         .onSnapshot((querySnapshot) => {
                             console.log(`Realtime update for ${formType}`);
-                            loadRealtimeNotifications(userEmail);
+                            // Debounce untuk mengurangi sensitivitas
+                            setTimeout(() => {
+                                loadRealtimeNotifications(userEmail);
+                            }, 1000);
                         }, (error) => {
                             console.error(`Error in realtime listener for ${formType}:`, error);
                         });
@@ -1674,13 +1775,18 @@
                                 const request = { id: doc.id, formType, ...doc.data() };
                                 
                                 if (isNotificationRelevant(request, userName, userEmail)) {
+                                    // Cek apakah ini benar-benar notifikasi baru
+                                    const notificationId = `${formType}_${doc.id}_${userEmail}`;
+                                    const isNew = isNewNotification(notificationId, request);
+                                    
                                     allNotifications.push({
-                                        id: `${formType}_${doc.id}`,
+                                        id: notificationId,
                                         formType,
                                         requestId: doc.id,
                                         request,
                                         timestamp: request.createdAt ? request.createdAt.toDate() : new Date(),
-                                        read: getNotificationReadStatus(`${formType}_${doc.id}`)
+                                        read: getNotificationReadStatus(notificationId),
+                                        isNew: isNew
                                     });
                                 }
                             });
@@ -1690,12 +1796,158 @@
                 Promise.all(notificationPromises)
                     .then(() => {
                         allNotifications.sort((a, b) => b.timestamp - a.timestamp);
-                        displayNotifications(allNotifications);
+                        displayGroupedNotifications(allNotifications);
                         updateNotificationCount(allNotifications);
+                        
+                        // Update last check time
+                        lastNotificationCheck[userEmail] = new Date();
                     })
                     .catch((error) => {
                         console.error("Error loading realtime notifications:", error);
                     });
+            }
+
+            // Function to check if notification is truly new
+            function isNewNotification(notificationId, request) {
+                const lastCheck = lastNotificationCheck[auth.currentUser?.email];
+                if (!lastCheck) return true;
+                
+                const requestTime = request.updatedAt ? request.updatedAt.toDate() : 
+                                request.createdAt ? request.createdAt.toDate() : new Date();
+                
+                return requestTime > lastCheck;
+            }
+
+            // Function untuk grouping notifikasi berdasarkan waktu
+            function groupNotificationsByTime(notifications) {
+                const now = new Date();
+                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                const yesterday = new Date(today);
+                yesterday.setDate(yesterday.getDate() - 1);
+                
+                const groups = {
+                    today: [],
+                    yesterday: [],
+                    thisWeek: [],
+                    older: []
+                };
+                
+                notifications.forEach(notification => {
+                    const notifDate = new Date(notification.timestamp);
+                    
+                    if (notifDate >= today) {
+                        groups.today.push(notification);
+                    } else if (notifDate >= yesterday) {
+                        groups.yesterday.push(notification);
+                    } else if (notifDate >= new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)) {
+                        groups.thisWeek.push(notification);
+                    } else {
+                        groups.older.push(notification);
+                    }
+                });
+                
+                return groups;
+            }
+
+            // Function untuk menampilkan notifikasi dengan grouping
+            function displayGroupedNotifications(notifications) {
+                if (notifications.length === 0) {
+                    notificationList.innerHTML = `
+                        <div class="notification-empty">
+                            <i class="fas fa-bell-slash"></i>
+                            <p>Tidak ada notifikasi</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                const groups = groupNotificationsByTime(notifications);
+                notificationList.innerHTML = '';
+                
+                // Today
+                if (groups.today.length > 0) {
+                    const groupTitle = document.createElement('div');
+                    groupTitle.className = 'notification-group-title';
+                    groupTitle.textContent = 'Hari Ini';
+                    notificationList.appendChild(groupTitle);
+                    
+                    groups.today.forEach(notification => {
+                        createNotificationElement(notification);
+                    });
+                }
+                
+                // Yesterday
+                if (groups.yesterday.length > 0) {
+                    const groupTitle = document.createElement('div');
+                    groupTitle.className = 'notification-group-title';
+                    groupTitle.textContent = 'Kemarin';
+                    notificationList.appendChild(groupTitle);
+                    
+                    groups.yesterday.forEach(notification => {
+                        createNotificationElement(notification);
+                    });
+                }
+                
+                // This Week
+                if (groups.thisWeek.length > 0) {
+                    const groupTitle = document.createElement('div');
+                    groupTitle.className = 'notification-group-title';
+                    groupTitle.textContent = 'Minggu Ini';
+                    notificationList.appendChild(groupTitle);
+                    
+                    groups.thisWeek.forEach(notification => {
+                        createNotificationElement(notification);
+                    });
+                }
+                
+                // Older
+                if (groups.older.length > 0) {
+                    const groupTitle = document.createElement('div');
+                    groupTitle.className = 'notification-group-title';
+                    groupTitle.textContent = 'Lebih Lama';
+                    notificationList.appendChild(groupTitle);
+                    
+                    groups.older.forEach(notification => {
+                        createNotificationElement(notification);
+                    });
+                }
+            }
+
+            // Function untuk membuat elemen notifikasi
+            function createNotificationElement(notification) {
+                const notificationItem = document.createElement('div');
+                notificationItem.className = `notification-item ${notification.read ? 'read' : 'unread'}`;
+                notificationItem.dataset.notificationId = notification.id;
+                notificationItem.dataset.formType = notification.formType;
+                notificationItem.dataset.requestId = notification.requestId;
+                
+                const { iconClass, message, isImportant } = getNotificationContent(notification);
+                const timeAgo = getTimeAgo(notification.timestamp);
+                
+                // Tambahkan badge "BARU" untuk notifikasi yang benar-benar baru
+                const newBadge = notification.isNew && !notification.read ? 
+                    '<span class="new-badge">BARU</span>' : '';
+                
+                notificationItem.innerHTML = `
+                    <div class="notification-icon ${iconClass} ${isImportant ? 'important' : ''}">
+                        <i class="fas ${iconClass === 'approved' ? 'fa-check' : iconClass === 'rejected' ? 'fa-times' : 'fa-clock'}"></i>
+                    </div>
+                    <div class="notification-content">
+                        <div class="notification-message">
+                            ${newBadge}
+                            ${message}
+                        </div>
+                        <div class="notification-time">${timeAgo}</div>
+                    </div>
+                    ${!notification.read ? '<div class="unread-indicator"></div>' : ''}
+                `;
+                
+                // Add click event to navigate to relevant form
+                notificationItem.addEventListener('click', function() {
+                    handleNotificationClick(this);
+                });
+                
+                notificationList.appendChild(notificationItem);
             }
 
             // Function to check if notification is relevant for user
@@ -1730,50 +1982,7 @@
                 return false;
             }
 
-            // Function to display notifications
-            function displayNotifications(notifications) {
-                if (notifications.length === 0) {
-                    notificationList.innerHTML = `
-                        <div class="notification-empty">
-                            <i class="fas fa-bell-slash"></i>
-                            <p>Tidak ada notifikasi</p>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                notificationList.innerHTML = '';
-                
-                notifications.forEach(notification => {
-                    const notificationItem = document.createElement('div');
-                    notificationItem.className = `notification-item ${notification.read ? '' : 'unread'}`;
-                    notificationItem.dataset.notificationId = notification.id;
-                    notificationItem.dataset.formType = notification.formType;
-                    notificationItem.dataset.requestId = notification.requestId;
-                    
-                    const { iconClass, message } = getNotificationContent(notification);
-                    const timeAgo = getTimeAgo(notification.timestamp);
-                    
-                    notificationItem.innerHTML = `
-                        <div class="notification-icon ${iconClass}">
-                            <i class="fas ${iconClass === 'approved' ? 'fa-check' : iconClass === 'rejected' ? 'fa-times' : 'fa-clock'}"></i>
-                        </div>
-                        <div class="notification-content">
-                            <div class="notification-message">${message}</div>
-                            <div class="notification-time">${timeAgo}</div>
-                        </div>
-                    `;
-                    
-                    // Add click event to navigate to relevant form
-                    notificationItem.addEventListener('click', function() {
-                        handleNotificationClick(this);
-                    });
-                    
-                    notificationList.appendChild(notificationItem);
-                });
-            }
-
-            // Function to get notification content based on type and status
+            // Function to get notification content
             function getNotificationContent(notification) {
                 const { formType, request } = notification;
                 const status = request.status || 'pending';
@@ -1781,26 +1990,31 @@
                 
                 let iconClass = '';
                 let message = '';
+                let isImportant = false;
                 
                 if (status === 'approved') {
                     iconClass = 'approved';
-                    message = `✅ <strong>Request ${formTitle} Disetujui</strong><br>${request.judul || request.nama}`;
+                    message = `<strong>Request ${formTitle} Disetujui</strong><br>${request.judul || request.nama}`;
+                    isImportant = true;
                 } else if (status === 'rejected') {
                     iconClass = 'rejected';
-                    message = `❌ <strong>Request ${formTitle} Ditolak</strong><br>${request.judul || request.nama}`;
+                    message = `<strong>Request ${formTitle} Ditolak</strong><br>${request.judul || request.nama}`;
+                    isImportant = true;
                 } else {
                     iconClass = 'pending';
                     if (formType === 'atk') {
-                        message = `⏳ <strong>Request ATK Menunggu Persetujuan</strong><br>Dari: ${request.nama}`;
+                        message = `<strong>Request ATK Menunggu Persetujuan</strong><br>Dari: ${request.nama}`;
+                        isImportant = (request.approvedBy && request.approvedBy.includes('Renata'));
                     } else if (formType === 'laptop') {
                         const approvedCount = request.approvedBy ? request.approvedBy.length : 0;
-                        message = `⏳ <strong>Request IT Menunggu (${approvedCount}/4)</strong><br>Dari: ${request.nama}`;
+                        message = `<strong>Request IT Menunggu (${approvedCount}/4)</strong><br>Dari: ${request.nama}`;
+                        isImportant = (approvedCount >= 2);
                     } else {
-                        message = `⏳ <strong>Request ${formTitle} Menunggu Persetujuan</strong><br>Dari: ${request.nama}`;
+                        message = `<strong>Request ${formTitle} Menunggu Persetujuan</strong><br>Dari: ${request.nama}`;
                     }
                 }
                 
-                return { iconClass, message };
+                return { iconClass, message, isImportant };
             }
 
             // Function to handle notification click
@@ -1812,6 +2026,9 @@
                 // Mark as read
                 markNotificationAsRead(notificationId);
                 notificationElement.classList.remove('unread');
+                notificationElement.classList.add('read');
+                notificationElement.querySelector('.unread-indicator')?.remove();
+                notificationElement.querySelector('.new-badge')?.remove();
                 
                 // Navigate to the relevant form section
                 showSection(`form-${formType}`);
@@ -1841,34 +2058,52 @@
                 loadRealtimeNotifications(auth.currentUser.email);
             }
 
-            // Local storage functions for notification read status
+            // Local storage functions for notification read status (PER USER)
             function getNotificationReadStatus(notificationId) {
-                const readNotifications = JSON.parse(localStorage.getItem('readNotifications') || '{}');
-                return !!readNotifications[notificationId];
+                const userEmail = auth.currentUser?.email;
+                if (!userEmail) return false;
+                
+                const userNotifications = JSON.parse(localStorage.getItem(`notifications_${userEmail}`) || '{}');
+                return !!userNotifications[notificationId]?.read;
             }
 
             function markNotificationAsRead(notificationId) {
-                const readNotifications = JSON.parse(localStorage.getItem('readNotifications') || '{}');
-                readNotifications[notificationId] = true;
-                localStorage.setItem('readNotifications', JSON.stringify(readNotifications));
+                const userEmail = auth.currentUser?.email;
+                if (!userEmail) return;
+                
+                const userNotifications = JSON.parse(localStorage.getItem(`notifications_${userEmail}`) || '{}');
+                userNotifications[notificationId] = {
+                    read: true,
+                    readAt: new Date().toISOString()
+                };
+                localStorage.setItem(`notifications_${userEmail}`, JSON.stringify(userNotifications));
             }
 
             function markAllNotificationsAsRead() {
+                const userEmail = auth.currentUser?.email;
+                if (!userEmail) return;
+                
                 const notificationItems = notificationList.querySelectorAll('.notification-item');
-                const readNotifications = JSON.parse(localStorage.getItem('readNotifications') || '{}');
+                const userNotifications = JSON.parse(localStorage.getItem(`notifications_${userEmail}`) || '{}');
                 
                 notificationItems.forEach(item => {
                     const notificationId = item.dataset.notificationId;
-                    readNotifications[notificationId] = true;
+                    userNotifications[notificationId] = {
+                        read: true,
+                        readAt: new Date().toISOString()
+                    };
                     item.classList.remove('unread');
+                    item.classList.add('read');
+                    item.querySelector('.unread-indicator')?.remove();
+                    item.querySelector('.new-badge')?.remove();
                 });
                 
-                localStorage.setItem('readNotifications', JSON.stringify(readNotifications));
+                localStorage.setItem(`notifications_${userEmail}`, JSON.stringify(userNotifications));
                 updateNotificationCount([]);
                 showAlert('Semua notifikasi telah ditandai sebagai sudah dibaca', 'success');
             }
 
-            // Function to update notification count
+            // Function to update notification count dengan browser notification yang lebih selektif
             function updateNotificationCount(notifications) {
                 if (notifications.length === 0) {
                     // Count unread from DOM
@@ -1876,34 +2111,152 @@
                     if (unreadCount > 0) {
                         notificationCount.textContent = unreadCount > 99 ? '99+' : unreadCount;
                         notificationCount.style.display = 'flex';
+                        
+                        // Update badge color based on count
+                        if (unreadCount > 5) {
+                            notificationCount.className = 'notification-count high';
+                        } else if (unreadCount > 2) {
+                            notificationCount.className = 'notification-count medium';
+                        } else {
+                            notificationCount.className = 'notification-count';
+                        }
                     } else {
                         notificationCount.style.display = 'none';
                     }
                     return;
                 }
                 
+                const unreadNotifications = notifications.filter(n => !n.read && n.isImportant);
                 const unreadCount = notifications.filter(n => !n.read).length;
+                const importantUnreadCount = unreadNotifications.length;
                 
                 if (unreadCount > 0) {
                     notificationCount.textContent = unreadCount > 99 ? '99+' : unreadCount;
                     notificationCount.style.display = 'flex';
                     
-                    // Show desktop notification for new unread notifications
-                    if (unreadCount > 0 && 'Notification' in window && Notification.permission === 'granted') {
-                        new Notification('GA System', {
-                            body: `Anda memiliki ${unreadCount} notifikasi baru`,
-                            icon: '/favicon.ico'
-                        });
+                    // Update badge color based on count
+                    if (unreadCount > 5) {
+                        notificationCount.className = 'notification-count high';
+                    } else if (unreadCount > 2) {
+                        notificationCount.className = 'notification-count medium';
+                    } else {
+                        notificationCount.className = 'notification-count';
+                    }
+                    
+                    // Show browser notification HANYA untuk notifikasi penting dan baru
+                    if (importantUnreadCount > 0 && 'Notification' in window && Notification.permission === 'granted') {
+                        // Cari notifikasi penting terbaru yang belum dibaca
+                        const latestImportantUnread = unreadNotifications[0];
+                        
+                        if (latestImportantUnread && latestImportantUnread.isNew) {
+                            let notificationTitle = 'GA System';
+                            let notificationMessage = '';
+                            
+                            if (latestImportantUnread.request.status === 'approved') {
+                                notificationTitle = '✅ Request Disetujui';
+                                notificationMessage = `Request ${getFormTitle(latestImportantUnread.formType)} Anda telah disetujui`;
+                            } else if (latestImportantUnread.request.status === 'rejected') {
+                                notificationTitle = '❌ Request Ditolak';
+                                notificationMessage = `Request ${getFormTitle(latestImportantUnread.formType)} Anda telah ditolak`;
+                            } else if (latestImportantUnread.isImportant) {
+                                notificationTitle = '⏳ Perhatian Required';
+                                notificationMessage = `Request ${getFormTitle(latestImportantUnread.formType)} membutuhkan perhatian Anda`;
+                            }
+                            
+                            if (notificationMessage) {
+                                showBrowserNotification(
+                                    notificationTitle, 
+                                    notificationMessage,
+                                    latestImportantUnread.formType,
+                                    latestImportantUnread.requestId
+                                );
+                            }
+                        }
                     }
                 } else {
                     notificationCount.style.display = 'none';
                 }
             }
 
-            // Request notification permission
+            // Function to show browser notification (kurangi frekuensi)
+            function showBrowserNotification(title, message, formType = null, requestId = null) {
+                const now = Date.now();
+                
+                // Cek cooldown - hindari notifikasi terlalu sering
+                if (now - lastBrowserNotification < BROWSER_NOTIFICATION_COOLDOWN) {
+                    return;
+                }
+                
+                if ('Notification' in window && Notification.permission === 'granted') {
+                    const options = {
+                        body: message,
+                        icon: '/favicon.ico',
+                        badge: '/favicon.ico',
+                        tag: 'ga-system-notification',
+                        requireInteraction: false,
+                        silent: true
+                    };
+
+                    const notification = new Notification(title, options);
+                    lastBrowserNotification = now;
+
+                    // Handle klik pada notifikasi
+                    notification.onclick = function() {
+                        window.focus();
+                        notification.close();
+                        
+                        if (formType && requestId) {
+                            showSection(`form-${formType}`);
+                            setTimeout(() => {
+                                showFormTab(formType, 'requests');
+                            }, 300);
+                        }
+                    };
+
+                    // Auto close setelah 5 detik
+                    setTimeout(() => {
+                        notification.close();
+                    }, 5000);
+                }
+            }
+
+            // Function to request notification permission
             function requestNotificationPermission() {
-                if ('Notification' in window && Notification.permission === 'default') {
-                    Notification.requestPermission();
+                if ('Notification' in window) {
+                    if (Notification.permission === 'default') {
+                        Notification.requestPermission().then(permission => {
+                            if (permission === 'granted') {
+                                console.log('Notification permission granted');
+                                showAlert('Notifikasi browser diaktifkan', 'success');
+                            }
+                            updateNotificationStatus();
+                        });
+                    }
+                    updateNotificationStatus();
+                }
+            }
+
+            // Function untuk update status notifikasi
+            function updateNotificationStatus() {
+                if (!notificationStatus) return;
+                
+                if ('Notification' in window) {
+                    if (Notification.permission === 'granted') {
+                        notificationStatus.innerHTML = '<span style="color: var(--success);"><i class="fas fa-check-circle"></i> Notifikasi browser aktif</span>';
+                        if (enableNotificationsBtn) enableNotificationsBtn.style.display = 'none';
+                    } else if (Notification.permission === 'denied') {
+                        notificationStatus.innerHTML = '<span style="color: var(--danger);"><i class="fas fa-times-circle"></i> Notifikasi browser diblokir</span>';
+                        if (enableNotificationsBtn) {
+                            enableNotificationsBtn.style.display = 'block';
+                            enableNotificationsBtn.innerHTML = '<i class="fas fa-unlock"></i> Buka Blokir di Pengaturan Browser';
+                        }
+                    } else {
+                        notificationStatus.innerHTML = '<span style="color: var(--warning);"><i class="fas fa-bell-slash"></i> Notifikasi browser belum diaktifkan</span>';
+                        if (enableNotificationsBtn) enableNotificationsBtn.style.display = 'block';
+                    }
+                } else {
+                    notificationStatus.innerHTML = '<span style="color: var(--secondary);"><i class="fas fa-info-circle"></i> Browser tidak mendukung notifikasi</span>';
+                    if (enableNotificationsBtn) enableNotificationsBtn.style.display = 'none';
                 }
             }
 
@@ -1949,6 +2302,11 @@
                         // Initialize realtime notifications
                         initializeRealtimeNotifications(user.email);
                         requestNotificationPermission();
+                        
+                        // Show notification settings for logged in users
+                        if (notificationSettings) {
+                            notificationSettings.style.display = 'block';
+                        }
                     } else {
                         // Guest user - hide request tabs
                         userName.textContent = 'Tamu';
@@ -1962,6 +2320,9 @@
                         
                         // Hide notifications for guest
                         notificationBell.style.display = 'none';
+                        if (notificationSettings) {
+                            notificationSettings.style.display = 'none';
+                        }
                     }
                     
                     showSection('dashboard');
@@ -2145,6 +2506,13 @@
             if (markAllReadBtn) {
                 markAllReadBtn.addEventListener('click', function() {
                     markAllNotificationsAsRead();
+                });
+            }
+            
+            // Enable notifications button
+            if (enableNotificationsBtn) {
+                enableNotificationsBtn.addEventListener('click', function() {
+                    requestNotificationPermission();
                 });
             }
             
