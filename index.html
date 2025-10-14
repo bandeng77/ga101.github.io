@@ -1632,6 +1632,10 @@
                 'rossiana.yl@genetek.co.id': 'Rossiana',
                 'maida@genetek.co.id': 'Maida',
                 'ulandari@genetek.co.id': 'Ulan',
+                'm_husni@genetek.co.id': 'Husni',
+                'anggita-s@genetek.co.id': 'Anggi',
+                'wahyu_yib@genetek.co.id': 'Wahyu',
+                'david@genetek.co.id': 'David'
             };
 
             // User permissions mapping
@@ -1978,7 +1982,8 @@
                 
                 // For approvers: show notifications for requests they can approve
                 if (userPermission && userPermission.allowedForms.includes(request.formType)) {
-                    if (request.formType === 'atk' && userName === 'Renata') {
+                    if (request.formType === 'atk' && 
+                        ['Renata', 'Anggi', 'Wahyu', 'David', 'Husni'].includes(userName)) {
                         return true;
                     }
                     if (request.formType === 'laptop' && 
@@ -2020,7 +2025,7 @@
                     iconClass = 'pending';
                     if (formType === 'atk') {
                         message = `<strong>Request ATK Menunggu Persetujuan</strong><br>Dari: ${request.nama}`;
-                        isImportant = (request.approvedBy && request.approvedBy.includes('Renata'));
+                        isImportant = (request.approvedBy && request.approvedBy.length > 0);
                     } else if (formType === 'laptop') {
                         const approvedCount = request.approvedBy ? request.approvedBy.length : 0;
                         message = `<strong>Request IT Menunggu (${approvedCount}/4)</strong><br>Dari: ${request.nama}`;
@@ -2409,7 +2414,7 @@
                         "maida@genetek.co.id",
                         "anggita-s@genetek.co.id",
                         "wahyu_yib@genetek.co.id",
-                        "davidgenetek.co.id",
+                        "david@genetek.co.id",
                         "m_husni@genetek.co.id",
                         "ulandari@genetek.co.id",
                     ];
@@ -2674,9 +2679,9 @@
                             let statusClass = 'pending';
                             let statusText = 'Menunggu';
                             
-                            // Untuk ATK: jika sudah disetujui Renata, status menjadi "Disetujui"
+                            // Untuk ATK: jika sudah disetujui minimal 1 approver, status menjadi "Disetujui"
                             if (formType === 'atk') {
-                                if (request.approvedBy && request.approvedBy.includes('Renata')) {
+                                if (request.approvedBy && request.approvedBy.length > 0) {
                                     status = 'approved';
                                     statusClass = 'approved';
                                     statusText = 'Disetujui';
@@ -2687,7 +2692,7 @@
                                     statusClass = 'rejected';
                                     statusText = 'Ditolak';
                                 } else {
-                                    statusText = 'Menunggu Persetujuan Renata';
+                                    statusText = 'Menunggu Persetujuan';
                                 }
                             } 
                             // Untuk Laptop: jika sudah 4 user yang approve, status menjadi "Disetujui"
@@ -2892,7 +2897,7 @@
                         if (formType === 'laptop') {
                             approvers = ['Renata', 'Rossiana', 'Galih', 'Maida'];
                         } else if (formType === 'atk') {
-                            approvers = ['Renata']; // Hanya Renata yang bisa menyetujui ATK
+                            approvers = ['Renata', 'Anggi', 'Wahyu', 'David', 'Husni']; // Semua approver ATK
                         }
                         
                         const currentUserEmail = auth.currentUser ? auth.currentUser.email : null;
@@ -2915,11 +2920,12 @@
                                     });
                                 }
                             } else if (formType === 'atk') {
-                                isApproved = request.approvedBy && request.approvedBy.includes('Renata');
-                                approvalText = isApproved ? 'Sudah disetujui Renata' : 'Menunggu Persetujuan Renata';
+                                const hasApproval = request.approvedBy && request.approvedBy.length > 0;
+                                isApproved = hasApproval;
+                                approvalText = hasApproval ? 'Sudah disetujui' : 'Menunggu Persetujuan';
                                 
                                 // Update status di database jika sudah disetujui
-                                if (isApproved && request.status !== 'approved') {
+                                if (hasApproval && request.status !== 'approved') {
                                     db.collection(`requests_${formType}`).doc(request.id).update({
                                         status: 'approved'
                                     });
@@ -3006,7 +3012,7 @@
                                     // Setujui request dan centang checkbox user saat ini
                                     updateApprovalStatus(formType, requestId, currentUserName, true);
                                     
-                                    // Cek apakah semua sudah menyetujui
+                                    // Cek apakah sudah ada persetujuan
                                     db.collection(`requests_${formType}`).doc(requestId).get()
                                         .then((doc) => {
                                             if (doc.exists) {
@@ -3025,9 +3031,9 @@
                                                         showAlert('Anda telah menyetujui request ini!', 'success');
                                                     }
                                                 } else if (formType === 'atk') {
-                                                    const isApprovedByRenata = request.approvedBy && request.approvedBy.includes('Renata');
+                                                    const hasApproval = request.approvedBy && request.approvedBy.length > 0;
                                                     
-                                                    if (isApprovedByRenata) {
+                                                    if (hasApproval) {
                                                         db.collection(`requests_${formType}`).doc(requestId).update({
                                                             status: 'approved'
                                                         });
