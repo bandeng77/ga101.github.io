@@ -1004,9 +1004,49 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* WhatsApp Button */
+        .whatsapp-button {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            width: 60px;
+            height: 60px;
+            background-color: #25D366;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(37, 211, 102, 0.4);
+            z-index: 999;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            animation: pulse-green 2s infinite;
+        }
+
+        .whatsapp-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 25px rgba(37, 211, 102, 0.6);
+        }
+
+        .whatsapp-button i {
+            color: white;
+            font-size: 30px;
+        }
+
+        @keyframes pulse-green {
+            0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(37, 211, 102, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+        }
     </style>
 </head>
 <body>
+    <!-- WhatsApp Button -->
+    <a href="https://wa.me/6281234567890" target="_blank" class="whatsapp-button">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
     <!-- Login Page -->
     <div id="login-page" class="login-container active">
         <div class="login-card">
@@ -1088,7 +1128,7 @@
             <div class="card" data-target="form-atk">
                 <div class="card-icon"><i class="fas fa-pencil-alt"></i></div>
                 <h3 class="card-title">Form Request GA</h3>
-                <p class="card-desc">Ajukan kebutuhan penunjang pekerjaan</p>
+                <p class="card-desc">Ajukan permintaan alat tulis kantor untuk kebutuhan pekerjaan</p>
             </div>
             
             <div class="card" data-target="form-idcard">
@@ -1164,6 +1204,15 @@
                                 <option value="">Pilih Kategori</option>
                                 <option value="Kertas">Jasa</option>
                                 <option value="Pena/Pensil">Barang</option>
+                            </select>
+                        </div>
+                        <!-- Form Baru untuk Request GA -->
+                        <div class="form-group">
+                            <label for="atk-nilai">Nilai Permintaan</label>
+                            <select id="atk-nilai" name="nilai" required>
+                                <option value="">Pilih Nilai</option>
+                                <option value="Atas 1jt">Atas 1jt</option>
+                                <option value="Bawah 1jt">Bawah 1jt</option>
                             </select>
                         </div>
                     </div>
@@ -2766,6 +2815,7 @@
                                     <div>Tanggal: ${request.tanggal}</div>
                                     <div>Jenis ATK: ${request.jenis}</div>
                                     <div>Detail: ${request.detail}</div>
+                                    ${request.nilai ? `<div>Nilai: ${request.nilai}</div>` : ''}
                                 `;
                             } else if (formType === 'idcard') {
                                 requestDetails = `
@@ -2945,12 +2995,20 @@
                                 const departmentApprover = departmentApproverMap[department];
                                 approvers = [departmentApprover];
                                 
+                                // Tambahkan Renata jika nilai permintaan "Atas 1jt"
+                                if (request.nilai === 'Atas 1jt' && !approvers.includes('Renata')) {
+                                    approvers.push('Renata');
+                                }
+                                
                                 const isApprovedByDepartment = request.approvedBy && request.approvedBy.includes(departmentApprover);
-                                isApproved = isApprovedByDepartment;
-                                approvalText = isApprovedByDepartment ? 'Sudah disetujui' : `Menunggu ${departmentApprover}`;
+                                const isApprovedByRenata = request.nilai === 'Atas 1jt' ? 
+                                    (request.approvedBy && request.approvedBy.includes('Renata')) : true;
+                                
+                                isApproved = isApprovedByDepartment && isApprovedByRenata;
+                                approvalText = isApproved ? 'Sudah disetujui' : `Menunggu ${approvers.join(', ')}`;
                                 
                                 // Update status di database jika sudah disetujui
-                                if (isApprovedByDepartment && request.status !== 'approved') {
+                                if (isApproved && request.status !== 'approved') {
                                     db.collection(`requests_${formType}`).doc(request.id).update({
                                         status: 'approved'
                                     });
@@ -2970,6 +3028,7 @@
                                     <div>Oleh: ${request.nama} • ${request.department}</div>
                                     <div>Tanggal: ${request.tanggal}</div>
                                     <div>Jenis ATK: ${request.jenis}</div>
+                                    <div>Nilai: ${request.nilai || 'Tidak ditentukan'}</div>
                                     <div>Detail: ${request.detail}</div>
                                     <div>Alasan: ${request.alasan}</div>
                                     <div>Status Persetujuan: ${approvalText}</div>
@@ -3059,8 +3118,10 @@
                                                     const department = request.department;
                                                     const departmentApprover = departmentApproverMap[department];
                                                     const isApprovedByDepartment = request.approvedBy && request.approvedBy.includes(departmentApprover);
+                                                    const isApprovedByRenata = request.nilai === 'Atas 1jt' ? 
+                                                        (request.approvedBy && request.approvedBy.includes('Renata')) : true;
                                                     
-                                                    if (isApprovedByDepartment) {
+                                                    if (isApprovedByDepartment && isApprovedByRenata) {
                                                         db.collection(`requests_${formType}`).doc(requestId).update({
                                                             status: 'approved'
                                                         });
@@ -3241,6 +3302,11 @@
                 
                 // Add judul for the request
                 formObject.judul = getRequestTitle(formKey, formObject);
+                
+                // Untuk ATK: tambahkan Renata ke approvedBy jika nilai "Atas 1jt"
+                if (formKey === 'atk' && formObject.nilai === 'Atas 1jt') {
+                    formObject.approvedBy.push('Renata');
+                }
                 
                 // Gunakan collection name yang benar
                 const collectionName = `requests_${formKey}`;
