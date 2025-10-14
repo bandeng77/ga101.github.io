@@ -1043,7 +1043,7 @@
 </head>
 <body>
     <!-- WhatsApp Button -->
-    <a href="https://wa.me/6289601661771" target="_blank" class="whatsapp-button">
+    <a href="https://wa.me/6281234567890" target="_blank" class="whatsapp-button">
         <i class="fab fa-whatsapp"></i>
     </a>
 
@@ -1202,8 +1202,8 @@
                             <label for="atk-jenis">Kategori Permintaan</label>
                             <select id="atk-jenis" name="jenis" required>
                                 <option value="">Pilih Kategori</option>
-                                <option value="Kertas">Jasa</option>
-                                <option value="Pena/Pensil">Barang</option>
+                                <option value="Jasa">Jasa</option>
+                                <option value="Barang">Barang</option>
                             </select>
                         </div>
                         <!-- Form Baru untuk Request GA -->
@@ -1807,7 +1807,7 @@
             const enableNotificationsBtn = document.getElementById('enable-notifications');
             const notificationStatus = document.getElementById('notification-status');
 
-            // ========== REALTIME NOTIFICATION SYSTEM ==========
+            // ========== REALTIME NOTIFICATION SYSTEM YANG DIPERBAIKI ==========
 
             let notificationUnsubscribeFunctions = [];
             let lastNotificationCheck = {};
@@ -2037,7 +2037,7 @@
                 notificationList.appendChild(notificationItem);
             }
 
-            // Function to check if notification is relevant for user
+            // Function to check if notification is relevant for user - DIPERBAIKI
             function isNotificationRelevant(request, userName, userEmail) {
                 const userPermission = userPermissions[userEmail];
                 const status = request.status || 'pending';
@@ -2053,7 +2053,19 @@
                         // Cek apakah user adalah approver untuk department yang sesuai
                         const department = request.department;
                         const departmentApprover = departmentApproverMap[department];
+                        
+                        // Untuk Technic, hanya Husni yang perlu approve (tidak perlu Renata)
+                        if (department === 'Technic') {
+                            return userName === 'Husni';
+                        }
+                        
+                        // Untuk department lain, cek approver utama
                         if (departmentApprover === userName) {
+                            return true;
+                        }
+                        
+                        // Untuk nilai "Atas 1jt", Renata juga perlu approve (kecuali Technic)
+                        if (request.nilai === 'Atas 1jt' && department !== 'Technic' && userName === 'Renata') {
                             return true;
                         }
                     }
@@ -2061,7 +2073,11 @@
                         ['Renata', 'Rossiana', 'Galih', 'Maida'].includes(userName)) {
                         return true;
                     }
-                    if (['kartunama', 'idcard', 'konsumsi'].includes(request.formType)) {
+                    if (['kartunama', 'idcard', 'konsumsi'].includes(request.formType) && 
+                        ['Ulan', 'Renata'].includes(userName)) {
+                        return true;
+                    }
+                    if (request.formType === 'feedback' && userName === 'Renata') {
                         return true;
                     }
                 }
@@ -2074,7 +2090,7 @@
                 return false;
             }
 
-            // Function to get notification content
+            // Function to get notification content - DIPERBAIKI
             function getNotificationContent(notification) {
                 const { formType, request } = notification;
                 const status = request.status || 'pending';
@@ -2097,12 +2113,28 @@
                     if (formType === 'atk') {
                         const department = request.department;
                         const departmentApprover = departmentApproverMap[department];
-                        message = `<strong>Request ATK Menunggu Persetujuan ${departmentApprover}</strong><br>Dari: ${request.nama} (${department})`;
+                        
+                        // Untuk Technic, hanya Husni yang perlu approve
+                        if (department === 'Technic') {
+                            message = `<strong>Request ATK Technic Menunggu Persetujuan Husni</strong><br>Dari: ${request.nama} (${department})`;
+                        } 
+                        // Untuk nilai "Atas 1jt" (kecuali Technic), perlu Renata juga
+                        else if (request.nilai === 'Atas 1jt') {
+                            message = `<strong>Request ATK (Atas 1jt) Menunggu Persetujuan ${departmentApprover} & Renata</strong><br>Dari: ${request.nama} (${department})`;
+                        } else {
+                            message = `<strong>Request ATK Menunggu Persetujuan ${departmentApprover}</strong><br>Dari: ${request.nama} (${department})`;
+                        }
                         isImportant = true;
                     } else if (formType === 'laptop') {
                         const approvedCount = request.approvedBy ? request.approvedBy.length : 0;
                         message = `<strong>Request IT Menunggu (${approvedCount}/4)</strong><br>Dari: ${request.nama}`;
                         isImportant = (approvedCount >= 2);
+                    } else if (formType === 'kartunama' || formType === 'idcard' || formType === 'konsumsi') {
+                        message = `<strong>Request ${formTitle} Menunggu Persetujuan</strong><br>Dari: ${request.nama}`;
+                        isImportant = true;
+                    } else if (formType === 'feedback') {
+                        message = `<strong>Feedback Baru Diterima</strong><br>Dari: ${request.nama}`;
+                        isImportant = true;
                     } else {
                         message = `<strong>Request ${formTitle} Menunggu Persetujuan</strong><br>Dari: ${request.nama}`;
                     }
@@ -2756,18 +2788,49 @@
                             if (formType === 'atk') {
                                 const department = request.department;
                                 const departmentApprover = departmentApproverMap[department];
-                                if (request.approvedBy && request.approvedBy.includes(departmentApprover)) {
-                                    status = 'approved';
-                                    statusClass = 'approved';
-                                    statusText = 'Disetujui';
-                                } else if (request.status === 'approved') {
-                                    statusClass = 'approved';
-                                    statusText = 'Disetujui';
-                                } else if (request.status === 'rejected') {
-                                    statusClass = 'rejected';
-                                    statusText = 'Ditolak';
+                                
+                                // Untuk Technic, hanya perlu persetujuan Husni
+                                if (department === 'Technic') {
+                                    if (request.approvedBy && request.approvedBy.includes('Husni')) {
+                                        status = 'approved';
+                                        statusClass = 'approved';
+                                        statusText = 'Disetujui';
+                                    } else {
+                                        statusText = `Menunggu Husni`;
+                                    }
+                                } 
+                                // Untuk nilai "Atas 1jt", perlu persetujuan Renata juga
+                                else if (request.nilai === 'Atas 1jt') {
+                                    const isApprovedByDepartment = request.approvedBy && request.approvedBy.includes(departmentApprover);
+                                    const isApprovedByRenata = request.approvedBy && request.approvedBy.includes('Renata');
+                                    
+                                    if (isApprovedByDepartment && isApprovedByRenata) {
+                                        status = 'approved';
+                                        statusClass = 'approved';
+                                        statusText = 'Disetujui';
+                                    } else if (request.status === 'approved') {
+                                        statusClass = 'approved';
+                                        statusText = 'Disetujui';
+                                    } else if (request.status === 'rejected') {
+                                        statusClass = 'rejected';
+                                        statusText = 'Ditolak';
+                                    } else {
+                                        statusText = `Menunggu ${departmentApprover} & Renata`;
+                                    }
                                 } else {
-                                    statusText = `Menunggu ${departmentApprover}`;
+                                    if (request.approvedBy && request.approvedBy.includes(departmentApprover)) {
+                                        status = 'approved';
+                                        statusClass = 'approved';
+                                        statusText = 'Disetujui';
+                                    } else if (request.status === 'approved') {
+                                        statusClass = 'approved';
+                                        statusText = 'Disetujui';
+                                    } else if (request.status === 'rejected') {
+                                        statusClass = 'rejected';
+                                        statusText = 'Ditolak';
+                                    } else {
+                                        statusText = `Menunggu ${departmentApprover}`;
+                                    }
                                 }
                             } 
                             // Untuk Laptop: jika sudah 4 user yang approve, status menjadi "Disetujui"
@@ -2813,9 +2876,9 @@
                                 requestDetails = `
                                     <div>Oleh: ${request.nama} • ${request.department}</div>
                                     <div>Tanggal: ${request.tanggal}</div>
-                                    <div>Jenis ATK: ${request.jenis}</div>
+                                    <div>Kategori: ${request.jenis}</div>
+                                    <div>Nilai: ${request.nilai || 'Tidak ditentukan'}</div>
                                     <div>Detail: ${request.detail}</div>
-                                    ${request.nilai ? `<div>Nilai: ${request.nilai}</div>` : ''}
                                 `;
                             } else if (formType === 'idcard') {
                                 requestDetails = `
@@ -2933,7 +2996,7 @@
                 return statusTexts[status] || status;
             }
 
-            // Fungsi untuk memuat daftar request yang perlu disetujui dari Firestore
+            // Fungsi untuk memuat daftar request yang perlu disetujui dari Firestore - DIPERBAIKI
             function loadApprovedByRequests(formType) {
                 const approvedByListContainer = document.getElementById(`${formType}-approved-by-list`);
                 if (!approvedByListContainer) return;
@@ -2993,19 +3056,27 @@
                                 // Tentukan approver berdasarkan department
                                 const department = request.department;
                                 const departmentApprover = departmentApproverMap[department];
-                                approvers = [departmentApprover];
                                 
-                                // Tambahkan Renata jika nilai permintaan "Atas 1jt"
-                                if (request.nilai === 'Atas 1jt' && !approvers.includes('Renata')) {
-                                    approvers.push('Renata');
+                                // Untuk Technic, hanya Husni yang perlu approve
+                                if (department === 'Technic') {
+                                    approvers = ['Husni'];
+                                    const isApprovedByHusni = request.approvedBy && request.approvedBy.includes('Husni');
+                                    isApproved = isApprovedByHusni;
+                                    approvalText = isApprovedByHusni ? 'Sudah disetujui' : `Menunggu Husni`;
+                                } 
+                                // Untuk nilai "Atas 1jt", perlu Renata juga
+                                else if (request.nilai === 'Atas 1jt') {
+                                    approvers = [departmentApprover, 'Renata'];
+                                    const isApprovedByDepartment = request.approvedBy && request.approvedBy.includes(departmentApprover);
+                                    const isApprovedByRenata = request.approvedBy && request.approvedBy.includes('Renata');
+                                    isApproved = isApprovedByDepartment && isApprovedByRenata;
+                                    approvalText = isApproved ? 'Sudah disetujui' : `Menunggu ${departmentApprover} & Renata`;
+                                } else {
+                                    approvers = [departmentApprover];
+                                    const isApprovedByDepartment = request.approvedBy && request.approvedBy.includes(departmentApprover);
+                                    isApproved = isApprovedByDepartment;
+                                    approvalText = isApprovedByDepartment ? 'Sudah disetujui' : `Menunggu ${departmentApprover}`;
                                 }
-                                
-                                const isApprovedByDepartment = request.approvedBy && request.approvedBy.includes(departmentApprover);
-                                const isApprovedByRenata = request.nilai === 'Atas 1jt' ? 
-                                    (request.approvedBy && request.approvedBy.includes('Renata')) : true;
-                                
-                                isApproved = isApprovedByDepartment && isApprovedByRenata;
-                                approvalText = isApproved ? 'Sudah disetujui' : `Menunggu ${approvers.join(', ')}`;
                                 
                                 // Update status di database jika sudah disetujui
                                 if (isApproved && request.status !== 'approved') {
@@ -3027,7 +3098,7 @@
                                 requestDetails = `
                                     <div>Oleh: ${request.nama} • ${request.department}</div>
                                     <div>Tanggal: ${request.tanggal}</div>
-                                    <div>Jenis ATK: ${request.jenis}</div>
+                                    <div>Kategori: ${request.jenis}</div>
                                     <div>Nilai: ${request.nilai || 'Tidak ditentukan'}</div>
                                     <div>Detail: ${request.detail}</div>
                                     <div>Alasan: ${request.alasan}</div>
@@ -3116,18 +3187,46 @@
                                                     }
                                                 } else if (formType === 'atk') {
                                                     const department = request.department;
-                                                    const departmentApprover = departmentApproverMap[department];
-                                                    const isApprovedByDepartment = request.approvedBy && request.approvedBy.includes(departmentApprover);
-                                                    const isApprovedByRenata = request.nilai === 'Atas 1jt' ? 
-                                                        (request.approvedBy && request.approvedBy.includes('Renata')) : true;
                                                     
-                                                    if (isApprovedByDepartment && isApprovedByRenata) {
-                                                        db.collection(`requests_${formType}`).doc(requestId).update({
-                                                            status: 'approved'
-                                                        });
-                                                        showAlert('Request ATK telah disetujui!', 'success');
+                                                    // Untuk Technic, cukup Husni saja
+                                                    if (department === 'Technic') {
+                                                        const isApprovedByHusni = request.approvedBy && request.approvedBy.includes('Husni');
+                                                        
+                                                        if (isApprovedByHusni) {
+                                                            db.collection(`requests_${formType}`).doc(requestId).update({
+                                                                status: 'approved'
+                                                            });
+                                                            showAlert('Request ATK Technic telah disetujui!', 'success');
+                                                        } else {
+                                                            showAlert('Anda telah menyetujui request ini!', 'success');
+                                                        }
+                                                    } 
+                                                    // Untuk nilai "Atas 1jt", perlu Renata juga
+                                                    else if (request.nilai === 'Atas 1jt') {
+                                                        const departmentApprover = departmentApproverMap[department];
+                                                        const isApprovedByDepartment = request.approvedBy && request.approvedBy.includes(departmentApprover);
+                                                        const isApprovedByRenata = request.approvedBy && request.approvedBy.includes('Renata');
+                                                        
+                                                        if (isApprovedByDepartment && isApprovedByRenata) {
+                                                            db.collection(`requests_${formType}`).doc(requestId).update({
+                                                                status: 'approved'
+                                                            });
+                                                            showAlert('Request ATK telah disetujui!', 'success');
+                                                        } else {
+                                                            showAlert('Anda telah menyetujui request ini!', 'success');
+                                                        }
                                                     } else {
-                                                        showAlert('Anda telah menyetujui request ini!', 'success');
+                                                        const departmentApprover = departmentApproverMap[department];
+                                                        const isApprovedByDepartment = request.approvedBy && request.approvedBy.includes(departmentApprover);
+                                                        
+                                                        if (isApprovedByDepartment) {
+                                                            db.collection(`requests_${formType}`).doc(requestId).update({
+                                                                status: 'approved'
+                                                            });
+                                                            showAlert('Request ATK telah disetujui!', 'success');
+                                                        } else {
+                                                            showAlert('Anda telah menyetujui request ini!', 'success');
+                                                        }
                                                     }
                                                 }
                                             }
@@ -3303,8 +3402,8 @@
                 // Add judul for the request
                 formObject.judul = getRequestTitle(formKey, formObject);
                 
-                // Untuk ATK: tambahkan Renata ke approvedBy jika nilai "Atas 1jt"
-                if (formKey === 'atk' && formObject.nilai === 'Atas 1jt') {
+                // Untuk ATK: tambahkan Renata ke approvedBy jika nilai "Atas 1jt" dan bukan Technic
+                if (formKey === 'atk' && formObject.nilai === 'Atas 1jt' && formObject.department !== 'Technic') {
                     formObject.approvedBy.push('Renata');
                 }
                 
