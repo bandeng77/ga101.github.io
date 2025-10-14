@@ -1144,7 +1144,15 @@
                         </div>
                         <div class="form-group">
                             <label for="atk-department">Department</label>
-                            <input type="text" id="atk-department" name="department" required>
+                            <select id="atk-department" name="department" required>
+                                <option value="">Pilih Department</option>
+                                <option value="HR">HR</option>
+                                <option value="Sales">Sales</option>
+                                <option value="Engineering">Engineering</option>
+                                <option value="Finance">Finance</option>
+                                <option value="Purchasing">Purchasing</option>
+                                <option value="Technic">Technic</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label for="atk-tanggal">Tanggal Permintaan</label>
@@ -1678,6 +1686,16 @@
                 }
             };
 
+            // Mapping department ke approver
+            const departmentApproverMap = {
+                'HR': 'Renata',
+                'Sales': 'David',
+                'Engineering': 'Wahyu',
+                'Finance': 'Anggi',
+                'Purchasing': 'Rossiana',
+                'Technic': 'Husni'
+            };
+
             // Navigation handling
             const cards = document.querySelectorAll('.card');
             const sections = document.querySelectorAll('section');
@@ -1982,9 +2000,13 @@
                 
                 // For approvers: show notifications for requests they can approve
                 if (userPermission && userPermission.allowedForms.includes(request.formType)) {
-                    if (request.formType === 'atk' && 
-                        ['Renata', 'Anggi', 'Wahyu', 'David', 'Husni'].includes(userName)) {
-                        return true;
+                    if (request.formType === 'atk') {
+                        // Cek apakah user adalah approver untuk department yang sesuai
+                        const department = request.department;
+                        const departmentApprover = departmentApproverMap[department];
+                        if (departmentApprover === userName) {
+                            return true;
+                        }
                     }
                     if (request.formType === 'laptop' && 
                         ['Renata', 'Rossiana', 'Galih', 'Maida'].includes(userName)) {
@@ -2024,8 +2046,10 @@
                 } else {
                     iconClass = 'pending';
                     if (formType === 'atk') {
-                        message = `<strong>Request ATK Menunggu Persetujuan</strong><br>Dari: ${request.nama}`;
-                        isImportant = (request.approvedBy && request.approvedBy.length > 0);
+                        const department = request.department;
+                        const departmentApprover = departmentApproverMap[department];
+                        message = `<strong>Request ATK Menunggu Persetujuan ${departmentApprover}</strong><br>Dari: ${request.nama} (${department})`;
+                        isImportant = true;
                     } else if (formType === 'laptop') {
                         const approvedCount = request.approvedBy ? request.approvedBy.length : 0;
                         message = `<strong>Request IT Menunggu (${approvedCount}/4)</strong><br>Dari: ${request.nama}`;
@@ -2679,9 +2703,11 @@
                             let statusClass = 'pending';
                             let statusText = 'Menunggu';
                             
-                            // Untuk ATK: jika sudah disetujui minimal 1 approver, status menjadi "Disetujui"
+                            // Untuk ATK: jika sudah disetujui approver yang sesuai, status menjadi "Disetujui"
                             if (formType === 'atk') {
-                                if (request.approvedBy && request.approvedBy.length > 0) {
+                                const department = request.department;
+                                const departmentApprover = departmentApproverMap[department];
+                                if (request.approvedBy && request.approvedBy.includes(departmentApprover)) {
                                     status = 'approved';
                                     statusClass = 'approved';
                                     statusText = 'Disetujui';
@@ -2692,7 +2718,7 @@
                                     statusClass = 'rejected';
                                     statusText = 'Ditolak';
                                 } else {
-                                    statusText = 'Menunggu Persetujuan';
+                                    statusText = `Menunggu ${departmentApprover}`;
                                 }
                             } 
                             // Untuk Laptop: jika sudah 4 user yang approve, status menjadi "Disetujui"
@@ -2892,14 +2918,6 @@
 
                         approvedByListContainer.innerHTML = '';
                         
-                        // Tentukan approver berdasarkan form type
-                        let approvers = [];
-                        if (formType === 'laptop') {
-                            approvers = ['Renata', 'Rossiana', 'Galih', 'Maida'];
-                        } else if (formType === 'atk') {
-                            approvers = ['Renata', 'Anggi', 'Wahyu', 'David', 'Husni']; // Semua approver ATK
-                        }
-                        
                         const currentUserEmail = auth.currentUser ? auth.currentUser.email : null;
                         const currentUserName = currentUserEmail ? emailToNameMap[currentUserEmail] : null;
 
@@ -2907,8 +2925,10 @@
                             // LOGIKA STATUS: Cek apakah request sudah disetujui
                             let isApproved = false;
                             let approvalText = '';
+                            let approvers = [];
                             
                             if (formType === 'laptop') {
+                                approvers = ['Renata', 'Rossiana', 'Galih', 'Maida'];
                                 const approvedCount = request.approvedBy ? request.approvedBy.length : 0;
                                 isApproved = approvedCount >= 4;
                                 approvalText = isApproved ? 'Sudah disetujui semua (4/4)' : `Menunggu (${approvedCount}/4)`;
@@ -2920,12 +2940,17 @@
                                     });
                                 }
                             } else if (formType === 'atk') {
-                                const hasApproval = request.approvedBy && request.approvedBy.length > 0;
-                                isApproved = hasApproval;
-                                approvalText = hasApproval ? 'Sudah disetujui' : 'Menunggu Persetujuan';
+                                // Tentukan approver berdasarkan department
+                                const department = request.department;
+                                const departmentApprover = departmentApproverMap[department];
+                                approvers = [departmentApprover];
+                                
+                                const isApprovedByDepartment = request.approvedBy && request.approvedBy.includes(departmentApprover);
+                                isApproved = isApprovedByDepartment;
+                                approvalText = isApprovedByDepartment ? 'Sudah disetujui' : `Menunggu ${departmentApprover}`;
                                 
                                 // Update status di database jika sudah disetujui
-                                if (hasApproval && request.status !== 'approved') {
+                                if (isApprovedByDepartment && request.status !== 'approved') {
                                     db.collection(`requests_${formType}`).doc(request.id).update({
                                         status: 'approved'
                                     });
@@ -3031,9 +3056,11 @@
                                                         showAlert('Anda telah menyetujui request ini!', 'success');
                                                     }
                                                 } else if (formType === 'atk') {
-                                                    const hasApproval = request.approvedBy && request.approvedBy.length > 0;
+                                                    const department = request.department;
+                                                    const departmentApprover = departmentApproverMap[department];
+                                                    const isApprovedByDepartment = request.approvedBy && request.approvedBy.includes(departmentApprover);
                                                     
-                                                    if (hasApproval) {
+                                                    if (isApprovedByDepartment) {
                                                         db.collection(`requests_${formType}`).doc(requestId).update({
                                                             status: 'approved'
                                                         });
