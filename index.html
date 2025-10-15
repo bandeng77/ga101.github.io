@@ -1759,22 +1759,42 @@
 
             // ========== SISTEM NOTIFIKASI UNTUK ULAN ==========
 
-            // Fungsi untuk mengirim notifikasi ke Ulan
-            function sendNotificationToUlan(formType, requestId, requestData) {
-                // Cek apakah ini adalah form GA dan statusnya approved
+            // Fungsi untuk mengirim notifikasi ke Ulan ketika ada request GA baru
+            function sendNewRequestNotificationToUlan(formType, requestId, requestData) {
+                if (formType === 'atk') {
+                    // Simpan notifikasi untuk Ulan di Firestore
+                    db.collection('user_notifications').add({
+                        userId: 'ulandari@genetek.co.id',
+                        title: 'Request GA Baru',
+                        message: `Request GA baru dari ${requestData.nama} (${requestData.department}) - ${requestData.jenis} - Nilai: ${requestData.nilai}`,
+                        formType: formType,
+                        requestId: requestId,
+                        isRead: false,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        type: 'new_request'
+                    }).then(() => {
+                        console.log('Notifikasi request baru berhasil dikirim ke Ulan');
+                    }).catch((error) => {
+                        console.error('Error mengirim notifikasi ke Ulan:', error);
+                    });
+                }
+            }
+
+            // Fungsi untuk mengirim notifikasi ke Ulan ketika request GA disetujui
+            function sendApprovalNotificationToUlan(formType, requestId, requestData) {
                 if (formType === 'atk' && requestData.status === 'approved') {
                     // Simpan notifikasi untuk Ulan di Firestore
                     db.collection('user_notifications').add({
                         userId: 'ulandari@genetek.co.id',
                         title: 'Request GA Disetujui',
-                        message: `Request GA dari ${requestData.nama} (${requestData.department}) telah disetujui oleh Renata dan siap untuk diproses lebih lanjut.`,
+                        message: `Request GA dari ${requestData.nama} (${requestData.department}) telah disetujui dan siap untuk diproses lebih lanjut.`,
                         formType: formType,
                         requestId: requestId,
                         isRead: false,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                         type: 'approval_notification'
                     }).then(() => {
-                        console.log('Notifikasi berhasil dikirim ke Ulan');
+                        console.log('Notifikasi persetujuan berhasil dikirim ke Ulan');
                     }).catch((error) => {
                         console.error('Error mengirim notifikasi ke Ulan:', error);
                     });
@@ -1820,11 +1840,12 @@
                         requestId: notification.requestId,
                         request: {
                             nama: 'System Notification',
-                            status: 'approved'
+                            status: notification.type === 'new_request' ? 'pending' : 'approved'
                         },
                         timestamp: notification.createdAt ? notification.createdAt.toDate() : new Date(),
                         read: notification.isRead,
-                        isNew: true
+                        isNew: true,
+                        notificationType: notification.type
                     };
                     
                     // Update UI notifikasi
@@ -1854,15 +1875,32 @@
                 notificationElement.dataset.formType = notificationItem.formType;
                 notificationElement.dataset.requestId = notificationItem.requestId;
                 
+                let iconClass = 'pending';
+                let message = '';
+                
+                if (notificationItem.notificationType === 'new_request') {
+                    iconClass = 'pending important';
+                    message = `
+                        <span class="new-badge">BARU</span>
+                        <strong>Request GA Baru</strong><br>
+                        Request GA baru dari ${notificationItem.request.nama} siap untuk diproses.
+                    `;
+                } else {
+                    iconClass = 'approved important';
+                    message = `
+                        <span class="new-badge">BARU</span>
+                        <strong>Request GA Disetujui</strong><br>
+                        Request GA telah disetujui dan siap untuk diproses lebih lanjut.
+                    `;
+                }
+                
                 notificationElement.innerHTML = `
-                    <div class="notification-icon approved important">
-                        <i class="fas fa-check"></i>
+                    <div class="notification-icon ${iconClass}">
+                        <i class="fas ${iconClass === 'approved' ? 'fa-check' : 'fa-clock'}"></i>
                     </div>
                     <div class="notification-content">
                         <div class="notification-message">
-                            <span class="new-badge">BARU</span>
-                            <strong>Request GA Disetujui</strong><br>
-                            Request GA telah disetujui oleh Renata dan siap untuk diproses lebih lanjut.
+                            ${message}
                         </div>
                         <div class="notification-time">${getTimeAgo(notificationItem.timestamp)}</div>
                     </div>
@@ -3464,14 +3502,14 @@
                             return db.collection(`requests_${formType}`).doc(requestId).update({
                                 approvedBy: approvedBy
                             }).then(() => {
-                                // Cek apakah Renata yang menyetujui dan formType adalah atk
+                                // Kirim notifikasi ke Ulan jika Renata yang menyetujui dan formType adalah atk
                                 if (isApproved && approverName === 'Renata' && formType === 'atk') {
                                     // Ambil data request terbaru untuk notifikasi
                                     return db.collection(`requests_${formType}`).doc(requestId).get()
                                         .then((updatedDoc) => {
                                             if (updatedDoc.exists) {
                                                 const updatedRequest = updatedDoc.data();
-                                                sendNotificationToUlan(formType, requestId, updatedRequest);
+                                                sendApprovalNotificationToUlan(formType, requestId, updatedRequest);
                                             }
                                         });
                                 }
@@ -3506,7 +3544,7 @@
                             }).then(() => {
                                 // Jika status diubah menjadi approved dan formType adalah atk, kirim notifikasi ke Ulan
                                 if (newStatus === 'approved' && formType === 'atk') {
-                                    sendNotificationToUlan(formType, requestId, { ...requestData, status: newStatus });
+                                    sendApprovalNotificationToUlan(formType, requestId, { ...requestData, status: newStatus });
                                 }
                                 return { success: true };
                             });
@@ -3608,7 +3646,7 @@
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                     tanggal: new Date().toLocaleDateString('id-ID'),
                     waktu: new Date().toLocaleTimeString('id-ID'),
-                    approvedBy: []
+                    approvedBy: [] // SELALU KOSONGKAN - TIDAK ADA AUTO CHECKLIST
                 };
                 
                 // Add form-specific data
@@ -3619,11 +3657,6 @@
                 // Add judul for the request
                 formObject.judul = getRequestTitle(formKey, formObject);
                 
-                // Untuk ATK: tambahkan Renata ke approvedBy jika nilai "Atas 1jt" dan bukan Technic
-                if (formKey === 'atk' && formObject.nilai === 'Atas 1jt' && formObject.department !== 'Technic') {
-                    formObject.approvedBy.push('Renata');
-                }
-                
                 // Gunakan collection name yang benar
                 const collectionName = `requests_${formKey}`;
                 console.log(`Saving to collection: ${collectionName}`, formObject);
@@ -3632,6 +3665,11 @@
                 db.collection(collectionName).add(formObject)
                     .then((docRef) => {
                         console.log("Document written with ID: ", docRef.id);
+                        
+                        // Kirim notifikasi ke Ulan untuk request GA baru
+                        if (formKey === 'atk') {
+                            sendNewRequestNotificationToUlan(formKey, docRef.id, formObject);
+                        }
                         
                         // Hide form and show confirmation
                         formElement.style.display = 'none';
