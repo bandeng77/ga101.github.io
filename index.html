@@ -70,13 +70,23 @@
             padding: 0 20px;
         }
 
-        .logo {
+        /* Logo Button */
+        .logo-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
             display: flex;
             align-items: center;
             gap: 12px;
             color: white;
             font-weight: 700;
             font-size: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .logo-button:hover {
+            transform: translateY(-2px);
         }
 
         .logo-icon {
@@ -898,6 +908,7 @@
 
         .login-card .logo-icon {
             background: var(--gradient-primary);
+            box-shadow: 0 6px 15px rgba(59, 130, 246, 0.4);
         }
 
         .login-card h2 {
@@ -1078,7 +1089,8 @@
 
     <header style="display: none;">
         <div class="header-content">
-            <div class="logo">
+            <!-- Logo Button -->
+            <button class="logo-button" id="logo-home-button">
                 <div class="logo-icon">
                     <i class="fas fa-building"></i>
                 </div>
@@ -1086,7 +1098,7 @@
                     <span class="logo-main">GA System</span>
                     <span class="logo-sub">General Affair</span>
                 </div>
-            </div>
+            </button>
             <div class="header-right">
                 <div class="notification-container">
                     <div class="notification-bell" id="notification-bell">
@@ -2657,6 +2669,14 @@
             if (notificationDropdown) {
                 notificationDropdown.addEventListener('click', function(e) {
                     e.stopPropagation();
+                });
+            }
+            
+            // Logo button event listener
+            const logoHomeButton = document.getElementById('logo-home-button');
+            if (logoHomeButton) {
+                logoHomeButton.addEventListener('click', function() {
+                    showSection('dashboard');
                 });
             }
             
