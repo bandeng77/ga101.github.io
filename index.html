@@ -1757,7 +1757,7 @@
                 'Technic': 'Husni'
             };
 
-            // ========== SISTEM NOTIFIKASI UNTUK ULAN - DIPERBAIKI ==========
+            // ========== SISTEM NOTIFIKASI UNTUK ULAN - VERSI DIPERBAIKI ==========
 
             // Fungsi untuk mengirim notifikasi ke Ulan ketika ada request GA baru
             function sendNewRequestNotificationToUlan(formType, requestId, requestData) {
@@ -1815,22 +1815,26 @@
                 }
             }
 
-            // Fungsi untuk memuat notifikasi Ulan - DIPERBAIKI
+            // Fungsi untuk memuat notifikasi Ulan - VERSI DIPERBAIKI (tanpa composite index)
             function loadUlanNotifications(userEmail) {
                 console.log(`Memuat notifikasi untuk: ${userEmail}`);
                 
                 if (userEmail !== 'ulandari@genetek.co.id') return;
                 
+                // Query sederhana tanpa composite index requirements
                 db.collection('user_notifications')
                     .where('userId', '==', 'ulandari@genetek.co.id')
-                    .where('isRead', '==', false)
                     .orderBy('createdAt', 'desc')
                     .limit(20)
                     .get()
                     .then((querySnapshot) => {
                         const notifications = [];
                         querySnapshot.forEach((doc) => {
-                            notifications.push({ id: doc.id, ...doc.data() });
+                            const data = doc.data();
+                            // Filter manual untuk isRead = false
+                            if (!data.isRead) {
+                                notifications.push({ id: doc.id, ...data });
+                            }
                         });
                         
                         console.log(`Ditemukan ${notifications.length} notifikasi untuk Ulan`);
@@ -1840,6 +1844,36 @@
                     })
                     .catch((error) => {
                         console.error("Error loading Ulan notifications:", error);
+                        
+                        // Fallback: coba query tanpa orderBy createdAt
+                        console.log("Mencoba fallback query...");
+                        db.collection('user_notifications')
+                            .where('userId', '==', 'ulandari@genetek.co.id')
+                            .limit(20)
+                            .get()
+                            .then((querySnapshot) => {
+                                const notifications = [];
+                                querySnapshot.forEach((doc) => {
+                                    const data = doc.data();
+                                    // Filter manual client-side
+                                    if (!data.isRead) {
+                                        notifications.push({ id: doc.id, ...data });
+                                    }
+                                });
+                                
+                                // Sort manual client-side
+                                notifications.sort((a, b) => {
+                                    const timeA = a.createdAt ? a.createdAt.toDate() : new Date(0);
+                                    const timeB = b.createdAt ? b.createdAt.toDate() : new Date(0);
+                                    return timeB - timeA;
+                                });
+                                
+                                console.log(`Fallback: Ditemukan ${notifications.length} notifikasi`);
+                                displayUlanNotificationsInSystem(notifications);
+                            })
+                            .catch((fallbackError) => {
+                                console.error("Fallback query juga gagal:", fallbackError);
+                            });
                     });
             }
 
@@ -1988,22 +2022,7 @@
                 // Tambahkan di bagian atas list
                 const firstGroup = notificationList.querySelector('.notification-group');
                 if (firstGroup) {
-                    // Cari posisi yang tepat berdasarkan timestamp
-                    const existingNotifications = firstGroup.querySelectorAll('.notification-item');
-                    let inserted = false;
-                    
-                    for (let i = 0; i < existingNotifications.length; i++) {
-                        const existingTime = existingNotifications[i].querySelector('.notification-time').textContent;
-                        if (isNewer(notificationItem.timestamp, existingTime)) {
-                            firstGroup.insertBefore(notificationElement, existingNotifications[i]);
-                            inserted = true;
-                            break;
-                        }
-                    }
-                    
-                    if (!inserted) {
-                        firstGroup.appendChild(notificationElement);
-                    }
+                    firstGroup.appendChild(notificationElement);
                 } else {
                     // Buat group baru jika belum ada
                     const groupTitle = document.createElement('div');
@@ -2037,14 +2056,6 @@
                 }
             }
 
-            // Helper function untuk membandingkan waktu
-            function isNewer(timestamp, existingTimeText) {
-                // Logika sederhana untuk membandingkan waktu
-                if (existingTimeText.includes('baru')) return true;
-                if (existingTimeText.includes('menit') && !timestamp.includes('menit')) return true;
-                return false;
-            }
-
             // ========== REALTIME NOTIFICATION SYSTEM YANG DIPERBAIKI ==========
 
             let notificationUnsubscribeFunctions = [];
@@ -2052,7 +2063,7 @@
             let lastBrowserNotification = 0;
             const BROWSER_NOTIFICATION_COOLDOWN = 30000; // 30 detik cooldown
 
-            // Function to initialize realtime notifications for Ulan - DIPERBAIKI
+            // Function to initialize realtime notifications for Ulan - VERSI DIPERBAIKI
             function initializeRealtimeNotifications(userEmail) {
                 if (!userEmail) return;
                 
@@ -2083,27 +2094,34 @@
                     notificationUnsubscribeFunctions.push(unsubscribe);
                 });
                 
-                // Tambahkan realtime listener khusus untuk notifikasi Ulan - DIPERBAIKI
+                // Tambahkan realtime listener khusus untuk notifikasi Ulan - VERSI DIPERBAIKI
                 if (userEmail === 'ulandari@genetek.co.id') {
                     console.log('Setting up Ulan-specific notification listener');
                     
                     const ulanUnsubscribe = db.collection('user_notifications')
                         .where('userId', '==', 'ulandari@genetek.co.id')
-                        .orderBy('createdAt', 'desc')
                         .limit(20)
                         .onSnapshot((querySnapshot) => {
                             console.log('Realtime update for Ulan notifications - documents changed:', querySnapshot.docChanges().length);
                             
-                            querySnapshot.docChanges().forEach((change) => {
-                                if (change.type === 'added') {
-                                    console.log('New notification for Ulan:', change.doc.id);
-                                    // Langsung muat ulang notifikasi Ulan
-                                    loadUlanNotifications(userEmail);
+                            const notifications = [];
+                            querySnapshot.forEach((doc) => {
+                                const data = doc.data();
+                                // Filter manual client-side
+                                if (!data.isRead) {
+                                    notifications.push({ id: doc.id, ...data });
                                 }
                             });
                             
-                            // Juga muat semua notifikasi untuk memastikan konsistensi
-                            loadUlanNotifications(userEmail);
+                            // Sort manual
+                            notifications.sort((a, b) => {
+                                const timeA = a.createdAt ? a.createdAt.toDate() : new Date(0);
+                                const timeB = b.createdAt ? b.createdAt.toDate() : new Date(0);
+                                return timeB - timeA;
+                            });
+                            
+                            console.log('Processed Ulan notifications:', notifications.length);
+                            displayUlanNotificationsInSystem(notifications);
                         }, (error) => {
                             console.error('Error in Ulan notifications listener:', error);
                         });
