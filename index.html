@@ -1922,6 +1922,90 @@
                 });
             }
 
+            // ========== REALTIME NOTIFICATION SYSTEM YANG DIPERBAIKI ==========
+
+            let notificationUnsubscribeFunctions = [];
+            let lastNotificationCheck = {};
+            let lastBrowserNotification = 0;
+            const BROWSER_NOTIFICATION_COOLDOWN = 30000; // 30 detik cooldown
+
+            // Function to update notification count dengan browser notification yang lebih selektif - DIPERBAIKI
+            function updateNotificationCount(notifications) {
+                // Jika notifications tidak diberikan, hitung dari DOM
+                if (!notifications || notifications.length === undefined) {
+                    // Count unread from DOM
+                    const unreadCount = notificationList.querySelectorAll('.notification-item.unread').length;
+                    if (unreadCount > 0) {
+                        notificationCount.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                        notificationCount.style.display = 'flex';
+                        
+                        // Update badge color based on count
+                        if (unreadCount > 5) {
+                            notificationCount.className = 'notification-count high';
+                        } else if (unreadCount > 2) {
+                            notificationCount.className = 'notification-count medium';
+                        } else {
+                            notificationCount.className = 'notification-count';
+                        }
+                    } else {
+                        notificationCount.style.display = 'none';
+                    }
+                    return;
+                }
+                
+                // Jika notifications diberikan, gunakan data tersebut
+                const unreadNotifications = notifications.filter(n => !n.read && n.isImportant);
+                const unreadCount = notifications.filter(n => !n.read).length;
+                const importantUnreadCount = unreadNotifications.length;
+                
+                if (unreadCount > 0) {
+                    notificationCount.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                    notificationCount.style.display = 'flex';
+                    
+                    // Update badge color based on count
+                    if (unreadCount > 5) {
+                        notificationCount.className = 'notification-count high';
+                    } else if (unreadCount > 2) {
+                        notificationCount.className = 'notification-count medium';
+                    } else {
+                        notificationCount.className = 'notification-count';
+                    }
+                    
+                    // Show browser notification HANYA untuk notifikasi penting dan baru
+                    if (importantUnreadCount > 0 && 'Notification' in window && Notification.permission === 'granted') {
+                        // Cari notifikasi penting terbaru yang belum dibaca
+                        const latestImportantUnread = unreadNotifications[0];
+                        
+                        if (latestImportantUnread && latestImportantUnread.isNew) {
+                            let notificationTitle = 'GA System';
+                            let notificationMessage = '';
+                            
+                            if (latestImportantUnread.request.status === 'approved') {
+                                notificationTitle = '✅ Request Disetujui';
+                                notificationMessage = `Request ${getFormTitle(latestImportantUnread.formType)} Anda telah disetujui`;
+                            } else if (latestImportantUnread.request.status === 'rejected') {
+                                notificationTitle = '❌ Request Ditolak';
+                                notificationMessage = `Request ${getFormTitle(latestImportantUnread.formType)} Anda telah ditolak`;
+                            } else if (latestImportantUnread.isImportant) {
+                                notificationTitle = '⏳ Perhatian Required';
+                                notificationMessage = `Request ${getFormTitle(latestImportantUnread.formType)} membutuhkan perhatian Anda`;
+                            }
+                            
+                            if (notificationMessage) {
+                                showBrowserNotification(
+                                    notificationTitle, 
+                                    notificationMessage,
+                                    latestImportantUnread.formType,
+                                    latestImportantUnread.requestId
+                                );
+                            }
+                        }
+                    }
+                } else {
+                    notificationCount.style.display = 'none';
+                }
+            }
+
             // Fungsi untuk update UI notifikasi - DIPERBAIKI
             function updateNotificationUI(notificationItem) {
                 // Tambahkan notifikasi ke UI
@@ -2015,7 +2099,7 @@
                     this.querySelector('.unread-indicator')?.remove();
                     this.querySelector('.new-badge')?.remove();
                     
-                    // Update notification count
+                    // Update notification count - TANPA PARAMETER
                     updateNotificationCount();
                 });
                 
@@ -2039,7 +2123,7 @@
                 
                 console.log('Notifikasi Ulan berhasil ditambahkan ke UI');
                 
-                // Update notification count
+                // Update notification count - TANPA PARAMETER
                 updateNotificationCount();
                 
                 // Show browser notification
@@ -2055,13 +2139,6 @@
                     );
                 }
             }
-
-            // ========== REALTIME NOTIFICATION SYSTEM YANG DIPERBAIKI ==========
-
-            let notificationUnsubscribeFunctions = [];
-            let lastNotificationCheck = {};
-            let lastBrowserNotification = 0;
-            const BROWSER_NOTIFICATION_COOLDOWN = 30000; // 30 detik cooldown
 
             // Function to initialize realtime notifications for Ulan - VERSI DIPERBAIKI
             function initializeRealtimeNotifications(userEmail) {
@@ -2516,83 +2593,8 @@
                 });
                 
                 localStorage.setItem(`notifications_${userEmail}`, JSON.stringify(userNotifications));
-                updateNotificationCount([]);
+                updateNotificationCount(); // TANPA PARAMETER
                 showAlert('Semua notifikasi telah ditandai sebagai sudah dibaca', 'success');
-            }
-
-            // Function to update notification count dengan browser notification yang lebih selektif
-            function updateNotificationCount(notifications) {
-                if (notifications.length === 0) {
-                    // Count unread from DOM
-                    const unreadCount = notificationList.querySelectorAll('.notification-item.unread').length;
-                    if (unreadCount > 0) {
-                        notificationCount.textContent = unreadCount > 99 ? '99+' : unreadCount;
-                        notificationCount.style.display = 'flex';
-                        
-                        // Update badge color based on count
-                        if (unreadCount > 5) {
-                            notificationCount.className = 'notification-count high';
-                        } else if (unreadCount > 2) {
-                            notificationCount.className = 'notification-count medium';
-                        } else {
-                            notificationCount.className = 'notification-count';
-                        }
-                    } else {
-                        notificationCount.style.display = 'none';
-                    }
-                    return;
-                }
-                
-                const unreadNotifications = notifications.filter(n => !n.read && n.isImportant);
-                const unreadCount = notifications.filter(n => !n.read).length;
-                const importantUnreadCount = unreadNotifications.length;
-                
-                if (unreadCount > 0) {
-                    notificationCount.textContent = unreadCount > 99 ? '99+' : unreadCount;
-                    notificationCount.style.display = 'flex';
-                    
-                    // Update badge color based on count
-                    if (unreadCount > 5) {
-                        notificationCount.className = 'notification-count high';
-                    } else if (unreadCount > 2) {
-                        notificationCount.className = 'notification-count medium';
-                    } else {
-                        notificationCount.className = 'notification-count';
-                    }
-                    
-                    // Show browser notification HANYA untuk notifikasi penting dan baru
-                    if (importantUnreadCount > 0 && 'Notification' in window && Notification.permission === 'granted') {
-                        // Cari notifikasi penting terbaru yang belum dibaca
-                        const latestImportantUnread = unreadNotifications[0];
-                        
-                        if (latestImportantUnread && latestImportantUnread.isNew) {
-                            let notificationTitle = 'GA System';
-                            let notificationMessage = '';
-                            
-                            if (latestImportantUnread.request.status === 'approved') {
-                                notificationTitle = '✅ Request Disetujui';
-                                notificationMessage = `Request ${getFormTitle(latestImportantUnread.formType)} Anda telah disetujui`;
-                            } else if (latestImportantUnread.request.status === 'rejected') {
-                                notificationTitle = '❌ Request Ditolak';
-                                notificationMessage = `Request ${getFormTitle(latestImportantUnread.formType)} Anda telah ditolak`;
-                            } else if (latestImportantUnread.isImportant) {
-                                notificationTitle = '⏳ Perhatian Required';
-                                notificationMessage = `Request ${getFormTitle(latestImportantUnread.formType)} membutuhkan perhatian Anda`;
-                            }
-                            
-                            if (notificationMessage) {
-                                showBrowserNotification(
-                                    notificationTitle, 
-                                    notificationMessage,
-                                    latestImportantUnread.formType,
-                                    latestImportantUnread.requestId
-                                );
-                            }
-                        }
-                    }
-                } else {
-                    notificationCount.style.display = 'none';
-                }
             }
 
             // Function to show browser notification (kurangi frekuensi)
