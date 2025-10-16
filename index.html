@@ -1757,10 +1757,12 @@
                 'Technic': 'Husni'
             };
 
-            // ========== SISTEM NOTIFIKASI UNTUK ULAN ==========
+            // ========== SISTEM NOTIFIKASI UNTUK ULAN - DIPERBAIKI ==========
 
             // Fungsi untuk mengirim notifikasi ke Ulan ketika ada request GA baru
             function sendNewRequestNotificationToUlan(formType, requestId, requestData) {
+                console.log(`Mengirim notifikasi ke Ulan untuk request ${formType} dengan ID: ${requestId}`);
+                
                 if (formType === 'atk') {
                     // Simpan notifikasi untuk Ulan di Firestore
                     db.collection('user_notifications').add({
@@ -1771,9 +1773,14 @@
                         requestId: requestId,
                         isRead: false,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        type: 'new_request'
+                        type: 'new_request',
+                        priority: 'high'
                     }).then(() => {
-                        console.log('Notifikasi request baru berhasil dikirim ke Ulan');
+                        console.log('Notifikasi request baru BERHASIL dikirim ke Ulan');
+                        // Paksa refresh notifikasi Ulan
+                        if (auth.currentUser && auth.currentUser.email === 'ulandari@genetek.co.id') {
+                            loadUlanNotifications('ulandari@genetek.co.id');
+                        }
                     }).catch((error) => {
                         console.error('Error mengirim notifikasi ke Ulan:', error);
                     });
@@ -1782,6 +1789,8 @@
 
             // Fungsi untuk mengirim notifikasi ke Ulan ketika request GA disetujui
             function sendApprovalNotificationToUlan(formType, requestId, requestData) {
+                console.log(`Mengirim notifikasi persetujuan ke Ulan untuk request ${formType} dengan ID: ${requestId}`);
+                
                 if (formType === 'atk' && requestData.status === 'approved') {
                     // Simpan notifikasi untuk Ulan di Firestore
                     db.collection('user_notifications').add({
@@ -1792,30 +1801,39 @@
                         requestId: requestId,
                         isRead: false,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        type: 'approval_notification'
+                        type: 'approval_notification',
+                        priority: 'high'
                     }).then(() => {
-                        console.log('Notifikasi persetujuan berhasil dikirim ke Ulan');
+                        console.log('Notifikasi persetujuan BERHASIL dikirim ke Ulan');
+                        // Paksa refresh notifikasi Ulan
+                        if (auth.currentUser && auth.currentUser.email === 'ulandari@genetek.co.id') {
+                            loadUlanNotifications('ulandari@genetek.co.id');
+                        }
                     }).catch((error) => {
-                        console.error('Error mengirim notifikasi ke Ulan:', error);
+                        console.error('Error mengirim notifikasi persetujuan ke Ulan:', error);
                     });
                 }
             }
 
-            // Fungsi untuk memuat notifikasi Ulan
+            // Fungsi untuk memuat notifikasi Ulan - DIPERBAIKI
             function loadUlanNotifications(userEmail) {
+                console.log(`Memuat notifikasi untuk: ${userEmail}`);
+                
                 if (userEmail !== 'ulandari@genetek.co.id') return;
                 
                 db.collection('user_notifications')
                     .where('userId', '==', 'ulandari@genetek.co.id')
                     .where('isRead', '==', false)
                     .orderBy('createdAt', 'desc')
-                    .limit(10)
+                    .limit(20)
                     .get()
                     .then((querySnapshot) => {
                         const notifications = [];
                         querySnapshot.forEach((doc) => {
                             notifications.push({ id: doc.id, ...doc.data() });
                         });
+                        
+                        console.log(`Ditemukan ${notifications.length} notifikasi untuk Ulan`);
                         
                         // Tampilkan notifikasi di sistem notifikasi utama
                         displayUlanNotificationsInSystem(notifications);
@@ -1825,27 +1843,44 @@
                     });
             }
 
-            // Fungsi untuk menampilkan notifikasi Ulan di sistem notifikasi
+            // Fungsi untuk menampilkan notifikasi Ulan di sistem notifikasi - DIPERBAIKI
             function displayUlanNotificationsInSystem(notifications) {
-                if (notifications.length === 0) return;
+                if (notifications.length === 0) {
+                    console.log('Tidak ada notifikasi untuk ditampilkan');
+                    return;
+                }
                 
                 const userEmail = auth.currentUser?.email;
-                if (userEmail !== 'ulandari@genetek.co.id') return;
+                if (userEmail !== 'ulandari@genetek.co.id') {
+                    console.log('User bukan Ulan, tidak menampilkan notifikasi khusus');
+                    return;
+                }
+                
+                console.log(`Menampilkan ${notifications.length} notifikasi Ulan di sistem`);
                 
                 notifications.forEach(notification => {
+                    // Cek apakah notifikasi sudah ada di UI
+                    const existingNotification = document.querySelector(`[data-notification-id="ulan_${notification.id}"]`);
+                    if (existingNotification) {
+                        console.log('Notifikasi sudah ada di UI, skip:', notification.id);
+                        return;
+                    }
+                    
                     // Tambahkan notifikasi ke sistem notifikasi real-time
                     const notificationItem = {
                         id: `ulan_${notification.id}`,
                         formType: notification.formType,
                         requestId: notification.requestId,
                         request: {
-                            nama: 'System Notification',
+                            nama: notification.message.includes('dari') ? 
+                                  notification.message.split('dari')[1]?.split('(')[0]?.trim() || 'User' : 'User',
                             status: notification.type === 'new_request' ? 'pending' : 'approved'
                         },
                         timestamp: notification.createdAt ? notification.createdAt.toDate() : new Date(),
                         read: notification.isRead,
                         isNew: true,
-                        notificationType: notification.type
+                        notificationType: notification.type,
+                        originalMessage: notification.message
                     };
                     
                     // Update UI notifikasi
@@ -1853,15 +1888,14 @@
                 });
             }
 
-            // Fungsi untuk update UI notifikasi
+            // Fungsi untuk update UI notifikasi - DIPERBAIKI
             function updateNotificationUI(notificationItem) {
-                // Cek apakah notifikasi sudah ada di UI
-                const existingNotification = document.querySelector(`[data-notification-id="${notificationItem.id}"]`);
-                if (existingNotification) return;
-                
                 // Tambahkan notifikasi ke UI
                 const notificationList = document.getElementById('notification-list');
-                if (!notificationList) return;
+                if (!notificationList) {
+                    console.error('Element notification-list tidak ditemukan');
+                    return;
+                }
                 
                 // Hapus pesan "Tidak ada notifikasi" jika ada
                 const emptyState = notificationList.querySelector('.notification-empty');
@@ -1883,14 +1917,14 @@
                     message = `
                         <span class="new-badge">BARU</span>
                         <strong>Request GA Baru</strong><br>
-                        Request GA baru dari ${notificationItem.request.nama} siap untuk diproses.
+                        ${notificationItem.originalMessage}
                     `;
                 } else {
                     iconClass = 'approved important';
                     message = `
                         <span class="new-badge">BARU</span>
                         <strong>Request GA Disetujui</strong><br>
-                        Request GA telah disetujui dan siap untuk diproses lebih lanjut.
+                        ${notificationItem.originalMessage}
                     `;
                 }
                 
@@ -1909,15 +1943,35 @@
                 
                 // Add click event
                 notificationElement.addEventListener('click', function() {
-                    // Tandai sebagai sudah dibaca
-                    db.collection('user_notifications').doc(notificationItem.id.replace('ulan_', '')).update({
+                    console.log('Notifikasi Ulan diklik:', notificationItem.id);
+                    
+                    // Tandai sebagai sudah dibaca di Firestore
+                    const originalNotificationId = notificationItem.id.replace('ulan_', '');
+                    db.collection('user_notifications').doc(originalNotificationId).update({
                         isRead: true
+                    }).then(() => {
+                        console.log('Notifikasi ditandai sebagai sudah dibaca');
+                    }).catch((error) => {
+                        console.error('Error menandai notifikasi sebagai sudah dibaca:', error);
                     });
                     
                     // Navigate to relevant section
                     showSection(`form-${notificationItem.formType}`);
                     setTimeout(() => {
                         showFormTab(notificationItem.formType, 'requests');
+                        
+                        // Scroll ke request yang sesuai jika ada
+                        setTimeout(() => {
+                            const requestElement = document.querySelector(`[data-request-id="${notificationItem.requestId}"]`);
+                            if (requestElement) {
+                                requestElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                requestElement.classList.add('request-highlight');
+                                
+                                setTimeout(() => {
+                                    requestElement.classList.remove('request-highlight');
+                                }, 3000);
+                            }
+                        }, 500);
                     }, 300);
                     
                     // Close dropdown dan update UI
@@ -1926,18 +1980,69 @@
                     this.classList.add('read');
                     this.querySelector('.unread-indicator')?.remove();
                     this.querySelector('.new-badge')?.remove();
+                    
+                    // Update notification count
+                    updateNotificationCount();
                 });
                 
                 // Tambahkan di bagian atas list
                 const firstGroup = notificationList.querySelector('.notification-group');
                 if (firstGroup) {
-                    firstGroup.appendChild(notificationElement);
+                    // Cari posisi yang tepat berdasarkan timestamp
+                    const existingNotifications = firstGroup.querySelectorAll('.notification-item');
+                    let inserted = false;
+                    
+                    for (let i = 0; i < existingNotifications.length; i++) {
+                        const existingTime = existingNotifications[i].querySelector('.notification-time').textContent;
+                        if (isNewer(notificationItem.timestamp, existingTime)) {
+                            firstGroup.insertBefore(notificationElement, existingNotifications[i]);
+                            inserted = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!inserted) {
+                        firstGroup.appendChild(notificationElement);
+                    }
                 } else {
-                    notificationList.insertBefore(notificationElement, notificationList.firstChild);
+                    // Buat group baru jika belum ada
+                    const groupTitle = document.createElement('div');
+                    groupTitle.className = 'notification-group-title';
+                    groupTitle.textContent = 'Hari Ini';
+                    
+                    const groupDiv = document.createElement('div');
+                    groupDiv.className = 'notification-group';
+                    groupDiv.appendChild(groupTitle);
+                    groupDiv.appendChild(notificationElement);
+                    
+                    notificationList.insertBefore(groupDiv, notificationList.firstChild);
                 }
+                
+                console.log('Notifikasi Ulan berhasil ditambahkan ke UI');
                 
                 // Update notification count
                 updateNotificationCount();
+                
+                // Show browser notification
+                if ('Notification' in window && Notification.permission === 'granted') {
+                    const title = notificationItem.notificationType === 'new_request' ? 
+                        '📋 Request GA Baru' : '✅ Request GA Disetujui';
+                    
+                    showBrowserNotification(
+                        title,
+                        notificationItem.originalMessage,
+                        notificationItem.formType,
+                        notificationItem.requestId
+                    );
+                }
+            }
+
+            // Helper function untuk membandingkan waktu
+            function isNewer(timestamp, existingTimeText) {
+                // Logika sederhana untuk membandingkan waktu
+                if (existingTimeText.includes('baru')) return true;
+                if (existingTimeText.includes('menit') && !timestamp.includes('menit')) return true;
+                return false;
             }
 
             // ========== REALTIME NOTIFICATION SYSTEM YANG DIPERBAIKI ==========
@@ -1947,9 +2052,11 @@
             let lastBrowserNotification = 0;
             const BROWSER_NOTIFICATION_COOLDOWN = 30000; // 30 detik cooldown
 
-            // Function to initialize realtime notifications
+            // Function to initialize realtime notifications for Ulan - DIPERBAIKI
             function initializeRealtimeNotifications(userEmail) {
                 if (!userEmail) return;
+                
+                console.log(`Initializing realtime notifications for: ${userEmail}`);
                 
                 // Clear existing listeners
                 notificationUnsubscribeFunctions.forEach(unsubscribe => unsubscribe());
@@ -1976,20 +2083,37 @@
                     notificationUnsubscribeFunctions.push(unsubscribe);
                 });
                 
-                // Tambahkan realtime listener khusus untuk notifikasi Ulan
+                // Tambahkan realtime listener khusus untuk notifikasi Ulan - DIPERBAIKI
                 if (userEmail === 'ulandari@genetek.co.id') {
+                    console.log('Setting up Ulan-specific notification listener');
+                    
                     const ulanUnsubscribe = db.collection('user_notifications')
                         .where('userId', '==', 'ulandari@genetek.co.id')
                         .orderBy('createdAt', 'desc')
-                        .limit(10)
+                        .limit(20)
                         .onSnapshot((querySnapshot) => {
-                            console.log('Realtime update for Ulan notifications');
+                            console.log('Realtime update for Ulan notifications - documents changed:', querySnapshot.docChanges().length);
+                            
+                            querySnapshot.docChanges().forEach((change) => {
+                                if (change.type === 'added') {
+                                    console.log('New notification for Ulan:', change.doc.id);
+                                    // Langsung muat ulang notifikasi Ulan
+                                    loadUlanNotifications(userEmail);
+                                }
+                            });
+                            
+                            // Juga muat semua notifikasi untuk memastikan konsistensi
                             loadUlanNotifications(userEmail);
                         }, (error) => {
                             console.error('Error in Ulan notifications listener:', error);
                         });
                     
                     notificationUnsubscribeFunctions.push(ulanUnsubscribe);
+                    
+                    // Muat notifikasi Ulan saat pertama kali login
+                    setTimeout(() => {
+                        loadUlanNotifications(userEmail);
+                    }, 2000);
                 }
             }
 
@@ -2615,7 +2739,7 @@
             const enableNotificationsBtn = document.getElementById('enable-notifications');
             const notificationStatus = document.getElementById('notification-status');
 
-            // Function to show/hide login page and main content
+            // Function to show/hide login page and main content - DIPERBAIKI
             function toggleLoginState(isLoggedIn, user = null) {
                 if (isLoggedIn && user) {
                     // Hide login page, show main content
@@ -2636,13 +2760,17 @@
                         // Update form tabs visibility based on permissions
                         updateFormTabsVisibility(user.email);
                         
-                        // Initialize realtime notifications
+                        // Initialize realtime notifications - DIPASTIKAN DIEKSEKUSI
+                        console.log('Initializing notifications for:', user.email);
                         initializeRealtimeNotifications(user.email);
                         requestNotificationPermission();
                         
-                        // Load notifikasi khusus untuk Ulan
+                        // Load notifikasi khusus untuk Ulan - DIPASTIKAN DIEKSEKUSI
                         if (user.email === 'ulandari@genetek.co.id') {
-                            loadUlanNotifications(user.email);
+                            console.log('User adalah Ulan, loading notifications...');
+                            setTimeout(() => {
+                                loadUlanNotifications(user.email);
+                            }, 1000);
                         }
                         
                         // Show notification settings for logged in users
@@ -3638,7 +3766,7 @@
                 }
             });
 
-            // Function to submit form data
+            // Function to submit form data - DIPERBAIKI
             function submitFormData(formKey, formElement) {
                 const formData = new FormData(formElement);
                 const formObject = {
@@ -3666,9 +3794,12 @@
                     .then((docRef) => {
                         console.log("Document written with ID: ", docRef.id);
                         
-                        // Kirim notifikasi ke Ulan untuk request GA baru
+                        // Kirim notifikasi ke Ulan untuk request GA baru - DIPASTIKAN DIEKSEKUSI
                         if (formKey === 'atk') {
+                            console.log('Mengirim notifikasi untuk request ATK baru ke Ulan');
                             sendNewRequestNotificationToUlan(formKey, docRef.id, formObject);
+                        } else {
+                            console.log(`Form ${formKey} bukan ATK, tidak mengirim notifikasi ke Ulan`);
                         }
                         
                         // Hide form and show confirmation
