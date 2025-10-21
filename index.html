@@ -871,7 +871,7 @@
             box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.3);
         }
 
-        /* Login Page */
+        /* Login Page - DIUBAH: Hilangkan logo icon */
         .login-container {
             display: none;
             position: fixed;
@@ -900,15 +900,39 @@
             animation: fadeIn 0.5s ease;
         }
 
+        /* HAPUS logo icon dari tampilan login */
         .login-card .logo {
             justify-content: center;
             margin-bottom: 1.5rem;
             color: var(--primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
         }
 
+        /* HAPUS logo-icon dari login */
         .login-card .logo-icon {
-            background: var(--gradient-primary);
-            box-shadow: 0 6px 15px rgba(59, 130, 246, 0.4);
+            display: none;
+        }
+
+        .login-card .logo-text {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .login-card .logo-main {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .login-card .logo-sub {
+            font-size: 0.9rem;
+            color: var(--secondary);
+            font-weight: 400;
         }
 
         .login-card h2 {
@@ -1054,17 +1078,14 @@
 </head>
 <body>
     <!-- WhatsApp Button -->
-    <a href="https://wa.me/6289601661771" target="_blank" class="whatsapp-button">
+    <a href="https://wa.me/6281234567890" target="_blank" class="whatsapp-button">
         <i class="fab fa-whatsapp"></i>
     </a>
 
-    <!-- Login Page -->
+    <!-- Login Page - DIUBAH: Hilangkan logo icon -->
     <div id="login-page" class="login-container active">
         <div class="login-card">
             <div class="logo">
-                <div class="logo-icon">
-                    <i class="fas fa-building"></i>
-                </div>
                 <div class="logo-text">
                     <span class="logo-main">GA System</span>
                     <span class="logo-sub">General Affair</span>
@@ -1140,7 +1161,7 @@
             <div class="card" data-target="form-atk">
                 <div class="card-icon"><i class="fas fa-pencil-alt"></i></div>
                 <h3 class="card-title">Form Request GA</h3>
-                <p class="card-desc">Ajukan permintaan barang dan jasa untuk kebutuhan pekerjaan</p>
+                <p class="card-desc">Ajukan permintaan alat tulis kantor untuk kebutuhan pekerjaan</p>
             </div>
             
             <div class="card" data-target="form-idcard">
