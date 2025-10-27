@@ -1778,71 +1778,13 @@
                 'Technic': 'Husni'
             };
 
-            // ========== SISTEM NOTIFIKASI UNTUK ULAN - VERSI DISEMPURNAKAN ==========
-
-            // Fungsi untuk mengirim notifikasi ke Ulan ketika ada request GA baru
-            function sendNewRequestNotificationToUlan(formType, requestId, requestData) {
-                console.log(`Mengirim notifikasi ke Ulan untuk request ${formType} dengan ID: ${requestId}`);
-                
-                if (formType === 'atk') {
-                    const notificationData = {
-                        userId: 'ulandari@genetek.co.id',
-                        title: 'Request GA Baru',
-                        message: `Request GA baru dari ${requestData.nama} (${requestData.department}) - ${requestData.jenis} - Nilai: ${requestData.nilai}`,
-                        formType: formType,
-                        requestId: requestId,
-                        isRead: false,
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        type: 'new_request',
-                        priority: 'high'
-                    };
-                    
-                    // Simpan notifikasi untuk Ulan di Firestore
-                    db.collection('user_notifications').add(notificationData)
-                    .then(() => {
-                        console.log('Notifikasi request baru BERHASIL dikirim ke Ulan');
-                    })
-                    .catch((error) => {
-                        console.error('Error mengirim notifikasi ke Ulan:', error);
-                    });
-                }
-            }
-
-            // Fungsi untuk mengirim notifikasi ke Ulan ketika request GA disetujui
-            function sendApprovalNotificationToUlan(formType, requestId, requestData) {
-                console.log(`Mengirim notifikasi persetujuan ke Ulan untuk request ${formType} dengan ID: ${requestId}`);
-                
-                if (formType === 'atk' && requestData.status === 'approved') {
-                    const notificationData = {
-                        userId: 'ulandari@genetek.co.id',
-                        title: 'Request GA Disetujui',
-                        message: `Request GA dari ${requestData.nama} (${requestData.department}) telah disetujui dan siap untuk diproses lebih lanjut.`,
-                        formType: formType,
-                        requestId: requestId,
-                        isRead: false,
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        type: 'approval_notification',
-                        priority: 'high'
-                    };
-                    
-                    // Simpan notifikasi untuk Ulan di Firestore
-                    db.collection('user_notifications').add(notificationData)
-                    .then(() => {
-                        console.log('Notifikasi persetujuan BERHASIL dikirim ke Ulan');
-                    })
-                    .catch((error) => {
-                        console.error('Error mengirim notifikasi persetujuan ke Ulan:', error);
-                    });
-                }
-            }
-
-            // ========== SISTEM NOTIFIKASI UNIFIED UNTUK SEMUA USER ==========
-
+            // ========== SISTEM NOTIFIKASI REAL-TIME YANG DISEMPURNAKAN ==========
+            
             let notificationUnsubscribeFunctions = [];
             let lastNotificationCheck = {};
-            const BROWSER_NOTIFICATION_COOLDOWN = 30000; // 30 detik cooldown
+            const BROWSER_NOTIFICATION_COOLDOWN = 30000;
 
-            // Function untuk memuat semua notifikasi user
+            // Function untuk memuat semua notifikasi user - OPTIMIZED
             function loadAllUserNotifications(userEmail) {
                 console.log(`Memuat semua notifikasi untuk: ${userEmail}`);
                 
@@ -1852,42 +1794,41 @@
                 let allNotifications = [];
                 
                 // 1. Load notifikasi dari user_notifications collection (untuk Ulan)
-                const ulanNotificationsPromise = db.collection('user_notifications')
-                    .where('userId', '==', userEmail)
-                    .limit(20)
-                    .get()
-                    .then((querySnapshot) => {
-                        querySnapshot.forEach((doc) => {
-                            const data = doc.data();
-                            allNotifications.push({
-                                id: `notif_${doc.id}`,
-                                formType: data.formType,
-                                requestId: data.requestId,
-                                request: {
-                                    nama: data.message.includes('dari') ? 
-                                          data.message.split('dari')[1]?.split('(')[0]?.trim() || 'User' : 'User',
-                                    status: data.type === 'new_request' ? 'pending' : 'approved'
-                                },
-                                timestamp: data.createdAt ? data.createdAt.toDate() : new Date(),
-                                read: data.isRead || false,
-                                isNew: !data.isRead,
-                                notificationType: data.type,
-                                originalMessage: data.message,
-                                title: data.title,
-                                isUlanNotification: true
+                const ulanNotificationsPromise = userEmail === 'ulandari@genetek.co.id' ? 
+                    db.collection('user_notifications')
+                        .where('userId', '==', userEmail)
+                        .orderBy('createdAt', 'desc')
+                        .limit(20)
+                        .get()
+                        .then((querySnapshot) => {
+                            querySnapshot.forEach((doc) => {
+                                const data = doc.data();
+                                allNotifications.push({
+                                    id: `notif_${doc.id}`,
+                                    formType: data.formType || 'atk',
+                                    requestId: data.requestId,
+                                    request: {
+                                        nama: data.message.includes('dari') ? 
+                                              data.message.split('dari')[1]?.split('(')[0]?.trim() || 'User' : 'User',
+                                        status: data.type === 'new_request' ? 'pending' : 'approved'
+                                    },
+                                    timestamp: data.createdAt ? data.createdAt.toDate() : new Date(),
+                                    read: data.isRead || false,
+                                    isNew: !data.isRead,
+                                    notificationType: data.type,
+                                    originalMessage: data.message,
+                                    title: data.title,
+                                    isUlanNotification: true
+                                });
                             });
-                        });
-                    })
-                    .catch((error) => {
-                        console.error("Error loading ulan notifications:", error);
-                    });
+                        }) : Promise.resolve();
 
                 // 2. Load notifikasi dari requests collection (untuk semua user)
                 const formTypes = ['atk', 'idcard', 'konsumsi', 'laptop', 'kartunama', 'feedback'];
                 const requestsPromises = formTypes.map(formType => {
                     return db.collection(`requests_${formType}`)
                         .orderBy('createdAt', 'desc')
-                        .limit(20)
+                        .limit(30)
                         .get()
                         .then((querySnapshot) => {
                             querySnapshot.forEach((doc) => {
@@ -1929,6 +1870,127 @@
                     .catch((error) => {
                         console.error("Error loading all notifications:", error);
                     });
+            }
+
+            // Function untuk initialize realtime notifications - IMPROVED
+            function initializeRealtimeNotifications(userEmail) {
+                if (!userEmail) return;
+                
+                console.log(`Initializing realtime notifications for: ${userEmail}`);
+                
+                // Clear existing listeners
+                notificationUnsubscribeFunctions.forEach(unsubscribe => unsubscribe());
+                notificationUnsubscribeFunctions = [];
+                
+                // Get all form types
+                const formTypes = ['atk', 'idcard', 'konsumsi', 'laptop', 'kartunama', 'feedback'];
+                
+                // Create realtime listeners for each form type - IMPROVED
+                formTypes.forEach(formType => {
+                    const unsubscribe = db.collection(`requests_${formType}`)
+                        .orderBy('createdAt', 'desc')
+                        .limit(50)
+                        .onSnapshot((querySnapshot) => {
+                            console.log(`Realtime update detected for ${formType}`, querySnapshot.size, 'documents');
+                            
+                            // Check if there are any changes
+                            querySnapshot.docChanges().forEach(change => {
+                                if (change.type === 'added' || change.type === 'modified') {
+                                    console.log(`Change detected in ${formType}:`, change.type, change.doc.data());
+                                }
+                            });
+                            
+                            // Refresh notifications
+                            loadAllUserNotifications(userEmail);
+                            
+                            // Show browser notification for new items
+                            showBrowserNotificationForNewItems(querySnapshot, userEmail);
+                        }, (error) => {
+                            console.error(`Error in realtime listener for ${formType}:`, error);
+                        });
+                    
+                    notificationUnsubscribeFunctions.push(unsubscribe);
+                });
+                
+                // Real-time listener untuk user_notifications (khusus Ulan) - IMPROVED
+                if (userEmail === 'ulandari@genetek.co.id') {
+                    const ulanUnsubscribe = db.collection('user_notifications')
+                        .where('userId', '==', 'ulandari@genetek.co.id')
+                        .orderBy('createdAt', 'desc')
+                        .limit(20)
+                        .onSnapshot((querySnapshot) => {
+                            console.log('Realtime update for Ulan notifications', querySnapshot.size, 'notifications');
+                            
+                            querySnapshot.docChanges().forEach(change => {
+                                if (change.type === 'added') {
+                                    console.log('New notification for Ulan:', change.doc.data());
+                                }
+                            });
+                            
+                            loadAllUserNotifications(userEmail);
+                        }, (error) => {
+                            console.error('Error in Ulan notifications listener:', error);
+                        });
+                    
+                    notificationUnsubscribeFunctions.push(ulanUnsubscribe);
+                }
+                
+                console.log(`Realtime notifications initialized with ${notificationUnsubscribeFunctions.length} listeners`);
+            }
+
+            // Function untuk menampilkan browser notification - NEW
+            function showBrowserNotificationForNewItems(querySnapshot, userEmail) {
+                if (!('Notification' in window) || Notification.permission !== 'granted') {
+                    return;
+                }
+                
+                const currentTime = new Date();
+                const cooldownKey = `notificationCooldown_${userEmail}`;
+                const lastNotificationTime = localStorage.getItem(cooldownKey);
+                
+                // Cek cooldown (30 detik)
+                if (lastNotificationTime && (currentTime - new Date(lastNotificationTime)) < BROWSER_NOTIFICATION_COOLDOWN) {
+                    return;
+                }
+                
+                let newItemsCount = 0;
+                let latestItem = null;
+                
+                querySnapshot.docChanges().forEach(change => {
+                    if (change.type === 'added') {
+                        const data = change.doc.data();
+                        const itemTime = data.createdAt ? data.createdAt.toDate() : new Date();
+                        
+                        // Cek jika item benar-benar baru (dibuat dalam 2 menit terakhir)
+                        if ((currentTime - itemTime) < 120000) {
+                            newItemsCount++;
+                            if (!latestItem || itemTime > latestItem.timestamp) {
+                                latestItem = {
+                                    data: data,
+                                    timestamp: itemTime,
+                                    formType: change.doc.ref.parent.id.replace('requests_', '')
+                                };
+                            }
+                        }
+                    }
+                });
+                
+                if (newItemsCount > 0 && latestItem) {
+                    const formTitle = getFormTitle(latestItem.formType);
+                    const notificationTitle = `Request ${formTitle} Baru`;
+                    const notificationBody = latestItem.data.nama ? 
+                        `Request dari ${latestItem.data.nama}` : 
+                        `Ada ${newItemsCount} request baru`;
+                    
+                    new Notification(notificationTitle, {
+                        body: notificationBody,
+                        icon: '/favicon.ico',
+                        tag: 'new-request'
+                    });
+                    
+                    // Update cooldown
+                    localStorage.setItem(cooldownKey, currentTime.toISOString());
+                }
             }
 
             // Function untuk menampilkan notifikasi dengan grouping
@@ -2127,49 +2189,6 @@
                     }
                 } else {
                     notificationCount.style.display = 'none';
-                }
-            }
-
-            // Function untuk initialize realtime notifications
-            function initializeRealtimeNotifications(userEmail) {
-                if (!userEmail) return;
-                
-                console.log(`Initializing realtime notifications for: ${userEmail}`);
-                
-                // Clear existing listeners
-                notificationUnsubscribeFunctions.forEach(unsubscribe => unsubscribe());
-                notificationUnsubscribeFunctions = [];
-                
-                // Get all form types
-                const formTypes = ['atk', 'idcard', 'konsumsi', 'laptop', 'kartunama', 'feedback'];
-                
-                // Create realtime listeners for each form type
-                formTypes.forEach(formType => {
-                    const unsubscribe = db.collection(`requests_${formType}`)
-                        .orderBy('createdAt', 'desc')
-                        .limit(30)
-                        .onSnapshot((querySnapshot) => {
-                            console.log(`Realtime update for ${formType}`);
-                            loadAllUserNotifications(userEmail);
-                        }, (error) => {
-                            console.error(`Error in realtime listener for ${formType}:`, error);
-                        });
-                    
-                    notificationUnsubscribeFunctions.push(unsubscribe);
-                });
-                
-                // Real-time listener untuk user_notifications (khusus Ulan)
-                if (userEmail === 'ulandari@genetek.co.id') {
-                    const ulanUnsubscribe = db.collection('user_notifications')
-                        .where('userId', '==', 'ulandari@genetek.co.id')
-                        .onSnapshot((querySnapshot) => {
-                            console.log('Realtime update for Ulan notifications');
-                            loadAllUserNotifications(userEmail);
-                        }, (error) => {
-                            console.error('Error in Ulan notifications listener:', error);
-                        });
-                    
-                    notificationUnsubscribeFunctions.push(ulanUnsubscribe);
                 }
             }
 
@@ -2387,6 +2406,103 @@
                 return timestamp.toLocaleDateString('id-ID');
             }
 
+            // ========== OPTIMIZED REAL-TIME LISTENERS ==========
+
+            // Function untuk inisialisasi realtime listeners yang lebih efisien
+            function initializeOptimizedRealtimeListeners() {
+                console.log('Initializing optimized realtime listeners');
+                
+                // Real-time listener untuk semua form types di approved-by tab
+                const formTypes = ['atk', 'laptop'];
+                
+                formTypes.forEach(formType => {
+                    const unsubscribe = db.collection(`requests_${formType}`)
+                        .where('status', 'in', ['pending', 'approved'])
+                        .orderBy('createdAt', 'desc')
+                        .onSnapshot((snapshot) => {
+                            console.log(`Realtime update for ${formType} approved-by tab`);
+                            
+                            const activeFormSection = document.querySelector('.form-section.active');
+                            if (activeFormSection && activeFormSection.id === `form-${formType}`) {
+                                const activeTab = activeFormSection.querySelector('.form-tab.active');
+                                if (activeTab && activeTab.dataset.tab === 'approved-by') {
+                                    loadApprovedByRequests(formType);
+                                }
+                            }
+                            
+                            // Juga refresh requests list jika aktif
+                            if (activeFormSection && activeFormSection.id === `form-${formType}`) {
+                                const activeTab = activeFormSection.querySelector('.form-tab.active');
+                                if (activeTab && activeTab.dataset.tab === 'requests') {
+                                    loadRequests(formType);
+                                }
+                            }
+                        }, (error) => {
+                            console.error(`Error in approved-by listener for ${formType}:`, error);
+                        });
+                    
+                    notificationUnsubscribeFunctions.push(unsubscribe);
+                });
+            }
+
+            // ========== SISTEM NOTIFIKASI UNTUK ULAN - VERSI DISEMPURNAKAN ==========
+
+            // Fungsi untuk mengirim notifikasi ke Ulan ketika ada request GA baru
+            function sendNewRequestNotificationToUlan(formType, requestId, requestData) {
+                console.log(`Mengirim notifikasi ke Ulan untuk request ${formType} dengan ID: ${requestId}`);
+                
+                if (formType === 'atk') {
+                    const notificationData = {
+                        userId: 'ulandari@genetek.co.id',
+                        title: 'Request GA Baru',
+                        message: `Request GA baru dari ${requestData.nama} (${requestData.department}) - ${requestData.jenis} - Nilai: ${requestData.nilai}`,
+                        formType: formType,
+                        requestId: requestId,
+                        isRead: false,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        type: 'new_request',
+                        priority: 'high'
+                    };
+                    
+                    // Simpan notifikasi untuk Ulan di Firestore
+                    db.collection('user_notifications').add(notificationData)
+                    .then(() => {
+                        console.log('Notifikasi request baru BERHASIL dikirim ke Ulan');
+                    })
+                    .catch((error) => {
+                        console.error('Error mengirim notifikasi ke Ulan:', error);
+                    });
+                }
+            }
+
+            // Fungsi untuk mengirim notifikasi ke Ulan ketika request GA disetujui
+            function sendApprovalNotificationToUlan(formType, requestId, requestData) {
+                console.log(`Mengirim notifikasi persetujuan ke Ulan untuk request ${formType} dengan ID: ${requestId}`);
+                
+                if (formType === 'atk' && requestData.status === 'approved') {
+                    const notificationData = {
+                        userId: 'ulandari@genetek.co.id',
+                        title: 'Request GA Disetujui',
+                        message: `Request GA dari ${requestData.nama} (${requestData.department}) telah disetujui dan siap untuk diproses lebih lanjut.`,
+                        formType: formType,
+                        requestId: requestId,
+                        isRead: false,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        type: 'approval_notification',
+                        priority: 'high'
+                    };
+                    
+                    // Simpan notifikasi untuk Ulan di Firestore
+                    db.collection('user_notifications').add(notificationData)
+                    .then(() => {
+                        console.log('Notifikasi persetujuan BERHASIL dikirim ke Ulan');
+                    })
+                    .catch((error) => {
+                        console.error('Error mengirim notifikasi persetujuan ke Ulan:', error);
+                    });
+                }
+            }
+
             // ========== MAIN APPLICATION CODE ==========
 
             // Navigation handling
@@ -2475,6 +2591,7 @@
                         // Initialize realtime notifications
                         console.log('Initializing notifications for:', user.email);
                         initializeRealtimeNotifications(user.email);
+                        initializeOptimizedRealtimeListeners();
                         requestNotificationPermission();
                         
                         // Load notifikasi saat pertama login
@@ -3525,6 +3642,9 @@
                             }
                             formElement.style.display = 'block';
                         }, 3000);
+                        
+                        // Show success message
+                        showAlert('Permintaan berhasil diajukan!', 'success');
                     })
                     .catch((error) => {
                         console.error("Error adding document: ", error);
@@ -3604,42 +3724,6 @@
                     if (enableNotificationsBtn) enableNotificationsBtn.style.display = 'none';
                 }
             }
-
-            // Initialize realtime listeners for approved-by tab
-            function initializeRealtimeListeners() {
-                // Real-time listener untuk laptop requests
-                db.collection('requests_laptop')
-                    .where('status', 'in', ['pending', 'approved'])
-                    .onSnapshot((snapshot) => {
-                        const activeFormSection = document.querySelector('.form-section.active');
-                        if (activeFormSection && activeFormSection.id === 'form-laptop') {
-                            const activeTab = activeFormSection.querySelector('.form-tab.active');
-                            if (activeTab && activeTab.dataset.tab === 'approved-by') {
-                                loadApprovedByRequests('laptop');
-                            }
-                        }
-                    });
-                    
-                // Real-time listener untuk atk requests
-                db.collection('requests_atk')
-                    .where('status', 'in', ['pending', 'approved'])
-                    .onSnapshot((snapshot) => {
-                        const activeFormSection = document.querySelector('.form-section.active');
-                        if (activeFormSection && activeFormSection.id === 'form-atk') {
-                            const activeTab = activeFormSection.querySelector('.form-tab.active');
-                            if (activeTab && activeTab.dataset.tab === 'approved-by') {
-                                loadApprovedByRequests('atk');
-                            }
-                        }
-                    });
-            }
-
-            // Initialize realtime listeners after login
-            auth.onAuthStateChanged(user => {
-                if (user) {
-                    initializeRealtimeListeners();
-                }
-            });
         });
     </script>
 </body>
