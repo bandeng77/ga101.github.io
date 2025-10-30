@@ -1074,6 +1074,47 @@
             70% { box-shadow: 0 0 0 10px rgba(37, 211, 102, 0); }
             100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
         }
+
+        /* Checkbox group untuk jenis konsumsi */
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .checkbox-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background-color: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            transition: all 0.3s;
+        }
+
+        .checkbox-option:hover {
+            background-color: #f1f5f9;
+            border-color: var(--primary);
+        }
+
+        .checkbox-option input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+        }
+
+        .checkbox-option label {
+            margin: 0;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .checkbox-option.selected {
+            background-color: #e0f2fe;
+            border-color: var(--primary);
+            color: var(--primary);
+        }
     </style>
 </head>
 <body>
@@ -1367,7 +1408,7 @@
             </div>
         </section>
 
-        <!-- Form Request Konsumsi -->
+        <!-- Form Request Konsumsi - MODIFIED FOR MULTIPLE SELECTION -->
         <section id="form-konsumsi" class="form-section">
             <div class="form-header">
                 <h2 class="form-title"><i class="fas fa-utensils"></i> Form Request Konsumsi</h2>
@@ -1405,16 +1446,35 @@
                             <label for="konsumsi-jumlah-peserta">Jumlah Peserta</label>
                             <input type="number" id="konsumsi-jumlah-peserta" name="jumlah-peserta" min="1" required>
                         </div>
+                        <!-- MODIFIED: Changed from select to checkbox group -->
                         <div class="form-group">
-                            <label for="konsumsi-jenis">Jenis Konsumsi</label>
-                            <select id="konsumsi-jenis" name="jenis" required>
-                                <option value="">Pilih Jenis Konsumsi</option>
-                                <option value="Snack Box">Snack Box</option>
-                                <option value="Makan Siang">Makan Siang</option>
-                                <option value="Makan Malam">Makan Malam</option>
-                                <option value="Kopi/Teh">Kopi/Teh</option>
-                                <option value="Lainnya">Lainnya</option>
-                            </select>
+                            <label>Jenis Konsumsi</label>
+                            <div class="checkbox-group">
+                                <div class="checkbox-option">
+                                    <input type="checkbox" id="konsumsi-snack" name="jenis-konsumsi" value="Snack Box">
+                                    <label for="konsumsi-snack">Snack Box</label>
+                                </div>
+                                <div class="checkbox-option">
+                                    <input type="checkbox" id="konsumsi-makan-siang" name="jenis-konsumsi" value="Makan Siang">
+                                    <label for="konsumsi-makan-siang">Makan Siang</label>
+                                </div>
+                                <div class="checkbox-option">
+                                    <input type="checkbox" id="konsumsi-makan-malam" name="jenis-konsumsi" value="Makan Malam">
+                                    <label for="konsumsi-makan-malam">Makan Malam</label>
+                                </div>
+                                <div class="checkbox-option">
+                                    <input type="checkbox" id="konsumsi-kopi-teh" name="jenis-konsumsi" value="Kopi/Teh">
+                                    <label for="konsumsi-kopi-teh">Kopi/Teh</label>
+                                </div>
+                                <div class="checkbox-option">
+                                    <input type="checkbox" id="konsumsi-lainnya" name="jenis-konsumsi" value="Lainnya">
+                                    <label for="konsumsi-lainnya">Lainnya</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group" id="konsumsi-lainnya-detail" style="display: none;">
+                            <label for="konsumsi-lainnya-detail-input">Detail Konsumsi Lainnya</label>
+                            <input type="text" id="konsumsi-lainnya-detail-input" name="konsumsi-lainnya-detail" placeholder="Jelaskan jenis konsumsi lainnya">
                         </div>
                         <div class="form-group">
                             <label for="konsumsi-budget">Estimasi Budget per Orang (Opsional)</label>
@@ -3071,7 +3131,7 @@
                                     <div>Acara: ${request.acara}</div>
                                     <div>Tanggal: ${request.tanggal} • Waktu: ${request.waktu}</div>
                                     <div>Jumlah Peserta: ${request['jumlah-peserta']}</div>
-                                    <div>Jenis Konsumsi: ${request.jenis}</div>
+                                    <div>Jenis Konsumsi: ${Array.isArray(request.jenis) ? request.jenis.join(', ') : request.jenis}</div>
                                 `;
                             } else if (formType === 'laptop') {
                                 requestDetails = `
@@ -3608,6 +3668,25 @@
                     formObject[key] = value;
                 });
                 
+                // MODIFIED: Handle multiple selection for konsumsi jenis
+                if (formKey === 'konsumsi') {
+                    // Get selected jenis konsumsi from checkboxes
+                    const selectedKonsumsi = [];
+                    document.querySelectorAll('input[name="jenis-konsumsi"]:checked').forEach(checkbox => {
+                        if (checkbox.value === 'Lainnya') {
+                            const lainnyaDetail = document.getElementById('konsumsi-lainnya-detail-input').value;
+                            if (lainnyaDetail) {
+                                selectedKonsumsi.push(lainnyaDetail);
+                            }
+                        } else {
+                            selectedKonsumsi.push(checkbox.value);
+                        }
+                    });
+                    
+                    // Replace the single value with array
+                    formObject.jenis = selectedKonsumsi;
+                }
+                
                 // Add judul for the request
                 formObject.judul = getRequestTitle(formKey, formObject);
                 
@@ -3634,6 +3713,12 @@
                         
                         // Reset form fields
                         formElement.reset();
+                        
+                        // Reset checkbox styling
+                        updateCheckboxOptions();
+                        
+                        // Hide lainnya detail
+                        document.getElementById('konsumsi-lainnya-detail').style.display = 'none';
                         
                         // Auto hide confirmation after 3 seconds and show form again
                         setTimeout(() => {
@@ -3724,6 +3809,36 @@
                     if (enableNotificationsBtn) enableNotificationsBtn.style.display = 'none';
                 }
             }
+            
+            // MODIFIED: Update checkbox options styling
+            function updateCheckboxOptions() {
+                document.querySelectorAll('.checkbox-option').forEach(option => {
+                    const checkbox = option.querySelector('input[type="checkbox"]');
+                    if (checkbox.checked) {
+                        option.classList.add('selected');
+                    } else {
+                        option.classList.remove('selected');
+                    }
+                });
+            }
+            
+            // MODIFIED: Handle checkbox changes for konsumsi form
+            document.querySelectorAll('input[name="jenis-konsumsi"]').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    updateCheckboxOptions();
+                    
+                    // Show/hide lainnya detail input
+                    if (this.id === 'konsumsi-lainnya' && this.checked) {
+                        document.getElementById('konsumsi-lainnya-detail').style.display = 'block';
+                    } else if (this.id === 'konsumsi-lainnya' && !this.checked) {
+                        document.getElementById('konsumsi-lainnya-detail').style.display = 'none';
+                        document.getElementById('konsumsi-lainnya-detail-input').value = '';
+                    }
+                });
+            });
+            
+            // Initialize checkbox options
+            updateCheckboxOptions();
         });
     </script>
 </body>
