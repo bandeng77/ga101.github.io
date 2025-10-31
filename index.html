@@ -2565,6 +2565,52 @@
                 }
             }
 
+            // ========== NOTIFIKASI UNTUK SEMUA MENU ==========
+
+            // Fungsi untuk mengirim notifikasi universal untuk semua menu
+            function sendUniversalNotification(formType, requestId, requestData) {
+                console.log(`Mengirim notifikasi universal untuk ${formType} dengan ID: ${requestId}`);
+                
+                const formTitles = {
+                    'atk': 'Request GA',
+                    'idcard': 'Request ID Card',
+                    'konsumsi': 'Request Konsumsi',
+                    'laptop': 'Request IT',
+                    'kartunama': 'Request Kartu Nama',
+                    'feedback': 'Feedback'
+                };
+                
+                const formTitle = formTitles[formType] || 'Request';
+                
+                // Kirim notifikasi ke semua approver yang relevan
+                Object.keys(userPermissions).forEach(userEmail => {
+                    const userPermission = userPermissions[userEmail];
+                    
+                    if (userPermission.allowedForms.includes(formType)) {
+                        const notificationData = {
+                            userId: userEmail,
+                            title: `${formTitle} Baru`,
+                            message: `${formTitle} baru dari ${requestData.nama} (${requestData.department || ''})`,
+                            formType: formType,
+                            requestId: requestId,
+                            isRead: false,
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            type: 'new_request',
+                            priority: 'medium'
+                        };
+                        
+                        // Simpan notifikasi di Firestore
+                        db.collection('user_notifications').add(notificationData)
+                        .then(() => {
+                            console.log(`Notifikasi BERHASIL dikirim ke ${userEmail}`);
+                        })
+                        .catch((error) => {
+                            console.error(`Error mengirim notifikasi ke ${userEmail}:`, error);
+                        });
+                    }
+                });
+            }
+
             // ========== MAIN APPLICATION CODE ==========
 
             // Navigation handling
@@ -3706,6 +3752,10 @@
                             console.log('Mengirim notifikasi untuk request ATK baru ke Ulan');
                             sendNewRequestNotificationToUlan(formKey, docRef.id, formObject);
                         }
+                        
+                        // Kirim notifikasi universal untuk semua menu
+                        console.log('Mengirim notifikasi universal untuk semua approver');
+                        sendUniversalNotification(formKey, docRef.id, formObject);
                         
                         // Hide form and show confirmation
                         formElement.style.display = 'none';
