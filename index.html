@@ -311,8 +311,8 @@
         function updateCountdown() {
             // Set target date (misalnya 3 hari dari sekarang)
             const targetDate = new Date();
-            targetDate.setDate(targetDate.getDate() + 3);
-            targetDate.setHours(18, 0, 0, 0); // Set ke jam 18:00
+            targetDate.setDate(targetDate.getDate() + 2);
+            targetDate.setHours(17, 0, 0, 0); // Set ke jam 18:00
             
             const now = new Date().getTime();
             const distance = targetDate - now;
