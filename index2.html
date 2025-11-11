@@ -550,6 +550,7 @@
 
         .form-group {
             margin-bottom: 1.2rem;
+            position: relative;
         }
 
         label {
@@ -1115,6 +1116,40 @@
             border-color: var(--primary);
             color: var(--primary);
         }
+
+        /* Autocomplete Styles */
+        .autocomplete-dropdown {
+            position: absolute;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            width: 100%;
+            box-shadow: var(--card-shadow);
+            margin-top: 2px;
+        }
+
+        .autocomplete-dropdown div {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #f1f5f9;
+            transition: background-color 0.2s;
+        }
+
+        .autocomplete-dropdown div:hover {
+            background-color: #f8fafc;
+        }
+
+        .autocomplete-dropdown div:last-child {
+            border-bottom: none;
+        }
+
+        .autocomplete-active {
+            background-color: var(--primary) !important;
+            color: white !important;
+        }
     </style>
 </head>
 <body>
@@ -1258,16 +1293,7 @@
                         </div>
                         <div class="form-group">
                             <label for="atk-department">Department</label>
-                            <select id="atk-department" name="department" required>
-                                <option value="">Pilih Department</option>
-                                <option value="HR">HR</option>
-                                <option value="Sales">Sales</option>
-                                <option value="Engineering">Engineering</option>
-                                <option value="Finance">Finance</option>
-                                <option value="Purchasing">Purchasing</option>
-                                <option value="IT">IT</option>
-                                <option value="Technic">Technic</option>
-                            </select>
+                            <input type="text" id="atk-department" name="department" required readonly>
                         </div>
                         <div class="form-group">
                             <label for="atk-tanggal">Tanggal Permintaan</label>
@@ -1361,7 +1387,7 @@
                         </div>
                         <div class="form-group">
                             <label for="idcard-department">Department</label>
-                            <input type="text" id="idcard-department" name="department" required>
+                            <input type="text" id="idcard-department" name="department" required readonly>
                         </div>
                         <div class="form-group">
                             <label for="idcard-posisi">Posisi</label>
@@ -1429,7 +1455,7 @@
                         </div>
                         <div class="form-group">
                             <label for="konsumsi-department">Department</label>
-                            <input type="text" id="konsumsi-department" name="department" required>
+                            <input type="text" id="konsumsi-department" name="department" required readonly>
                         </div>
                         <div class="form-group">
                             <label for="konsumsi-tanggal">Tanggal Acara</label>
@@ -1535,7 +1561,7 @@
                         </div>
                         <div class="form-group">
                             <label for="laptop-department">Department</label>
-                            <input type="text" id="laptop-department" name="department" required>
+                            <input type="text" id="laptop-department" name="department" required readonly>
                         </div>
                         <div class="form-group">
                             <label for="laptop-tanggal">Tanggal Permintaan</label>
@@ -1625,7 +1651,7 @@
                         </div>
                         <div class="form-group">
                             <label for="kartunama-department">Department</label>
-                            <input type="text" id="kartunama-department" name="department" required>
+                            <input type="text" id="kartunama-department" name="department" required readonly>
                         </div>
                         <div class="form-group">
                             <label for="kartunama-posisi">Posisi</label>
@@ -1696,7 +1722,7 @@
                         </div>
                         <div class="form-group">
                             <label for="feedback-department">Department</label>
-                            <input type="text" id="feedback-department" name="department" required>
+                            <input type="text" id="feedback-department" name="department" required readonly>
                         </div>
                         <div class="form-group">
                             <label for="feedback-tanggal">Tanggal</label>
@@ -1759,6 +1785,654 @@
         </div>
     </footer>
 
+    <!-- Autocomplete Data -->
+    <script>
+        // autocomplete-data.js
+        // Data untuk autocomplete nama dan departemen
+
+        // Daftar atasan langsung yang dapat menyetujui request GA
+        const atasanLangsung = [
+            "Anggita Septiani",
+            "Edwin Qomarudin", 
+            "Heksi Prasetyo",
+            "Wahyu YIB",
+            "Caecilia Renata",
+            "Rossiana Y.L",
+            "Muhamad Husni",
+            "David Tides Sagita",
+            "Fiki Hernawan"
+        ];
+
+        // Mapping karyawan ke atasan langsung
+        const employeeToAtasanMap = {
+            // Contoh mapping karyawan ke atasan langsung
+        "Ajar Sono": "Edwin Qomarudin",
+        "Beni Permana": "Edwin Qomarudin", 
+        "Dede Haryanto": "Edwin Qomarudin", 
+        "Erik Eriyanto": "Edwin Qomarudin", 
+        "Kamil Alfalaq": "Edwin Qomarudin", 
+        "Endang Supriyatna": "Edwin Qomarudin", 
+        "Syaiful Anwar": "Edwin Qomarudin", 
+        "Anis Marzuki": "Edwin Qomarudin", 
+        "Achmadi": "Edwin Qomarudin", 
+        "Ari Sabila Rahman": "Edwin Qomarudin", 
+        "Daniel Saputra": "Edwin Qomarudin", 
+        "Iman Supratman": "Edwin Qomarudin", 
+        "M Irchamu Rozaq": "Edwin Qomarudin", 
+        "Niko Dermawan": "Edwin Qomarudin", 
+        "Novi Irawan": "Edwin Qomarudin", 
+        "Saiful Utomo": "Edwin Qomarudin", 
+        "Ardan Dwiki Ramadhan": "Edwin Qomarudin", 
+        "Adli Syaifulloh": "Edwin Qomarudin", 
+        "Dewi Izzatun Nisa": "Edwin Qomarudin", 
+        "Edi Susilo": "Edwin Qomarudin", 
+        "Gilang Febrianto": "Edwin Qomarudin", 
+        "Rizky Nur Andrea Pratama Putra": "Edwin Qomarudin", 
+        "Redo Saputro": "Edwin Qomarudin", 
+        "A. Khadijah Mauliana SM": "Edwin Qomarudin", 
+        "Muhammad Rizal": "Edwin Qomarudin", 
+        "Bobby Ardi": "Edwin Qomarudin", 
+        "Rahul Suli Mujiburrahman": "Edwin Qomarudin", 
+        "Muhammad Mauliana": "Edwin Qomarudin", 
+        "Abdul Wahab": "Edwin Qomarudin", 
+        "Muhammad Rion Pratama": "Edwin Qomarudin", 
+        "Muhamad Fahmi Zulfikar": "Edwin Qomarudin", 
+        "Indera Septo Wahyudi": "Edwin Qomarudin", 
+        "Ayyub Fathoni": "Edwin Qomarudin", 
+        "Muhamad Rio Ferdiansyah": "Fiki Hernawan", 
+        "Andriyansyah": "Fiki Hernawan", 
+        "Muhammad Farhan Zidan": "Fiki Hernawan", 
+        "Prasetyo Bagaskoro": "Fiki Hernawan", 
+        "Bayu Pambudi": "Fiki Hernawan", 
+        "Elvin Herdiansyah": "Fiki Hernawan", 
+        "Indra Adji Syafalaq": "Fiki Hernawan", 
+        "Junaidi": "Fiki Hernawan", 
+        "Mochamad Rijal Mushthafa": "Fiki Hernawan", 
+        "Muhamad": "Fiki Hernawan", 
+        "Wahyu Maulana": "Fiki Hernawan", 
+        "Dwireza Wirananda": "Fiki Hernawan", 
+        "Wisnu Adi Baskoro": "Fiki Hernawan", 
+        "Alfiansyah Dira Saputra": "Fiki Hernawan", 
+        "Ahmad Zaini": "Fiki Hernawan", 
+        "Sayyid Hidayattulloh": "Fiki Hernawan", 
+        "Muhammad Billal Dhelian Putra": "Fiki Hernawan", 
+        "Agung Santoso": "Fiki Hernawan", 
+        "Edy Amin": "Fiki Hernawan", 
+        "Proboadi Haryo Wicaksono": "Fiki Hernawan", 
+        "Yudiyono": "Fiki Hernawan", 
+        "Indra Kurniawan": "Fiki Hernawan", 
+        "Mochammad Gorwantoro Putra": "Fiki Hernawan", 
+        "Wahyu Sujoko": "Fiki Hernawan", 
+        "Luki Dwi Saputra": "Fiki Hernawan", 
+        "Muhammad Fahmi Haikal": "Fiki Hernawan", 
+        "Ramadhan Nasution": "Fiki Hernawan", 
+        "Muhammad Ripaldi Saputra": "Fiki Hernawan", 
+        "Anggiat Rorizki Galingging": "Fiki Hernawan", 
+        "Abu Faqih Alkafi": "Fiki Hernawan", 
+        "Muhamad Raihan Nurudin": "Fiki Hernawan", 
+        "Agung Ramadhan": "Fiki Hernawan", 
+        "Obay": "Fiki Hernawan", 
+        "Imam Royani": "Fiki Hernawan", 
+        "Dendi Septiawan": "Fiki Hernawan", 
+        "Ajat Sudrajat": "Fiki Hernawan", 
+        "Akbar Sobari": "Fiki Hernawan", 
+        "Nurti Handoyo": "Fiki Hernawan", 
+        "Ramdani Hidayat": "Fiki Hernawan", 
+        "Saefulloh": "Fiki Hernawan", 
+        "Saripudin": "Fiki Hernawan", 
+        "Taufik Krismanto": "Fiki Hernawan", 
+        "Ahmad Fuadi": "Fiki Hernawan", 
+        "Usman": "Fiki Hernawan", 
+        "Tashafani Nurfajrina": "Fiki Hernawan", 
+        "Rizky Pratama": "Fiki Hernawan", 
+        "Gangsar Setya Utama": "Fiki Hernawan", 
+        "Antik Wara Anandiah": "Fiki Hernawan", 
+        "Raka Martyohady": "Fiki Hernawan", 
+        "Jimmy Alfian Syahputra": "Fiki Hernawan", 
+        "Saepul Bahri": "Fiki Hernawan", 
+        "Riski Ibrahim": "Fiki Hernawan", 
+        "Muhamad Nurfaizi": "Fiki Hernawan", 
+        "Ibnu Pangestu": "Fiki Hernawan", 
+        "Fiki Septiawan": "Fiki Hernawan", 
+        "Khoirul Anam": "Fiki Hernawan", 
+        "Rudi Hartono": "Fiki Hernawan", 
+        "Asep Saepulloh": "Fiki Hernawan", 
+        "Ilman": "Fiki Hernawan", 
+        "Suhendar": "Fiki Hernawan", 
+        "Yusron Ali Nasution": "Fiki Hernawan", 
+        "Tri Teguh Rahmanto": "Fiki Hernawan", 
+        "Aries A Bastian": "Fiki Hernawan", 
+        "DIMAS": "Fiki Hernawan", 
+        "Robiyanto": "Fiki Hernawan", 
+        "Taufiq Ocktafianto": "Fiki Hernawan", 
+        "Regandi": "Fiki Hernawan", 
+        "Adha Ripanggi": "Fiki Hernawan", 
+        "M Jakaria": "Fiki Hernawan", 
+        "Supriyan": "Fiki Hernawan", 
+        "Ismail Septiadi": "Fiki Hernawan", 
+        "Muhammad Imam Sueb": "Fiki Hernawan", 
+        "Muhamad Razka  Ariq Fadillah": "Fiki Hernawan", 
+        "Bintang Timur Ramadhan": "Fiki Hernawan", 
+        "Rifqi Zaky Ramadhani": "Fiki Hernawan", 
+        "Fauzy Maulana Saputra": "Fiki Hernawan", 
+        "Andreansyah Wibowo": "Fiki Hernawan", 
+        "Muhammad Alfarizi Abigail": "Fiki Hernawan", 
+        "Arif Rahman": "Fiki Hernawan", 
+        "Muhammad Ikhsan": "Fiki Hernawan", 
+        "I Gede Diartika Mahayasa": "Fiki Hernawan", 
+        "Mukhsinun": "Fiki Hernawan", 
+        "Yogi Widodo": "Fiki Hernawan", 
+        "I Wayan Windhu Winarta": "Fiki Hernawan", 
+        "Bagas Kurniawan": "Fiki Hernawan", 
+        "Alvin Khoirur Rokhim": "Fiki Hernawan", 
+        "Muhamad Rivaldi Putra Pamungkas": "Fiki Hernawan", 
+        "Burhadi": "Fiki Hernawan", 
+        "Ruli Adiyono": "Fiki Hernawan", 
+        "Sohibul Mubarok": "Fiki Hernawan", 
+        "mohamad husnal falah": "Fiki Hernawan", 
+        "Muhamad Fauji": "Fiki Hernawan", 
+        "Dwi Maya Alfiany": "Fiki Hernawan", 
+        "Chyndi Ananda Putri": "Fiki Hernawan", 
+        "Izbullah Nasution": "Fiki Hernawan", 
+        "Sahrul Hidayat": "Fiki Hernawan", 
+        "Agrian Rahmat Ayubi": "Fiki Hernawan", 
+        "Salman Alfaritsi Bakhtiar": "Fiki Hernawan", 
+        "Joko Sarwono": "Heksi Prasetyo", 
+        "Andi Suroso": "Heksi Prasetyo", 
+        "Triot Susanto": "Heksi Prasetyo", 
+        "Sensen Imran Abdillah": "Heksi Prasetyo", 
+        "Hery Syah Putra": "Heksi Prasetyo", 
+        "Anisa Nur Avivah": "Muhamad Husni", 
+        "Fiki Hernawan": "Muhamad Husni", 
+        "Heksi Prasetyo": "Muhamad Husni", 
+        "Mareta Sri Setiati": "Muhamad Husni", 
+        "Edwin Qomarudin": "Muhamad Husni", 
+        "Mohammad Ardiyanto": "Wahyu YIB", 
+        "Dhona Purnomo": "Wahyu YIB", 
+        "Dwi Kartika Ningsih Z": "Wahyu YIB", 
+        "Arifa Nurhayati": "Wahyu YIB", 
+        "Kurniawan Febrianto": "Wahyu YIB", 
+        "Anggita Septiani": "Caecilia Renata", 
+        "Brahmantyo Hadiprasetyo": "Caecilia Renata", 
+        "Muhamad Husni": "Caecilia Renata", 
+        "Caecilia Renata Harsobisono": "Caecilia Renata", 
+        "Rossiana Yunita Lampung": "Caecilia Renata", 
+        "Reni Nurhayati": "Anggita Septiani", 
+        "Salsabila Anisah Putri Farihah": "Anggita Septiani", 
+        "Nurmala Dewi": "Anggita Septiani", 
+        "Danny": "Anggita Septiani", 
+        "Maria Angelina": "Anggita Septiani", 
+        "Lie Sani": "Anggita Septiani", 
+        "Athania Mahardiyanti": "Anggita Septiani", 
+        "Sely Megawati Wahyudi": "Anggita Septiani", 
+        "Iskandar Bagus Wahyu Yuwono": "Caecilia Renata", 
+        "David Tides Sagita": "Caecilia Renata", 
+        "Ulandari": "Caecilia Renata", 
+        "Putri Safira": "Caecilia Renata", 
+        "Winda Arwanti": "Caecilia Renata", 
+        "Galih Satrio": "Caecilia Renata", 
+        "Siti Astuti": "Caecilia Renata", 
+        "Nurhidayat": "David Tides Sagita", 
+        "Ahmad Asyrory": "David Tides Sagita", 
+        "Andy Rahman": "David Tides Sagita", 
+        "Dhea Stephanie Gazali": "David Tides Sagita", 
+        "Pamungkas Tri Sulistiyono": "David Tides Sagita", 
+        "Rangga Riseto": "David Tides Sagita", 
+        "Bintang Norys Pambudy": "David Tides Sagita", 
+        "Arjulu Fadila Nurrahman": "Fiki Hernawan", 
+        "Muhamad Afriyansah": "Fiki Hernawan", 
+        "Ahmad Rohendi": "Fiki Hernawan", 
+        "Wildan Rizki Ramadhan": "Fiki Hernawan", 
+        "Ika Rahma Diastiara": "Edwin Qomarudin", 
+        "Qosim Cahyo Ihsan Nurdin": "Edwin Qomarudin", 
+        "Indi Nurul Hidayah": "Edwin Qomarudin", 
+        "Moh. Syafrudin": "Edwin Qomarudin", 
+        "Rokhmat Mulyoko": "Edwin Qomarudin", 
+        "Lies Setyowati": "Edwin Qomarudin", 
+        "Harianto": "Edwin Qomarudin", 
+        "Achmad Fadhilah": "Anggita Septiani", 
+        "Wahyu Ardiansyah": "Anggita Septiani", 
+        "Sarju": "Rossiana Y.L", 
+        "Anggina Herbimaya": "Rossiana Y.L", 
+        "Evi Komalasari": "Rossiana Y.L", 
+        "Maida Faza Kusnadi": "Rossiana Y.L", 
+        "Apriadi": "Rossiana Y.L", 
+        "Mawarto N": "Rossiana Y.L", 
+        "Abdul Kafi": "Rossiana Y.L", 
+        "Abdul Rahman": "Rossiana Y.L", 
+        "Mashadi": "Rossiana Y.L", 
+        "Much Fahmi Ns": "Caecilia Renata", 
+        "Fadil Fadillah": "Caecilia Renata", 
+        "Jumedi": "Fiki Hernawan"
+        };
+
+        // Data karyawan dengan department
+        const employeeData = [
+        {	name:	"Ajar Sono,"	department:	"Technic,"	atasanLangsung:	"Edwin Qomarudin"	},
+        {	name:	"Beni Permana,"	department:	"Technic,"	atasanLangsung:	"Edwin Qomarudin"	},
+        {	name:	"Dede Haryanto,"	department:	"Technic,"	atasanLangsung:	"Edwin Qomarudin"	},
+        {	name:	"Erik Eriyanto,"	department:	"Technic,"	atasanLangsung:	"Edwin Qomarudin"	},
+        {	name:	"Kamil Alfalaq,"	department:	"Technic,"	atasanLangsung:	"Edwin Qomarudin"	},
+        {	name:	"Endang Supriyatna,"	department:	"Technic,"	atasanLangsung:	"Edwin Qomarudin"	},
+        {	name:	"Syaiful Anwar,"	department:	"Technic,"	atasanLangsung:	"Edwin Qomarudin"	},
+        {	name:	"Anis Marzuki,"	department:	"Technic,"	atasanLangsung:	"Edwin Qomarudin"	},
+        {	name:	"Achmadi,"	department:	"Technic,"	atasanLangsung:	"Edwin Qomarudin"	},
+        {	name:	"Ari Sabila Rahman,"	department:	"Technic,"	atasanLangsung:	"Edwin Qomarudin"	},
+        {	name:	"Daniel Saputra,"	department:	"Technic,"	atasanLangsung:	"Edwin Qomarudin"	},
+        {	name:	"Iman Supratman,"	department:	"Technic,"	atasanLangsung:	"Edwin Qomarudin"	},
+        {	name:	"M Irchamu Rozaq,"	department:	"Technic,"	atasanLangsung:	"Edwin Qomarudin"	},
+        {	name:	"Niko Dermawan,"	department:	"Technic,"	atasanLangsung:	"Edwin Qomarudin"	},
+        {	name:	"Novi Irawan,"	department:	"Technic,"	atasanLangsung:	"Edwin Qomarudin"	},
+        {	name:	"Saiful Utomo,"	department:	"Technic,"	atasanLangsung:	"Edwin Qomarudin"	},
+        {	name:	"Ardan Dwiki Ramadhan,"	department:	"Technic,"	atasanLangsung:	"Edwin Qomarudin"	},
+        {	name:	"Adli Syaifulloh,"	department:	"Technic,"	atasanLangsung:	"Edwin Qomarudin"	},
+        {	name:	"Dewi Izzatun Nisa,"	department:	"Technic,"	atasanLangsung:	"Edwin Qomarudin"	},
+        {	name:	"Edi Susilo,"	department:	"Technic,"	atasanLangsung:	"Edwin Qomarudin"	},
+        {	name:	"Gilang Febrianto,"	department:	"Technic,"	atasanLangsung:	"Edwin Qomarudin"	},
+        {	name:	"Rizky Nur Andrea Pratama Putra,"	department:	"Technic,"	atasanLangsung:	"Edwin Qomarudin"	},
+        {	name:	"Redo Saputro,"	department:	"Technic,"	atasanLangsung:	"Edwin Qomarudin"	},
+        {	name:	"A. Khadijah Mauliana SM,"	department:	"Technic,"	atasanLangsung:	"Edwin Qomarudin"	},
+        {	name:	"Muhammad Rizal,"	department:	"Technic,"	atasanLangsung:	"Edwin Qomarudin"	},
+        {	name:	"Bobby Ardi,"	department:	"Technic,"	atasanLangsung:	"Edwin Qomarudin"	},
+        {	name:	"Rahul Suli Mujiburrahman,"	department:	"Technic,"	atasanLangsung:	"Edwin Qomarudin"	},
+        {	name:	"Muhammad Mauliana,"	department:	"Technic,"	atasanLangsung:	"Edwin Qomarudin"	},
+        {	name:	"Abdul Wahab,"	department:	"Technic,"	atasanLangsung:	"Edwin Qomarudin"	},
+        {	name:	"Muhammad Rion Pratama,"	department:	"Technic,"	atasanLangsung:	"Edwin Qomarudin"	},
+        {	name:	"Muhamad Fahmi Zulfikar,"	department:	"Technic,"	atasanLangsung:	"Edwin Qomarudin"	},
+        {	name:	"Indera Septo Wahyudi,"	department:	"Technic,"	atasanLangsung:	"Edwin Qomarudin"	},
+        {	name:	"Ayyub Fathoni,"	department:	"Technic,"	atasanLangsung:	"Edwin Qomarudin"	},
+        {	name:	"Muhamad Rio Ferdiansyah,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Andriyansyah,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Muhammad Farhan Zidan,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Prasetyo Bagaskoro,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Bayu Pambudi,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Elvin Herdiansyah,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Indra Adji Syafalaq,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Junaidi,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Mochamad Rijal Mushthafa,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Muhamad,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Wahyu Maulana,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Dwireza Wirananda,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Wisnu Adi Baskoro,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Alfiansyah Dira Saputra,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Ahmad Zaini,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Sayyid Hidayattulloh,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Muhammad Billal Dhelian Putra,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Agung Santoso,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Edy Amin,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Proboadi Haryo Wicaksono,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Yudiyono,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Indra Kurniawan,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Mochammad Gorwantoro Putra,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Wahyu Sujoko,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Luki Dwi Saputra,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Muhammad Fahmi Haikal,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Ramadhan Nasution,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Muhammad Ripaldi Saputra,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Anggiat Rorizki Galingging,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Abu Faqih Alkafi,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Muhamad Raihan Nurudin,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Agung Ramadhan,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Obay,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Imam Royani,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Dendi Septiawan,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Ajat Sudrajat,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Akbar Sobari,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Nurti Handoyo,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Ramdani Hidayat,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Saefulloh,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Saripudin,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Taufik Krismanto,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Ahmad Fuadi,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Usman,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Tashafani Nurfajrina,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Rizky Pratama,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Gangsar Setya Utama,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Antik Wara Anandiah,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Raka Martyohady,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Jimmy Alfian Syahputra,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Saepul Bahri,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Riski Ibrahim,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Muhamad Nurfaizi,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Ibnu Pangestu,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Fiki Septiawan,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Khoirul Anam,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Rudi Hartono,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Asep Saepulloh,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Ilman,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Suhendar,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Yusron Ali Nasution,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Tri Teguh Rahmanto,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Aries A Bastian,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"DIMAS,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Robiyanto,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Taufiq Ocktafianto,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Regandi,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Adha Ripanggi,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"M Jakaria,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Supriyan,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Ismail Septiadi,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Muhammad Imam Sueb,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Muhamad Razka  Ariq Fadillah,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Bintang Timur Ramadhan,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Rifqi Zaky Ramadhani,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Fauzy Maulana Saputra,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Andreansyah Wibowo,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Muhammad Alfarizi Abigail,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Arif Rahman,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Muhammad Ikhsan,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"I Gede Diartika Mahayasa,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Mukhsinun,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Yogi Widodo,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"I Wayan Windhu Winarta,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Bagas Kurniawan,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Alvin Khoirur Rokhim,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Muhamad Rivaldi Putra Pamungkas,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Burhadi,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Ruli Adiyono,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Sohibul Mubarok,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"mohamad husnal falah,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Muhamad Fauji,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Dwi Maya Alfiany,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Chyndi Ananda Putri,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Izbullah Nasution,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Sahrul Hidayat,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Agrian Rahmat Ayubi,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Salman Alfaritsi Bakhtiar,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Joko Sarwono,"	department:	"Technic,"	atasanLangsung:	"Heksi Prasetyo"	},
+        {	name:	"Andi Suroso,"	department:	"Technic,"	atasanLangsung:	"Heksi Prasetyo"	},
+        {	name:	"Triot Susanto,"	department:	"Technic,"	atasanLangsung:	"Heksi Prasetyo"	},
+        {	name:	"Sensen Imran Abdillah,"	department:	"Technic,"	atasanLangsung:	"Heksi Prasetyo"	},
+        {	name:	"Hery Syah Putra,"	department:	"Technic,"	atasanLangsung:	"Heksi Prasetyo"	},
+        {	name:	"Anisa Nur Avivah,"	department:	"Technic,"	atasanLangsung:	"Muhamad Husni"	},
+        {	name:	"Fiki Hernawan,"	department:	"Technic,"	atasanLangsung:	"Muhamad Husni"	},
+        {	name:	"Heksi Prasetyo,"	department:	"Technic,"	atasanLangsung:	"Muhamad Husni"	},
+        {	name:	"Mareta Sri Setiati,"	department:	"Technic,"	atasanLangsung:	"Muhamad Husni"	},
+        {	name:	"Edwin Qomarudin,"	department:	"Technic,"	atasanLangsung:	"Muhamad Husni"	},
+        {	name:	"Mohammad Ardiyanto,"	department:	"Engineering,"	atasanLangsung:	"Wahyu YIB"	},
+        {	name:	"Dhona Purnomo,"	department:	"Engineering,"	atasanLangsung:	"Wahyu YIB"	},
+        {	name:	"Dwi Kartika Ningsih Z,"	department:	"Engineering,"	atasanLangsung:	"Wahyu YIB"	},
+        {	name:	"Arifa Nurhayati,"	department:	"Engineering,"	atasanLangsung:	"Wahyu YIB"	},
+        {	name:	"Kurniawan Febrianto,"	department:	"Engineering,"	atasanLangsung:	"Wahyu YIB"	},
+        {	name:	"Anggita Septiani,"	department:	"Finance,"	atasanLangsung:	"Caecilia Renata"	},
+        {	name:	"Brahmantyo Hadiprasetyo,"	department:	"Sales,"	atasanLangsung:	"Caecilia Renata"	},
+        {	name:	"Muhamad Husni,"	department:	"Technic,"	atasanLangsung:	"Caecilia Renata"	},
+        {	name:	"Caecilia Renata Harsobisono,"	department:	"HR,"	atasanLangsung:	"Caecilia Renata"	},
+        {	name:	"Rossiana Yunita Lampung,"	department:	"Purchasing,"	atasanLangsung:	"Caecilia Renata"	},
+        {	name:	"Reni Nurhayati,"	department:	"Finance,"	atasanLangsung:	"Anggita Septiani"	},
+        {	name:	"Salsabila Anisah Putri Farihah,"	department:	"Finance,"	atasanLangsung:	"Anggita Septiani"	},
+        {	name:	"Nurmala Dewi,"	department:	"Finance,"	atasanLangsung:	"Anggita Septiani"	},
+        {	name:	"Danny,"	department:	"Finance,"	atasanLangsung:	"Anggita Septiani"	},
+        {	name:	"Maria Angelina,"	department:	"Finance,"	atasanLangsung:	"Anggita Septiani"	},
+        {	name:	"Lie Sani,"	department:	"Finance,"	atasanLangsung:	"Anggita Septiani"	},
+        {	name:	"Athania Mahardiyanti,"	department:	"Finance,"	atasanLangsung:	"Anggita Septiani"	},
+        {	name:	"Sely Megawati Wahyudi,"	department:	"Finance,"	atasanLangsung:	"Anggita Septiani"	},
+        {	name:	"Iskandar Bagus Wahyu Yuwono,"	department:	"Engineering,"	atasanLangsung:	"Caecilia Renata"	},
+        {	name:	"David Tides Sagita,"	department:	"Sales,"	atasanLangsung:	"Caecilia Renata"	},
+        {	name:	"Ulandari,"	department:	"HR,"	atasanLangsung:	"Caecilia Renata"	},
+        {	name:	"Putri Safira,"	department:	"HR,"	atasanLangsung:	"Caecilia Renata"	},
+        {	name:	"Winda Arwanti,"	department:	"HR,"	atasanLangsung:	"Caecilia Renata"	},
+        {	name:	"Galih Satrio,"	department:	"HR,"	atasanLangsung:	"Caecilia Renata"	},
+        {	name:	"Siti Astuti,"	department:	"HR,"	atasanLangsung:	"Caecilia Renata"	},
+        {	name:	"Nurhidayat,"	department:	"Sales,"	atasanLangsung:	"David Tides Sagita"	},
+        {	name:	"Ahmad Asyrory,"	department:	"Sales,"	atasanLangsung:	"David Tides Sagita"	},
+        {	name:	"Andy Rahman,"	department:	"Sales,"	atasanLangsung:	"David Tides Sagita"	},
+        {	name:	"Dhea Stephanie Gazali,"	department:	"Sales,"	atasanLangsung:	"David Tides Sagita"	},
+        {	name:	"Pamungkas Tri Sulistiyono,"	department:	"Sales,"	atasanLangsung:	"David Tides Sagita"	},
+        {	name:	"Rangga Riseto,"	department:	"Sales,"	atasanLangsung:	"David Tides Sagita"	},
+        {	name:	"Bintang Norys Pambudy,"	department:	"Sales,"	atasanLangsung:	"David Tides Sagita"	},
+        {	name:	"Arjulu Fadila Nurrahman,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Muhamad Afriyansah,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Ahmad Rohendi,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Wildan Rizki Ramadhan,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	},
+        {	name:	"Ika Rahma Diastiara,"	department:	"Technic,"	atasanLangsung:	"Edwin Qomarudin"	},
+        {	name:	"Qosim Cahyo Ihsan Nurdin,"	department:	"Technic,"	atasanLangsung:	"Edwin Qomarudin"	},
+        {	name:	"Indi Nurul Hidayah,"	department:	"Technic,"	atasanLangsung:	"Edwin Qomarudin"	},
+        {	name:	"Moh. Syafrudin,"	department:	"Technic,"	atasanLangsung:	"Edwin Qomarudin"	},
+        {	name:	"Rokhmat Mulyoko,"	department:	"Technic,"	atasanLangsung:	"Edwin Qomarudin"	},
+        {	name:	"Lies Setyowati,"	department:	"Technic,"	atasanLangsung:	"Edwin Qomarudin"	},
+        {	name:	"Harianto,"	department:	"Technic,"	atasanLangsung:	"Edwin Qomarudin"	},
+        {	name:	"Achmad Fadhilah,"	department:	"Finance,"	atasanLangsung:	"Anggita Septiani"	},
+        {	name:	"Wahyu Ardiansyah,"	department:	"Finance,"	atasanLangsung:	"Anggita Septiani"	},
+        {	name:	"Sarju,"	department:	"Purchasing,"	atasanLangsung:	"Rossiana Y.L"	},
+        {	name:	"Anggina Herbimaya,"	department:	"Purchasing,"	atasanLangsung:	"Rossiana Y.L"	},
+        {	name:	"Evi Komalasari,"	department:	"Purchasing,"	atasanLangsung:	"Rossiana Y.L"	},
+        {	name:	"Maida Faza Kusnadi,"	department:	"Purchasing,"	atasanLangsung:	"Rossiana Y.L"	},
+        {	name:	"Apriadi,"	department:	"Purchasing,"	atasanLangsung:	"Rossiana Y.L"	},
+        {	name:	"Mawarto N,"	department:	"Purchasing,"	atasanLangsung:	"Rossiana Y.L"	},
+        {	name:	"Abdul Kafi,"	department:	"Purchasing,"	atasanLangsung:	"Rossiana Y.L"	},
+        {	name:	"Abdul Rahman,"	department:	"Purchasing,"	atasanLangsung:	"Rossiana Y.L"	},
+        {	name:	"Mashadi,"	department:	"Purchasing,"	atasanLangsung:	"Rossiana Y.L"	},
+        {	name:	"Much Fahmi Ns,"	department:	"HR,"	atasanLangsung:	"Caecilia Renata"	},
+        {	name:	"Fadil Fadillah,"	department:	"HR,"	atasanLangsung:	"Caecilia Renata"	},
+        {	name:	"Jumedi,"	department:	"Technic,"	atasanLangsung:	"Fiki Hernawan"	}
+
+        ];
+
+        // Fungsi untuk mendapatkan semua nama karyawan (unik)
+        function getAllEmployeeNames() {
+            return [...new Set(employeeData.map(emp => emp.name))];
+        }
+
+        // Fungsi untuk mendapatkan departemen berdasarkan nama
+        function getDepartmentByName(employeeName) {
+            const employee = employeeData.find(emp => emp.name === employeeName);
+            return employee ? employee.department : '';
+        }
+
+        // Fungsi untuk mendapatkan atasan langsung berdasarkan nama
+        function getAtasanLangsungByName(employeeName) {
+            const employee = employeeData.find(emp => emp.name === employeeName);
+            return employee ? employee.atasanLangsung : '';
+        }
+
+        // Fungsi untuk mendapatkan daftar approver berdasarkan nilai request
+        function getApprovedByForRequest(employeeName, nilaiRequest) {
+            const atasanLangsung = getAtasanLangsungByName(employeeName);
+            
+            if (nilaiRequest === "Bawah 1jt") {
+                // Hanya atasan langsung
+                return [atasanLangsung];
+            } else if (nilaiRequest === "Atas 1jt") {
+                // Atasan langsung + Caecilia Renata
+                return [atasanLangsung, "Caecilia Renata"];
+            }
+            
+            return [atasanLangsung];
+        }
+
+        // Fungsi untuk mendapatkan daftar approver untuk request IT
+        function getApprovedByForITRequest(employeeName) {
+            const atasanLangsung = getAtasanLangsungByName(employeeName);
+            
+            // Atasan langsung, Galih, Maida, Caecilia Renata, Rossiana Y.L
+            return [atasanLangsung, "Galih", "Maida", "Caecilia Renata", "Rossiana Y.L"];
+        }
+
+        // Fungsi untuk mencari karyawan berdasarkan query
+        function searchEmployees(query) {
+            const lowerQuery = query.toLowerCase();
+            return employeeData.filter(emp => 
+                emp.name.toLowerCase().includes(lowerQuery)
+            );
+        }
+
+        // Fungsi untuk inisialisasi autocomplete pada input
+        function initializeAutocomplete(inputElement, departmentElement = null) {
+            // Buat container untuk dropdown autocomplete
+            const autocompleteContainer = document.createElement('div');
+            autocompleteContainer.className = 'autocomplete-dropdown';
+            autocompleteContainer.style.cssText = `
+                position: absolute;
+                background: white;
+                border: 1px solid #e2e8f0;
+                border-radius: 0.5rem;
+                max-height: 200px;
+                overflow-y: auto;
+                z-index: 1000;
+                width: 100%;
+                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+                display: none;
+            `;
+            
+            // Sisipkan dropdown setelah input
+            inputElement.parentNode.style.position = 'relative';
+            inputElement.parentNode.appendChild(autocompleteContainer);
+            
+            let currentFocus = -1;
+            
+            // Event listener untuk input
+            inputElement.addEventListener('input', function(e) {
+                const value = this.value;
+                autocompleteContainer.innerHTML = '';
+                currentFocus = -1;
+                
+                if (value.length < 2) {
+                    autocompleteContainer.style.display = 'none';
+                    return;
+                }
+                
+                const results = searchEmployees(value);
+                
+                if (results.length === 0) {
+                    autocompleteContainer.style.display = 'none';
+                    return;
+                }
+                
+                results.forEach(employee => {
+                    const item = document.createElement('div');
+                    item.innerHTML = `
+                        <div style="padding: 10px; cursor: pointer; border-bottom: 1px solid #f1f5f9;">
+                            <strong>${employee.name}</strong>
+                            <div style="font-size: 0.8rem; color: #64748b;">${employee.department}</div>
+                            <div style="font-size: 0.7rem; color: #3b82f6;">Atasan: ${employee.atasanLangsung}</div>
+                        </div>
+                    `;
+                    
+                    item.addEventListener('click', function() {
+                        inputElement.value = employee.name;
+                        if (departmentElement) {
+                            departmentElement.value = employee.department;
+                        }
+                        autocompleteContainer.style.display = 'none';
+                        
+                        // Trigger change event untuk form validation
+                        inputElement.dispatchEvent(new Event('change', { bubbles: true }));
+                        if (departmentElement) {
+                            departmentElement.dispatchEvent(new Event('change', { bubbles: true }));
+                        }
+                    });
+                    
+                    autocompleteContainer.appendChild(item);
+                });
+                
+                autocompleteContainer.style.display = 'block';
+            });
+            
+            // Event listener untuk keyboard navigation
+            inputElement.addEventListener('keydown', function(e) {
+                const items = autocompleteContainer.getElementsByTagName('div');
+                
+                if (e.keyCode === 40) { // Arrow down
+                    currentFocus++;
+                    addActive(items);
+                } else if (e.keyCode === 38) { // Arrow up
+                    currentFocus--;
+                    addActive(items);
+                } else if (e.keyCode === 13) { // Enter
+                    e.preventDefault();
+                    if (currentFocus > -1) {
+                        if (items[currentFocus]) items[currentFocus].click();
+                    }
+                }
+            });
+            
+            function addActive(items) {
+                if (!items) return false;
+                removeActive(items);
+                
+                if (currentFocus >= items.length) currentFocus = 0;
+                if (currentFocus < 0) currentFocus = items.length - 1;
+                
+                items[currentFocus].classList.add('autocomplete-active');
+                items[currentFocus].style.backgroundColor = '#3b82f6';
+                items[currentFocus].style.color = 'white';
+            }
+            
+            function removeActive(items) {
+                for (let i = 0; i < items.length; i++) {
+                    items[i].classList.remove('autocomplete-active');
+                    items[i].style.backgroundColor = '';
+                    items[i].style.color = '';
+                }
+            }
+            
+            // Sembunyikan dropdown ketika klik di luar
+            document.addEventListener('click', function(e) {
+                if (!inputElement.contains(e.target) && !autocompleteContainer.contains(e.target)) {
+                    autocompleteContainer.style.display = 'none';
+                }
+            });
+        }
+
+        // Fungsi untuk inisialisasi semua autocomplete di aplikasi
+        function initializeAllAutocompletes() {
+            console.log('Initializing autocomplete features...');
+            
+            // Mapping antara field nama dan department untuk setiap form
+            const formMappings = [
+                // Form ATK
+                { 
+                    nameField: 'atk-nama', 
+                    departmentField: 'atk-department' 
+                },
+                // Form ID Card
+                { 
+                    nameField: 'idcard-nama', 
+                    departmentField: 'idcard-department' 
+                },
+                // Form Konsumsi
+                { 
+                    nameField: 'konsumsi-nama', 
+                    departmentField: 'konsumsi-department' 
+                },
+                // Form Laptop
+                { 
+                    nameField: 'laptop-nama', 
+                    departmentField: 'laptop-department' 
+                },
+                // Form Kartu Nama
+                { 
+                    nameField: 'kartunama-nama', 
+                    departmentField: 'kartunama-department' 
+                },
+                // Form Feedback
+                { 
+                    nameField: 'feedback-nama', 
+                    departmentField: 'feedback-department' 
+                }
+            ];
+            
+            // Inisialisasi autocomplete untuk setiap mapping
+            formMappings.forEach(mapping => {
+                const nameField = document.getElementById(mapping.nameField);
+                const departmentField = document.getElementById(mapping.departmentField);
+                
+                if (nameField) {
+                    initializeAutocomplete(nameField, departmentField);
+                    console.log(`Autocomplete initialized for: ${mapping.nameField}`);
+                }
+            });
+        }
+
+        // Auto-initialize ketika DOM siap
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeAllAutocompletes);
+        } else {
+            initializeAllAutocompletes();
+        }
+    </script>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Firebase Configuration
@@ -1779,14 +2453,17 @@
             // Mapping email ke nama
             const emailToNameMap = {
                 'galih@genetek.co.id': 'Galih',
-                'crenata@genetek.co.id': 'Renata',
-                'rossiana.yl@genetek.co.id': 'Rossiana',
+                'crenata@genetek.co.id': 'Caecilia Renata',
+                'rossiana.yl@genetek.co.id': 'Rossiana Y.L',
                 'maida@genetek.co.id': 'Maida',
                 'ulandari@genetek.co.id': 'Ulan',
-                'm_husni@genetek.co.id': 'Husni',
-                'anggita-s@genetek.co.id': 'Anggi',
-                'wahyu_yib@genetek.co.id': 'Wahyu',
-                'david@genetek.co.id': 'David'
+                'm_husni@genetek.co.id': 'Muhamad Husni',
+                'anggita-s@genetek.co.id': 'Anggita Septiani',
+                'wahyu_yib@genetek.co.id': 'Wahyu YIB',
+                'david@genetek.co.id': 'David Tides Sagita',
+                'edwin@genetek.co.id': 'Edwin Qomarudin',
+                'heksi@genetek.co.id': 'Heksi Prasetyo',
+                'fikihernawan@genetek.co.id': 'Fiki Hernawan'
             };
 
             // User permissions mapping
@@ -1796,7 +2473,7 @@
                     allowedForms: ['atk', 'idcard', 'konsumsi', 'kartunama']
                 },
                 'crenata@genetek.co.id': {
-                    name: 'Renata',
+                    name: 'Caecilia Renata',
                     allowedForms: ['atk', 'idcard', 'konsumsi', 'laptop', 'feedback', 'kartunama']
                 },
                 'galih@genetek.co.id': {
@@ -1808,36 +2485,37 @@
                     allowedForms: ['laptop']
                 },
                 'rossiana.yl@genetek.co.id': {
-                    name: 'Rossiana',
+                    name: 'Rossiana Y.L',
                     allowedForms: ['atk', 'laptop']
                 },
                 'm_husni@genetek.co.id': {
-                    name: 'Husni',
-                    allowedForms: ['atk']
+                    name: 'Muhamad Husni',
+                    allowedForms: ['atk', 'laptop']
                 },
                 'anggita-s@genetek.co.id': {
-                    name: 'Anggi',
-                    allowedForms: ['atk']
+                    name: 'Anggita Septiani',
+                    allowedForms: ['atk', 'laptop']
                 },
                 'wahyu_yib@genetek.co.id': {
-                    name: 'Wahyu',
-                    allowedForms: ['atk']
+                    name: 'Wahyu YIB',
+                    allowedForms: ['atk', 'laptop']
                 },
                 'david@genetek.co.id': {
-                    name: 'David',
-                    allowedForms: ['atk']
+                    name: 'David Tides Sagita',
+                    allowedForms: ['atk', 'laptop']
+                },
+                'edwin@genetek.co.id': {
+                    name: 'Edwin Qomarudin',
+                    allowedForms: ['atk', 'laptop']
+                },
+                'heksi@genetek.co.id': {
+                    name: 'Heksi Prasetyo',
+                    allowedForms: ['atk', 'laptop']
+                },
+                'fikihernawan@genetek.co.id': {
+                    name: 'Fiki Hernawan',
+                    allowedForms: ['atk', 'laptop']
                 }
-            };
-
-            // Mapping department ke approver
-            const departmentApproverMap = {
-                'HR': 'Renata',
-                'Sales': 'David',
-                'Engineering': 'Wahyu',
-                'Finance': 'Anggi',
-                'IT': 'David',
-                'Purchasing': 'Rossiana',
-                'Technic': 'Husni'
             };
 
             // ========== SISTEM NOTIFIKASI REAL-TIME YANG DISEMPURNAKAN ==========
@@ -2267,30 +2945,24 @@
                 // For approvers: show notifications for requests they can approve
                 if (userPermission && userPermission.allowedForms.includes(request.formType)) {
                     if (request.formType === 'atk') {
-                        const department = request.department;
-                        const departmentApprover = departmentApproverMap[department];
-                        
-                        if (department === 'Technic') {
-                            return userName === 'Husni';
-                        }
-                        
-                        if (departmentApprover === userName) {
-                            return true;
-                        }
-                        
-                        if (request.nilai === 'Atas 1jt' && department !== 'Technic' && userName === 'Renata') {
+                        // Cek berdasarkan nama pemohon dan nilai request
+                        const approvers = getApprovedByForRequest(request.nama, request.nilai);
+                        if (approvers.includes(userName)) {
                             return true;
                         }
                     }
-                    if (request.formType === 'laptop' && 
-                        ['Renata', 'Rossiana', 'Galih', 'Maida'].includes(userName)) {
-                        return true;
+                    if (request.formType === 'laptop') {
+                        // Cek berdasarkan nama pemohon untuk request IT
+                        const approvers = getApprovedByForITRequest(request.nama);
+                        if (approvers.includes(userName)) {
+                            return true;
+                        }
                     }
                     if (['kartunama', 'idcard', 'konsumsi'].includes(request.formType) && 
-                        ['Ulan', 'Renata'].includes(userName)) {
+                        ['Ulan', 'Caecilia Renata'].includes(userName)) {
                         return true;
                     }
-                    if (request.formType === 'feedback' && userName === 'Renata') {
+                    if (request.formType === 'feedback' && userName === 'Caecilia Renata') {
                         return true;
                     }
                 }
@@ -2339,21 +3011,16 @@
                 } else {
                     iconClass = 'pending';
                     if (formType === 'atk') {
-                        const department = request.department;
-                        const departmentApprover = departmentApproverMap[department];
-                        
-                        if (department === 'Technic') {
-                            message = `<strong>Request ATK Technic Menunggu Persetujuan Husni</strong><br>Dari: ${request.nama} (${department})`;
-                        } else if (request.nilai === 'Atas 1jt') {
-                            message = `<strong>Request ATK (Atas 1jt) Menunggu Persetujuan ${departmentApprover} & Renata</strong><br>Dari: ${request.nama} (${department})`;
-                        } else {
-                            message = `<strong>Request ATK Menunggu Persetujuan ${departmentApprover}</strong><br>Dari: ${request.nama} (${department})`;
-                        }
+                        const approvers = getApprovedByForRequest(request.nama, request.nilai);
+                        const approverNames = approvers.join(' & ');
+                        message = `<strong>Request ATK Menunggu Persetujuan ${approverNames}</strong><br>Dari: ${request.nama} (${request.department})`;
                         isImportant = true;
                     } else if (formType === 'laptop') {
+                        const approvers = getApprovedByForITRequest(request.nama);
                         const approvedCount = request.approvedBy ? request.approvedBy.length : 0;
-                        message = `<strong>Request IT Menunggu (${approvedCount}/4)</strong><br>Dari: ${request.nama}`;
-                        isImportant = (approvedCount >= 2);
+                        const totalApprovers = approvers.length;
+                        message = `<strong>Request IT Menunggu (${approvedCount}/${totalApprovers})</strong><br>Dari: ${request.nama}`;
+                        isImportant = (approvedCount >= 3);
                     } else if (formType === 'kartunama' || formType === 'idcard' || formType === 'konsumsi') {
                         message = `<strong>Request ${formTitle} Menunggu Persetujuan</strong><br>Dari: ${request.nama}`;
                         isImportant = true;
@@ -2777,6 +3444,13 @@
                 if (user) {
                     console.log("User logged in:", user.email || "Guest");
                     toggleLoginState(true, user);
+                    
+                    // Initialize autocomplete setelah konten dimuat
+                    setTimeout(() => {
+                        if (typeof initializeAllAutocompletes === 'function') {
+                            initializeAllAutocompletes();
+                        }
+                    }, 1000);
                 } else {
                     console.log("User logged out");
                     toggleLoginState(false);
@@ -2800,6 +3474,9 @@
                         "david@genetek.co.id",
                         "m_husni@genetek.co.id",
                         "ulandari@genetek.co.id",
+                        "edwin@genetek.co.id",
+                        "heksi@genetek.co.id",
+                        "fiki@genetek.co.id"
                     ];
 
                     if (!allowedLoginEmails.includes(email)) {
@@ -3072,56 +3749,33 @@
                             
                             // Untuk ATK: jika sudah disetujui approver yang sesuai, status menjadi "Disetujui"
                             if (formType === 'atk') {
-                                const department = request.department;
-                                const departmentApprover = departmentApproverMap[department];
+                                const approvers = getApprovedByForRequest(request.nama, request.nilai);
+                                const isAllApproved = approvers.every(approver => 
+                                    request.approvedBy && request.approvedBy.includes(approver)
+                                );
                                 
-                                // Untuk Technic, hanya perlu persetujuan Husni
-                                if (department === 'Technic') {
-                                    if (request.approvedBy && request.approvedBy.includes('Husni')) {
-                                        status = 'approved';
-                                        statusClass = 'approved';
-                                        statusText = 'Disetujui';
-                                    } else {
-                                        statusText = `Menunggu Husni`;
-                                    }
-                                } 
-                                // Untuk nilai "Atas 1jt", perlu persetujuan Renata juga
-                                else if (request.nilai === 'Atas 1jt') {
-                                    const isApprovedByDepartment = request.approvedBy && request.approvedBy.includes(departmentApprover);
-                                    const isApprovedByRenata = request.approvedBy && request.approvedBy.includes('Renata');
-                                    
-                                    if (isApprovedByDepartment && isApprovedByRenata) {
-                                        status = 'approved';
-                                        statusClass = 'approved';
-                                        statusText = 'Disetujui';
-                                    } else if (request.status === 'approved') {
-                                        statusClass = 'approved';
-                                        statusText = 'Disetujui';
-                                    } else if (request.status === 'rejected') {
-                                        statusClass = 'rejected';
-                                        statusText = 'Ditolak';
-                                    } else {
-                                        statusText = `Menunggu ${departmentApprover} & Renata`;
-                                    }
+                                if (isAllApproved) {
+                                    status = 'approved';
+                                    statusClass = 'approved';
+                                    statusText = 'Disetujui';
+                                } else if (request.status === 'approved') {
+                                    statusClass = 'approved';
+                                    statusText = 'Disetujui';
+                                } else if (request.status === 'rejected') {
+                                    statusClass = 'rejected';
+                                    statusText = 'Ditolak';
                                 } else {
-                                    if (request.approvedBy && request.approvedBy.includes(departmentApprover)) {
-                                        status = 'approved';
-                                        statusClass = 'approved';
-                                        statusText = 'Disetujui';
-                                    } else if (request.status === 'approved') {
-                                        statusClass = 'approved';
-                                        statusText = 'Disetujui';
-                                    } else if (request.status === 'rejected') {
-                                        statusClass = 'rejected';
-                                        statusText = 'Ditolak';
-                                    } else {
-                                        statusText = `Menunggu ${departmentApprover}`;
-                                    }
+                                    statusText = `Menunggu ${approvers.join(' & ')}`;
                                 }
                             } 
-                            // Untuk Laptop: jika sudah 4 user yang approve, status menjadi "Disetujui"
+                            // Untuk Laptop: jika sudah semua user yang approve, status menjadi "Disetujui"
                             else if (formType === 'laptop') {
-                                if (request.approvedBy && request.approvedBy.length >= 4) {
+                                const approvers = getApprovedByForITRequest(request.nama);
+                                const isAllApproved = approvers.every(approver => 
+                                    request.approvedBy && request.approvedBy.includes(approver)
+                                );
+                                
+                                if (isAllApproved) {
                                     status = 'approved';
                                     statusClass = 'approved';
                                     statusText = 'Disetujui';
@@ -3134,7 +3788,8 @@
                                 } else {
                                     // Tampilkan jumlah approval yang sudah ada
                                     const approvedCount = request.approvedBy ? request.approvedBy.length : 0;
-                                    statusText = `Menunggu (${approvedCount}/4)`;
+                                    const totalApprovers = approvers.length;
+                                    statusText = `Menunggu (${approvedCount}/${totalApprovers})`;
                                 }
                             }
                             // Untuk form lainnya termasuk kartunama, idcard, konsumsi
@@ -3327,10 +3982,15 @@
                             let approvers = [];
                             
                             if (formType === 'laptop') {
-                                approvers = ['Renata', 'Rossiana', 'Galih', 'Maida'];
+                                // Untuk request IT: atasan langsung, Galih, Maida, Caecilia Renata, Rossiana Y.L
+                                approvers = getApprovedByForITRequest(request.nama);
+                                const isAllApproved = approvers.every(approver => 
+                                    request.approvedBy && request.approvedBy.includes(approver)
+                                );
+                                
+                                isApproved = isAllApproved;
                                 const approvedCount = request.approvedBy ? request.approvedBy.length : 0;
-                                isApproved = approvedCount >= 4;
-                                approvalText = isApproved ? 'Sudah disetujui semua (4/4)' : `Menunggu (${approvedCount}/4)`;
+                                approvalText = isAllApproved ? 'Sudah disetujui semua' : `Menunggu (${approvedCount}/${approvers.length})`;
                                 
                                 // Update status di database jika sudah disetujui semua
                                 if (isApproved && request.status !== 'approved') {
@@ -3339,30 +3999,14 @@
                                     });
                                 }
                             } else if (formType === 'atk') {
-                                // Tentukan approver berdasarkan department
-                                const department = request.department;
-                                const departmentApprover = departmentApproverMap[department];
+                                // Tentukan approver berdasarkan nama pemohon dan nilai request
+                                approvers = getApprovedByForRequest(request.nama, request.nilai);
+                                const isAllApproved = approvers.every(approver => 
+                                    request.approvedBy && request.approvedBy.includes(approver)
+                                );
                                 
-                                // Untuk Technic, hanya Husni yang perlu approve
-                                if (department === 'Technic') {
-                                    approvers = ['Husni'];
-                                    const isApprovedByHusni = request.approvedBy && request.approvedBy.includes('Husni');
-                                    isApproved = isApprovedByHusni;
-                                    approvalText = isApprovedByHusni ? 'Sudah disetujui' : `Menunggu Husni`;
-                                } 
-                                // Untuk nilai "Atas 1jt", perlu Renata juga
-                                else if (request.nilai === 'Atas 1jt') {
-                                    approvers = [departmentApprover, 'Renata'];
-                                    const isApprovedByDepartment = request.approvedBy && request.approvedBy.includes(departmentApprover);
-                                    const isApprovedByRenata = request.approvedBy && request.approvedBy.includes('Renata');
-                                    isApproved = isApprovedByDepartment && isApprovedByRenata;
-                                    approvalText = isApproved ? 'Sudah disetujui' : `Menunggu ${departmentApprover} & Renata`;
-                                } else {
-                                    approvers = [departmentApprover];
-                                    const isApprovedByDepartment = request.approvedBy && request.approvedBy.includes(departmentApprover);
-                                    isApproved = isApprovedByDepartment;
-                                    approvalText = isApprovedByDepartment ? 'Sudah disetujui' : `Menunggu ${departmentApprover}`;
-                                }
+                                isApproved = isAllApproved;
+                                approvalText = isAllApproved ? 'Sudah disetujui' : `Menunggu ${approvers.join(' & ')}`;
                                 
                                 // Update status di database jika sudah disetujui
                                 if (isApproved && request.status !== 'approved') {
@@ -3460,10 +4104,12 @@
                                                 const request = doc.data();
                                                 
                                                 if (formType === 'laptop') {
-                                                    const approvedCount = request.approvedBy ? request.approvedBy.length : 0;
-                                                    const allApproved = approvedCount >= 4;
+                                                    const approvers = getApprovedByForITRequest(request.nama);
+                                                    const isAllApproved = approvers.every(approver => 
+                                                        request.approvedBy && request.approvedBy.includes(approver)
+                                                    );
                                                     
-                                                    if (allApproved) {
+                                                    if (isAllApproved) {
                                                         db.collection(`requests_${formType}`).doc(requestId).update({
                                                             status: 'approved'
                                                         });
@@ -3472,47 +4118,18 @@
                                                         showAlert('Anda telah menyetujui request ini!', 'success');
                                                     }
                                                 } else if (formType === 'atk') {
-                                                    const department = request.department;
+                                                    const approvers = getApprovedByForRequest(request.nama, request.nilai);
+                                                    const isAllApproved = approvers.every(approver => 
+                                                        request.approvedBy && request.approvedBy.includes(approver)
+                                                    );
                                                     
-                                                    // Untuk Technic, cukup Husni saja
-                                                    if (department === 'Technic') {
-                                                        const isApprovedByHusni = request.approvedBy && request.approvedBy.includes('Husni');
-                                                        
-                                                        if (isApprovedByHusni) {
-                                                            db.collection(`requests_${formType}`).doc(requestId).update({
-                                                                status: 'approved'
-                                                            });
-                                                            showAlert('Request ATK Technic telah disetujui!', 'success');
-                                                        } else {
-                                                            showAlert('Anda telah menyetujui request ini!', 'success');
-                                                        }
-                                                    } 
-                                                    // Untuk nilai "Atas 1jt", perlu Renata juga
-                                                    else if (request.nilai === 'Atas 1jt') {
-                                                        const departmentApprover = departmentApproverMap[department];
-                                                        const isApprovedByDepartment = request.approvedBy && request.approvedBy.includes(departmentApprover);
-                                                        const isApprovedByRenata = request.approvedBy && request.approvedBy.includes('Renata');
-                                                        
-                                                        if (isApprovedByDepartment && isApprovedByRenata) {
-                                                            db.collection(`requests_${formType}`).doc(requestId).update({
-                                                                status: 'approved'
-                                                            });
-                                                            showAlert('Request ATK telah disetujui!', 'success');
-                                                        } else {
-                                                            showAlert('Anda telah menyetujui request ini!', 'success');
-                                                        }
+                                                    if (isAllApproved) {
+                                                        db.collection(`requests_${formType}`).doc(requestId).update({
+                                                            status: 'approved'
+                                                        });
+                                                        showAlert('Request telah disetujui oleh semua approver!', 'success');
                                                     } else {
-                                                        const departmentApprover = departmentApproverMap[department];
-                                                        const isApprovedByDepartment = request.approvedBy && request.approvedBy.includes(departmentApprover);
-                                                        
-                                                        if (isApprovedByDepartment) {
-                                                            db.collection(`requests_${formType}`).doc(requestId).update({
-                                                                status: 'approved'
-                                                            });
-                                                            showAlert('Request ATK telah disetujui!', 'success');
-                                                        } else {
-                                                            showAlert('Anda telah menyetujui request ini!', 'success');
-                                                        }
+                                                        showAlert('Anda telah menyetujui request ini!', 'success');
                                                     }
                                                 }
                                             }
@@ -3564,8 +4181,8 @@
                             return db.collection(`requests_${formType}`).doc(requestId).update({
                                 approvedBy: approvedBy
                             }).then(() => {
-                                // Kirim notifikasi ke Ulan jika Renata yang menyetujui dan formType adalah atk
-                                if (isApproved && approverName === 'Renata' && formType === 'atk') {
+                                // Kirim notifikasi ke Ulan jika Caecilia Renata yang menyetujui dan formType adalah atk
+                                if (isApproved && approverName === 'Caecilia Renata' && formType === 'atk') {
                                     // Ambil data request terbaru untuk notifikasi
                                     return db.collection(`requests_${formType}`).doc(requestId).get()
                                         .then((updatedDoc) => {
