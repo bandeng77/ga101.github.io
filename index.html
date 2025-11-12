@@ -2226,27 +2226,43 @@
             return employee ? employee.atasanLangsung : '';
         }
 
-        // Fungsi untuk mendapatkan daftar approver berdasarkan nilai request
+        // Fungsi untuk mendapatkan daftar approver berdasarkan nilai request - MODIFIED FOR TECHNIC
         function getApprovedByForRequest(employeeName, nilaiRequest) {
             const atasanLangsung = getAtasanLangsungByName(employeeName);
+            const department = getDepartmentByName(employeeName);
             
-            if (nilaiRequest === "Bawah 1jt") {
-                // Hanya atasan langsung
-                return [atasanLangsung];
-            } else if (nilaiRequest === "Atas 1jt") {
-                // Atasan langsung + Caecilia Renata
-                return [atasanLangsung, "Caecilia Renata"];
+            // Untuk departemen Technic: tambahkan Muhamad Husni sebagai approver tambahan
+            if (department === "Technic") {
+                if (nilaiRequest === "Bawah 1jt") {
+                    // Atasan langsung + Muhamad Husni untuk Technic
+                    return [atasanLangsung, "Muhamad Husni"];
+                } else if (nilaiRequest === "Atas 1jt") {
+                    // Atasan langsung + Muhamad Husni + Caecilia Renata untuk Technic
+                    return [atasanLangsung, "Muhamad Husni", "Caecilia Renata"];
+                }
+            } else {
+                // Untuk departemen lain, tetap seperti semula
+                if (nilaiRequest === "Bawah 1jt") {
+                    return [atasanLangsung];
+                } else if (nilaiRequest === "Atas 1jt") {
+                    return [atasanLangsung, "Caecilia Renata"];
+                }
             }
             
             return [atasanLangsung];
         }
-
-        // Fungsi untuk mendapatkan daftar approver untuk request IT
+        // Fungsi untuk mendapatkan daftar approver untuk request IT - MODIFIED FOR TECHNIC
         function getApprovedByForITRequest(employeeName) {
             const atasanLangsung = getAtasanLangsungByName(employeeName);
+            const department = getDepartmentByName(employeeName);
             
-            // Atasan langsung, Galih, Maida, Caecilia Renata, Rossiana Y.L
-            return [atasanLangsung, "Galih", "Maida", "Caecilia Renata", "Rossiana Y.L"];
+            // Untuk departemen Technic: tambahkan Muhamad Husni
+            if (department === "Technic") {
+                return [atasanLangsung, "Muhamad Husni", "Galih", "Maida", "Caecilia Renata", "Rossiana Y.L"];
+            } else {
+                // Untuk departemen lain, tetap seperti semula
+                return [atasanLangsung, "Galih", "Maida", "Caecilia Renata", "Rossiana Y.L"];
+            }
         }
 
         // Fungsi untuk mencari karyawan berdasarkan query
