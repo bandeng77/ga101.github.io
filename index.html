@@ -3702,7 +3702,7 @@
                 }
             }
             
-            // Load requests for a specific form type from Firestore
+            // Load requests for a specific form type from Firestore - FILTERED BY APPROVER
             function loadRequests(formType) {
                 const requestsListContainer = document.getElementById(`${formType}-requests-list`);
                 if (!requestsListContainer) return;
@@ -3719,6 +3719,23 @@
                 const collectionName = `requests_${formType}`;
                 console.log(`Loading requests from collection: ${collectionName}`);
 
+                // Dapatkan informasi user yang sedang login
+                const currentUser = auth.currentUser;
+                const userEmail = currentUser ? currentUser.email : null;
+                const userName = userEmail ? emailToNameMap[userEmail] : null;
+                const isGuest = !userEmail || currentUser.isAnonymous;
+
+                // Jika user adalah guest, tidak perlu memuat request
+                if (isGuest) {
+                    requestsListContainer.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-user-slash"></i>
+                            <p>Fitur ini tidak tersedia untuk tamu</p>
+                        </div>
+                    `;
+                    return;
+                }
+
                 db.collection(collectionName)
                     .orderBy('createdAt', 'desc')
                     .get()
@@ -3730,18 +3747,46 @@
 
                         console.log(`Loaded ${requests.length} requests for ${formType}`, requests);
 
-                        if (requests.length === 0) {
+                        // Filter requests berdasarkan approver yang relevan
+                        const filteredRequests = requests.filter(request => {
+                            // Jika user adalah Ulan atau Caecilia Renata, tampilkan semua request untuk form tertentu
+                            if (['ulandari@genetek.co.id', 'crenata@genetek.co.id'].includes(userEmail)) {
+                                if (['kartunama', 'idcard', 'konsumsi'].includes(formType)) {
+                                    return true;
+                                }
+                            }
+                            
+                            // Untuk form ATK
+                            if (formType === 'atk') {
+                                const approvers = getApprovedByForRequest(request.nama, request.nilai);
+                                return approvers.includes(userName);
+                            }
+                            
+                            // Untuk form Laptop/IT
+                            if (formType === 'laptop') {
+                                const approvers = getApprovedByForITRequest(request.nama);
+                                return approvers.includes(userName);
+                            }
+                            
+                            // Untuk form lainnya, hanya tampilkan jika user adalah approver yang diizinkan
+                            const userPermission = userPermissions[userEmail];
+                            return userPermission && userPermission.allowedForms.includes(formType);
+                        });
+
+                        console.log(`Filtered to ${filteredRequests.length} requests for ${userName}`);
+
+                        if (filteredRequests.length === 0) {
                             requestsListContainer.innerHTML = `
                                 <div class="empty-state">
                                     <i class="fas fa-inbox"></i>
-                                    <p>Belum ada request ${getFormTitle(formType)}</p>
+                                    <p>Belum ada request ${getFormTitle(formType)} yang relevan untuk Anda</p>
                                 </div>
                             `;
                             return;
                         }
                         
                         requestsListContainer.innerHTML = '';
-                        requests.forEach((request, index) => {
+                        filteredRequests.forEach((request, index) => {
                             // LOGIKA STATUS: 
                             let status = request.status || 'pending';
                             let statusClass = 'pending';
@@ -3862,9 +3907,7 @@
                             }
                             
                             // Cek apakah user memiliki akses untuk mengubah status
-                            const currentUser = auth.currentUser;
-                            const userEmail = currentUser ? currentUser.email : null;
-                            const userPermission = userEmail ? userPermissions[userEmail] : null;
+                            const userPermission = userPermissions[userEmail];
                             const canEditStatus = userPermission && userPermission.allowedForms.includes(formType);
                             
                             // Buat dropdown untuk form kartunama, idcard, dan konsumsi
