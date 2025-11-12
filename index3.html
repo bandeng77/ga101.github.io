@@ -2226,19 +2226,31 @@
             return employee ? employee.atasanLangsung : '';
         }
 
-        // Fungsi untuk mendapatkan daftar approver berdasarkan nilai request - MODIFIED FOR TECHNIC
+        // PERUBAHAN: Fungsi untuk mendapatkan daftar approver berdasarkan nilai request - MODIFIED FOR TECHNIC (HINDARI DUPLIKASI HUSNI)
         function getApprovedByForRequest(employeeName, nilaiRequest) {
             const atasanLangsung = getAtasanLangsungByName(employeeName);
             const department = getDepartmentByName(employeeName);
             
             // Untuk departemen Technic: tambahkan Muhamad Husni sebagai approver tambahan
             if (department === "Technic") {
-                if (nilaiRequest === "Bawah 1jt") {
-                    // Atasan langsung + Muhamad Husni untuk Technic
-                    return [atasanLangsung, "Muhamad Husni"];
-                } else if (nilaiRequest === "Atas 1jt") {
-                    // Atasan langsung + Muhamad Husni + Caecilia Renata untuk Technic
-                    return [atasanLangsung, "Muhamad Husni", "Caecilia Renata"];
+                // PERUBAHAN: Cek apakah atasan langsung sudah Husni, jika ya tidak perlu tambahkan lagi
+                if (atasanLangsung === "Muhamad Husni") {
+                    // Jika atasan langsung sudah Husni, maka untuk Bawah 1jt cukup Husni saja
+                    if (nilaiRequest === "Bawah 1jt") {
+                        return [atasanLangsung]; // Hanya Husni
+                    } else if (nilaiRequest === "Atas 1jt") {
+                        // Untuk Atas 1jt: Husni + Caecilia Renata
+                        return [atasanLangsung, "Caecilia Renata"];
+                    }
+                } else {
+                    // Jika atasan langsung bukan Husni
+                    if (nilaiRequest === "Bawah 1jt") {
+                        // Atasan langsung + Muhamad Husni untuk Technic
+                        return [atasanLangsung, "Muhamad Husni"];
+                    } else if (nilaiRequest === "Atas 1jt") {
+                        // Atasan langsung + Muhamad Husni + Caecilia Renata untuk Technic
+                        return [atasanLangsung, "Muhamad Husni", "Caecilia Renata"];
+                    }
                 }
             } else {
                 // Untuk departemen lain, tetap seperti semula
@@ -2251,6 +2263,7 @@
             
             return [atasanLangsung];
         }
+
         // Fungsi untuk mendapatkan daftar approver untuk request IT - MODIFIED FOR TECHNIC
         function getApprovedByForITRequest(employeeName) {
             const atasanLangsung = getAtasanLangsungByName(employeeName);
@@ -3718,7 +3731,7 @@
                 }
             }
             
-            // Load requests for a specific form type from Firestore - FILTERED BY APPROVER
+            // PERUBAHAN: Load requests for a specific form type from Firestore - FILTERED BY APPROVER (HANYA YANG RELEVAN UNTUK USER SAAT INI)
             function loadRequests(formType) {
                 const requestsListContainer = document.getElementById(`${formType}-requests-list`);
                 if (!requestsListContainer) return;
@@ -3996,7 +4009,7 @@
                 return statusTexts[status] || status;
             }
 
-            // Fungsi untuk memuat daftar request yang perlu disetujui dari Firestore
+            // PERUBAHAN: Fungsi untuk memuat daftar request yang perlu disetujui dari Firestore (HANYA YANG RELEVAN UNTUK USER SAAT INI)
             function loadApprovedByRequests(formType) {
                 const approvedByListContainer = document.getElementById(`${formType}-approved-by-list`);
                 if (!approvedByListContainer) return;
@@ -4014,16 +4027,32 @@
                     .orderBy('createdAt', 'desc')
                     .get()
                     .then((querySnapshot) => {
-                        const pendingRequests = [];
+                        const allRequests = [];
                         querySnapshot.forEach((doc) => {
-                            pendingRequests.push({ id: doc.id, ...doc.data() });
+                            allRequests.push({ id: doc.id, ...doc.data() });
+                        });
+
+                        // Dapatkan informasi user yang sedang login
+                        const currentUserEmail = auth.currentUser ? auth.currentUser.email : null;
+                        const currentUserName = currentUserEmail ? emailToNameMap[currentUserEmail] : null;
+
+                        // PERUBAHAN: Filter request hanya yang memerlukan persetujuan dari user saat ini
+                        const pendingRequests = allRequests.filter(request => {
+                            if (formType === 'atk') {
+                                const approvers = getApprovedByForRequest(request.nama, request.nilai);
+                                return approvers.includes(currentUserName);
+                            } else if (formType === 'laptop') {
+                                const approvers = getApprovedByForITRequest(request.nama);
+                                return approvers.includes(currentUserName);
+                            }
+                            return false;
                         });
 
                         if (pendingRequests.length === 0) {
                             approvedByListContainer.innerHTML = `
                                 <div class="empty-state">
                                     <i class="fas fa-check-double"></i>
-                                    <p>Tidak ada request ${getFormTitle(formType)} yang menunggu persetujuan.</p>
+                                    <p>Tidak ada request ${getFormTitle(formType)} yang menunggu persetujuan Anda.</p>
                                 </div>
                             `;
                             return;
@@ -4031,9 +4060,6 @@
 
                         approvedByListContainer.innerHTML = '';
                         
-                        const currentUserEmail = auth.currentUser ? auth.currentUser.email : null;
-                        const currentUserName = currentUserEmail ? emailToNameMap[currentUserEmail] : null;
-
                         pendingRequests.forEach((request, index) => {
                             // LOGIKA STATUS: Cek apakah request sudah disetujui
                             let isApproved = false;
