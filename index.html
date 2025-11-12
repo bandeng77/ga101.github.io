@@ -3462,7 +3462,12 @@
                     }
                     
                     if (approvedTab) {
-                        approvedTab.style.display = userPermission.allowedForms.includes(formType) ? 'block' : 'none';
+                        // KHUSUS UNTUK ULAN - SEMBUNYIKAN TAB APPROVED BY
+                        if (userEmail === 'ulandari@genetek.co.id') {
+                            approvedTab.style.display = 'none';
+                        } else {
+                            approvedTab.style.display = userPermission.allowedForms.includes(formType) ? 'block' : 'none';
+                        }
                     }
                 });
             }
@@ -3784,7 +3789,10 @@
                                     return true;
                                 }
                             }
-                            
+                                if (userEmail === 'ulandari@genetek.co.id' && formType === 'atk') {
+                                    return true; // Ulan bisa melihat SEMUA request GA di tab Daftar Request
+                                }
+                                
                             // Untuk form ATK
                             if (formType === 'atk') {
                                 const approvers = getApprovedByForRequest(request.nama, request.nilai);
