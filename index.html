@@ -2264,17 +2264,26 @@
             return [atasanLangsung];
         }
 
-        // Fungsi untuk mendapatkan daftar approver untuk request IT - MODIFIED FOR TECHNIC
+        // PERUBAHAN: Fungsi untuk mendapatkan daftar approver untuk request IT - MODIFIED FOR TECHNIC (HINDARI DUPLIKASI HUSNI)
         function getApprovedByForITRequest(employeeName) {
             const atasanLangsung = getAtasanLangsungByName(employeeName);
             const department = getDepartmentByName(employeeName);
             
-            // Untuk departemen Technic: tambahkan Muhamad Husni
+            // Daftar approver tetap untuk semua departemen
+            const fixedApprovers = ["Galih", "Maida", "Caecilia Renata", "Rossiana Y.L"];
+            
+            // PERUBAHAN: Untuk departemen Technic, hindari duplikasi Husni
             if (department === "Technic") {
-                return [atasanLangsung, "Muhamad Husni", "Galih", "Maida", "Caecilia Renata", "Rossiana Y.L"];
+                // Jika atasan langsung sudah Husni, jangan tambahkan lagi
+                if (atasanLangsung === "Muhamad Husni") {
+                    return [atasanLangsung, ...fixedApprovers];
+                } else {
+                    // Jika atasan langsung bukan Husni, tambahkan Husni sebagai approver tambahan
+                    return [atasanLangsung, "Muhamad Husni", ...fixedApprovers];
+                }
             } else {
                 // Untuk departemen lain, tetap seperti semula
-                return [atasanLangsung, "Galih", "Maida", "Caecilia Renata", "Rossiana Y.L"];
+                return [atasanLangsung, ...fixedApprovers];
             }
         }
 
@@ -4075,7 +4084,7 @@
                             let approvers = [];
                             
                             if (formType === 'laptop') {
-                                // Untuk request IT: atasan langsung, Galih, Maida, Caecilia Renata, Rossiana Y.L
+                                // Untuk request IT: gunakan fungsi yang sudah diperbaiki
                                 approvers = getApprovedByForITRequest(request.nama);
                                 const isAllApproved = approvers.every(approver => 
                                     request.approvedBy && request.approvedBy.includes(approver)
