@@ -1540,7 +1540,7 @@
             </div>
         </section>
 
-        <!-- Form Request Laptop -->
+        <!-- Form Request Laptop - WITH SO FIELD -->
         <section id="form-laptop" class="form-section">
             <div class="form-header">
                 <h2 class="form-title"><i class="fas fa-laptop"></i> Form Request IT</h2>
@@ -1584,6 +1584,22 @@
                         <div class="form-group">
                             <label for="laptop-merk-model">Merk/Model (untuk perbaikan/penggantian)</label>
                             <input type="text" id="laptop-merk-model" name="merk-model" placeholder="Contoh: Dell Latitude 7420">
+                        </div>
+                        
+                        <!-- TAMBAHAN: Field SO -->
+                        <div class="form-group">
+                            <label for="laptop-so-ada">Apakah ada SO?</label>
+                            <select id="laptop-so-ada" name="so-ada" required>
+                                <option value="">Pilih</option>
+                                <option value="Ya">Ya</option>
+                                <option value="Tidak">Tidak</option>
+                            </select>
+                        </div>
+                        
+                        <!-- TAMBAHAN: Field Nomor SO (Awalnya Disembunyikan) -->
+                        <div class="form-group" id="laptop-no-so-container" style="display: none;">
+                            <label for="laptop-no-so">Nomor SO</label>
+                            <input type="text" id="laptop-no-so" name="no-so" placeholder="Masukkan nomor SO">
                         </div>
                     </div>
                     
@@ -3380,6 +3396,11 @@
             const enableNotificationsBtn = document.getElementById('enable-notifications');
             const notificationStatus = document.getElementById('notification-status');
 
+            // TAMBAHAN: SO Field Elements
+            const laptopSoAda = document.getElementById('laptop-so-ada');
+            const laptopNoSoContainer = document.getElementById('laptop-no-so-container');
+            const laptopNoSo = document.getElementById('laptop-no-so');
+
             // Function to show/hide login page and main content
             function toggleLoginState(isLoggedIn, user = null) {
                 if (isLoggedIn && user) {
@@ -3499,6 +3520,20 @@
                     toggleLoginState(false);
                 }
             });
+
+            // TAMBAHAN: Handle SO field logic
+            if (laptopSoAda) {
+                laptopSoAda.addEventListener('change', function() {
+                    if (this.value === 'Ya') {
+                        laptopNoSoContainer.style.display = 'block';
+                        laptopNoSo.required = true;
+                    } else {
+                        laptopNoSoContainer.style.display = 'none';
+                        laptopNoSo.required = false;
+                        laptopNoSo.value = '';
+                    }
+                });
+            }
 
             // Handle email/password login
             if (loginForm) {
@@ -3933,6 +3968,9 @@
                                     <div>Tanggal: ${request.tanggal}</div>
                                     <div>Jenis Request: ${request['jenis-request']}</div>
                                     ${request.spesifikasi ? `<div>Spesifikasi: ${request.spesifikasi}</div>` : ''}
+                                    ${request['merk-model'] ? `<div>Merk/Model: ${request['merk-model']}</div>` : ''}
+                                    ${request['so-ada'] ? `<div>SO: ${request['so-ada']}</div>` : ''}
+                                    ${request['so-ada'] === 'Ya' && request['no-so'] ? `<div>No. SO: ${request['no-so']}</div>` : ''}
                                 `;
                             } else if (formType === 'kartunama') {
                                 requestDetails = `
@@ -4143,6 +4181,8 @@
                                     <div>Jenis Request: ${request['jenis-request']}</div>
                                     ${request.spesifikasi ? `<div>Spesifikasi: ${request.spesifikasi}</div>` : ''}
                                     ${request['merk-model'] ? `<div>Merk/Model: ${request['merk-model']}</div>` : ''}
+                                    ${request['so-ada'] ? `<div>SO: ${request['so-ada']}</div>` : ''}
+                                    ${request['so-ada'] === 'Ya' && request['no-so'] ? `<div>No. SO: ${request['no-so']}</div>` : ''}
                                     <div>Deskripsi: ${request['masalah-kebutuhan']}</div>
                                     <div>Status Persetujuan: ${approvalText}</div>
                                 `;
@@ -4454,6 +4494,14 @@
                     formObject.jenis = selectedKonsumsi;
                 }
                 
+                // TAMBAHAN: Handle SO field untuk form laptop
+                if (formKey === 'laptop') {
+                    // Jika SO ada = "Tidak", kosongkan nomor SO
+                    if (formObject['so-ada'] === 'Tidak') {
+                        formObject['no-so'] = '';
+                    }
+                }
+                
                 // Add judul for the request
                 formObject.judul = getRequestTitle(formKey, formObject);
                 
@@ -4487,6 +4535,12 @@
                         
                         // Reset checkbox styling
                         updateCheckboxOptions();
+                        
+                        // Reset SO field
+                        if (formKey === 'laptop') {
+                            laptopNoSoContainer.style.display = 'none';
+                            laptopNoSo.required = false;
+                        }
                         
                         // Hide lainnya detail
                         document.getElementById('konsumsi-lainnya-detail').style.display = 'none';
