@@ -9,6 +9,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
 
     <style>
         :root {
@@ -53,7 +54,7 @@
         /* HEADER */
         header {
             background: var(--gradient-primary);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 4px 20px rgba(0,  0, 0, 0.15);
             padding: 0;
             position: sticky;
             top: 0;
@@ -475,7 +476,6 @@
             line-height: 1.5;
         }
 
-        /* RAB Card */
         .card-rab .card-icon {
             background: var(--gradient-rab);
             box-shadow: 0 6px 12px rgba(139, 92, 246, 0.3);
@@ -859,7 +859,6 @@
             border-left: 4px solid var(--primary);
         }
 
-        /* RAB specific */
         .rab-badge {
             background: #ede9fe;
             color: #5b21b6;
@@ -869,18 +868,23 @@
             font-weight: 600;
         }
 
-        .items-list {
+        .claim-items-list {
             font-size: 0.85rem;
-            margin-top: 4px;
+            margin: 6px 0;
         }
 
-        .items-list .item-entry {
+        .claim-items-list .claim-item {
             display: inline-block;
             background: #f1f5f9;
             padding: 2px 10px;
             border-radius: 12px;
             margin: 2px 4px 2px 0;
             font-size: 0.75rem;
+        }
+
+        .claim-items-list .claim-item .amount {
+            font-weight: 600;
+            color: var(--primary);
         }
 
         .ga-redirect-badge {
@@ -989,7 +993,6 @@
             }
         }
 
-        /* Animations */
         @keyframes pulse {
             0% { transform: scale(1); opacity: 1; }
             50% { transform: scale(1.05); opacity: 0.8; }
@@ -1000,7 +1003,6 @@
             animation: pulse 2s infinite;
         }
 
-        /* Login Page */
         .login-container {
             display: none;
             position: fixed;
@@ -1141,11 +1143,9 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            to { transform: rotate(360deg); }
         }
 
-        /* WhatsApp Button */
         .whatsapp-button {
             position: fixed;
             bottom: 25px;
@@ -1253,44 +1253,6 @@
             color: white !important;
         }
 
-        /* RAB specific styles */
-        .rab-tab-content .form-tab {
-            background: #ede9fe;
-        }
-
-        .rab-tab-content .form-tab.active {
-            background: var(--gradient-rab);
-            color: white;
-        }
-
-        .request-item.rab-claim {
-            border-left: 4px solid #8b5cf6;
-            background: #faf5ff;
-        }
-
-        .request-item.rab-claim:hover {
-            background: #f3e8ff;
-        }
-
-        .claim-items-list {
-            font-size: 0.85rem;
-            margin: 6px 0;
-        }
-
-        .claim-items-list .claim-item {
-            display: inline-block;
-            background: #f1f5f9;
-            padding: 2px 10px;
-            border-radius: 12px;
-            margin: 2px 4px 2px 0;
-            font-size: 0.75rem;
-        }
-
-        .claim-items-list .claim-item .amount {
-            font-weight: 600;
-            color: var(--primary);
-        }
-
         .btn-rab-approve {
             background: var(--gradient-rab);
             color: white;
@@ -1382,7 +1344,7 @@
     </header>
 
     <main class="container" style="display: none;">
-        <!-- Dashboard Section -->
+        <!-- Dashboard -->
         <section id="dashboard" class="dashboard">
             <div class="card" data-target="form-atk">
                 <div class="card-icon"><i class="fas fa-pencil-alt"></i></div>
@@ -1408,7 +1370,6 @@
                 <p class="card-desc">Ajukan permintaan atau perbaikan perangkat</p>
             </div>
             
-            <!-- RAB Monitoring Card -->
             <div class="card card-rab" data-target="form-rab">
                 <div class="card-icon"><i class="fas fa-chart-pie"></i></div>
                 <h3 class="card-title">RAB Monitoring</h3>
@@ -1498,7 +1459,6 @@
                         <h3 class="requests-title">Daftar Request GA</h3>
                         <button class="btn btn-primary" id="refresh-atk"><i class="fas fa-sync-alt"></i> Refresh</button>
                     </div>
-                    
                     <div id="atk-requests-list">
                         <div class="empty-state">
                             <i class="fas fa-inbox"></i>
@@ -1579,7 +1539,6 @@
                         <h3 class="requests-title">Daftar Request ID Card</h3>
                         <button class="btn btn-primary" id="refresh-idcard"><i class="fas fa-sync-alt"></i> Refresh</button>
                     </div>
-                    
                     <div id="idcard-requests-list">
                         <div class="empty-state">
                             <i class="fas fa-inbox"></i>
@@ -1683,7 +1642,6 @@
                         <h3 class="requests-title">Daftar Request Konsumsi</h3>
                         <button class="btn btn-primary" id="refresh-konsumsi"><i class="fas fa-sync-alt"></i> Refresh</button>
                     </div>
-                    
                     <div id="konsumsi-requests-list">
                         <div class="empty-state">
                             <i class="fas fa-inbox"></i>
@@ -1694,7 +1652,7 @@
             </div>
         </section>
 
-        <!-- Form Request Laptop / IT -->
+        <!-- Form Request Laptop -->
         <section id="form-laptop" class="form-section">
             <div class="form-header">
                 <h2 class="form-title"><i class="fas fa-laptop"></i> Form Request IT</h2>
@@ -1773,7 +1731,6 @@
                         <h3 class="requests-title">Daftar Request IT</h3>
                         <button class="btn btn-primary" id="refresh-laptop"><i class="fas fa-sync-alt"></i> Refresh</button>
                     </div>
-                    
                     <div id="laptop-requests-list">
                         <div class="empty-state">
                             <i class="fas fa-inbox"></i>
@@ -1797,7 +1754,7 @@
             </div>
         </section>
 
-        <!-- Form Request RAB Monitoring - MODIFIED: No Form, Only Requests and Approved By -->
+        <!-- Form Request RAB Monitoring -->
         <section id="form-rab" class="form-section">
             <div class="form-header">
                 <h2 class="form-title"><i class="fas fa-chart-pie"></i> RAB Monitoring</h2>
@@ -1810,7 +1767,6 @@
             </div>
             
             <div class="form-content">
-                <!-- No Form - Only Requests List -->
                 <div id="rab-requests" class="requests-list active">
                     <div class="requests-header">
                         <h3 class="requests-title"><i class="fas fa-list-check"></i> Daftar Claim RAB</h3>
@@ -1821,7 +1777,6 @@
                             <button class="btn btn-rab btn-sm" id="refresh-rab"><i class="fas fa-sync-alt"></i> Refresh</button>
                         </div>
                     </div>
-                    
                     <div id="rab-requests-list">
                         <div class="empty-state">
                             <i class="fas fa-inbox"></i>
@@ -1905,7 +1860,6 @@
                         <h3 class="requests-title">Daftar Request Kartu Nama</h3>
                         <button class="btn btn-primary" id="refresh-kartunama"><i class="fas fa-sync-alt"></i> Refresh</button>
                     </div>
-                    
                     <div id="kartunama-requests-list">
                         <div class="empty-state">
                             <i class="fas fa-inbox"></i>
@@ -1916,7 +1870,7 @@
             </div>
         </section>
 
-        <!-- Form Feedback untuk GA -->
+        <!-- Form Feedback -->
         <section id="form-feedback" class="form-section">
             <div class="form-header">
                 <h2 class="form-title"><i class="fas fa-comment-alt"></i> Feedback untuk General Affair</h2>
@@ -1979,7 +1933,6 @@
                         <h3 class="requests-title">Daftar Feedback</h3>
                         <button class="btn btn-primary" id="refresh-feedback"><i class="fas fa-sync-alt"></i> Refresh</button>
                     </div>
-                    
                     <div id="feedback-requests-list">
                         <div class="empty-state">
                             <i class="fas fa-inbox"></i>
@@ -2002,18 +1955,11 @@
         <i class="fab fa-whatsapp"></i>
     </a>
 
-    <!-- Autocomplete Data -->
     <script>
+        // ==================== AUTCOMPLETE DATA ====================
         const atasanLangsung = [
-            "Anggita Septiani",
-            "Edwin Qomarudin", 
-            "Heksi Prasetyo",
-            "Wahyu YIB",
-            "Caecilia Renata",
-            "Rossiana Y.L",
-            "Muhamad Husni",
-            "David Tides Sagita",
-            "Fiki Hernawan"
+            "Anggita Septiani", "Edwin Qomarudin", "Heksi Prasetyo", "Wahyu YIB",
+            "Caecilia Renata", "Rossiana Y.L", "Muhamad Husni", "David Tides Sagita", "Fiki Hernawan"
         ];
 
         const employeeData = [
@@ -2233,24 +2179,15 @@
             
             if (department === "Technic") {
                 if (atasanLangsung === "Muhamad Husni") {
-                    if (nilaiRequest === "Bawah 1jt") {
-                        return [atasanLangsung];
-                    } else if (nilaiRequest === "Atas 1jt") {
-                        return [atasanLangsung, "Caecilia Renata"];
-                    }
+                    if (nilaiRequest === "Bawah 1jt") return [atasanLangsung];
+                    else if (nilaiRequest === "Atas 1jt") return [atasanLangsung, "Caecilia Renata"];
                 } else {
-                    if (nilaiRequest === "Bawah 1jt") {
-                        return [atasanLangsung, "Muhamad Husni"];
-                    } else if (nilaiRequest === "Atas 1jt") {
-                        return [atasanLangsung, "Muhamad Husni", "Caecilia Renata"];
-                    }
+                    if (nilaiRequest === "Bawah 1jt") return [atasanLangsung, "Muhamad Husni"];
+                    else if (nilaiRequest === "Atas 1jt") return [atasanLangsung, "Muhamad Husni", "Caecilia Renata"];
                 }
             } else {
-                if (nilaiRequest === "Bawah 1jt") {
-                    return [atasanLangsung];
-                } else if (nilaiRequest === "Atas 1jt") {
-                    return [atasanLangsung, "Caecilia Renata"];
-                }
+                if (nilaiRequest === "Bawah 1jt") return [atasanLangsung];
+                else if (nilaiRequest === "Atas 1jt") return [atasanLangsung, "Caecilia Renata"];
             }
             return [atasanLangsung];
         }
@@ -2271,43 +2208,29 @@
             }
         }
 
-        // ===== RAB APPROVERS =====
         function getApprovedByForRABRequest(claimData) {
-            // Approvers for RAB claims: Finance team + related approvers
             const baseApprovers = ["Caecilia Renata", "Rossiana Y.L", "Maida", "Galih"];
-            
-            // Check if claim has PO method
             const hasPO = claimData.paymentMethod === 'po' || 
                          (claimData.items && claimData.items.some(item => item.paymentMethod === 'po'));
             
-            // If PO, add additional approvers
             if (hasPO) {
                 return ["Caecilia Renata", "Rossiana Y.L", "Maida", "Galih", "Muhamad Husni"];
             }
-            
             return baseApprovers;
         }
 
         function searchEmployees(query) {
             const lowerQuery = query.toLowerCase();
-            return employeeData.filter(emp => 
-                emp.name.toLowerCase().includes(lowerQuery)
-            );
+            return employeeData.filter(emp => emp.name.toLowerCase().includes(lowerQuery));
         }
 
         function initializeAutocomplete(inputElement, departmentElement = null) {
             const autocompleteContainer = document.createElement('div');
             autocompleteContainer.className = 'autocomplete-dropdown';
             autocompleteContainer.style.cssText = `
-                position: absolute;
-                background: white;
-                border: 1px solid #e2e8f0;
-                border-radius: 0.5rem;
-                max-height: 200px;
-                overflow-y: auto;
-                z-index: 1000;
-                width: 100%;
-                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+                position: absolute; background: white; border: 1px solid #e2e8f0;
+                border-radius: 0.5rem; max-height: 200px; overflow-y: auto;
+                z-index: 1000; width: 100%; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
                 display: none;
             `;
             
@@ -2327,7 +2250,6 @@
                 }
                 
                 const results = searchEmployees(value);
-                
                 if (results.length === 0) {
                     autocompleteContainer.style.display = 'none';
                     return;
@@ -2349,7 +2271,6 @@
                             departmentElement.value = employee.department;
                         }
                         autocompleteContainer.style.display = 'none';
-                        
                         inputElement.dispatchEvent(new Event('change', { bubbles: true }));
                         if (departmentElement) {
                             departmentElement.dispatchEvent(new Event('change', { bubbles: true }));
@@ -2373,8 +2294,8 @@
                     addActive(items);
                 } else if (e.keyCode === 13) {
                     e.preventDefault();
-                    if (currentFocus > -1) {
-                        if (items[currentFocus]) items[currentFocus].click();
+                    if (currentFocus > -1 && items[currentFocus]) {
+                        items[currentFocus].click();
                     }
                 }
             });
@@ -2382,10 +2303,8 @@
             function addActive(items) {
                 if (!items) return false;
                 removeActive(items);
-                
                 if (currentFocus >= items.length) currentFocus = 0;
                 if (currentFocus < 0) currentFocus = items.length - 1;
-                
                 items[currentFocus].classList.add('autocomplete-active');
                 items[currentFocus].style.backgroundColor = '#3b82f6';
                 items[currentFocus].style.color = 'white';
@@ -2407,8 +2326,6 @@
         }
 
         function initializeAllAutocompletes() {
-            console.log('Initializing autocomplete features...');
-            
             const formMappings = [
                 { nameField: 'atk-nama', departmentField: 'atk-department' },
                 { nameField: 'idcard-nama', departmentField: 'idcard-department' },
@@ -2421,22 +2338,13 @@
             formMappings.forEach(mapping => {
                 const nameField = document.getElementById(mapping.nameField);
                 const departmentField = document.getElementById(mapping.departmentField);
-                
                 if (nameField) {
                     initializeAutocomplete(nameField, departmentField);
-                    console.log(`Autocomplete initialized for: ${mapping.nameField}`);
                 }
             });
         }
 
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initializeAllAutocompletes);
-        } else {
-            initializeAllAutocompletes();
-        }
-    </script>
-
-    <script>
+        // ==================== MAIN APPLICATION ====================
         document.addEventListener('DOMContentLoaded', function() {
             const firebaseConfig = {
                 apiKey: "AIzaSyDihA-hrOGbYojWc9WLwYFi207XoOtfjuU",
@@ -2517,14 +2425,49 @@
                 }
             };
 
-            // ========== RAB MONITORING FUNCTIONS ==========
-            
-            // Function to load RAB claims from the RAB Monitoring database
+            // ==================== RAB MONITORING FUNCTIONS ====================
+            let notificationUnsubscribeFunctions = [];
+            let lastNotificationCheck = {};
+            const BROWSER_NOTIFICATION_COOLDOWN = 30000;
+
+            function getRABDatabase() {
+                const rabFirebaseConfig = {
+                    apiKey: "AIzaSyAQWeEYQNtocfIuKvKk8tbpKuIeW4CmZOI",
+                    authDomain: "rab-monitoring.firebaseapp.com",
+                    databaseURL: "https://rab-monitoring-default-rtdb.asia-southeast1.firebasedatabase.app",
+                    projectId: "rab-monitoring",
+                    storageBucket: "rab-monitoring.firebasestorage.app",
+                    messagingSenderId: "712435056277",
+                    appId: "1:712435056277:web:54db7d9ffd327bc3d9259c"
+                };
+
+                try {
+                    const rabApp = firebase.app('rabApp');
+                    return firebase.database(rabApp);
+                } catch (e) {
+                    const rabApp = firebase.initializeApp(rabFirebaseConfig, 'rabApp');
+                    return firebase.database(rabApp);
+                }
+            }
+
+            function formatRp(val) {
+                return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val || 0);
+            }
+
+            function getFormTitle(formType) {
+                const titles = {
+                    atk: 'ATK',
+                    idcard: 'ID Card',
+                    konsumsi: 'Konsumsi',
+                    laptop: 'Laptop',
+                    kartunama: 'Kartu Nama',
+                    feedback: 'Feedback',
+                    rab: 'RAB'
+                };
+                return titles[formType] || '';
+            }
+
             function loadRABClaims() {
-                // Use the same Firestore but different collection for RAB claims
-                // RAB claims are stored in the same Firebase project but under 'claims' collection
-                // We'll use the same db instance but different path
-                
                 const requestsListContainer = document.getElementById('rab-requests-list');
                 const approvedByContainer = document.getElementById('rab-approved-by-list');
                 
@@ -2546,113 +2489,132 @@
                     `;
                 }
 
-                // Fetch RAB claims from the RAB Monitoring database
-                // We need to use the RAB Monitoring Firebase config
-                const rabFirebaseConfig = {
-                    apiKey: "AIzaSyAQWeEYQNtocfIuKvKk8tbpKuIeW4CmZOI",
-                    authDomain: "rab-monitoring.firebaseapp.com",
-                    databaseURL: "https://rab-monitoring-default-rtdb.asia-southeast1.firebasedatabase.app",
-                    projectId: "rab-monitoring",
-                    storageBucket: "rab-monitoring.firebasestorage.app",
-                    messagingSenderId: "712435056277",
-                    appId: "1:712435056277:web:54db7d9ffd327bc3d9259c"
-                };
-
-                // Initialize RAB Firebase app
-                let rabApp;
-                try {
-                    rabApp = firebase.initializeApp(rabFirebaseConfig, 'rabApp');
-                } catch (e) {
-                    // If already initialized, get the existing one
-                    rabApp = firebase.app('rabApp');
-                }
-                const rabDb = firebase.firestore(rabApp);
-
-                // Get current user info
                 const currentUser = auth.currentUser;
                 const userEmail = currentUser ? currentUser.email : null;
                 const userName = userEmail ? emailToNameMap[userEmail] : null;
 
-                // Fetch all claims from RAB Monitoring
-                rabDb.collection('claims')
-                    .orderBy('timestamp', 'desc')
-                    .get()
-                    .then((querySnapshot) => {
-                        const claims = [];
-                        querySnapshot.forEach((doc) => {
-                            const data = doc.data();
-                            claims.push({ 
-                                id: doc.id, 
-                                ...data,
-                                // Convert timestamp to Date if exists
-                                timestampDate: data.timestamp ? new Date(data.timestamp) : new Date()
+                if (!currentUser) {
+                    if (requestsListContainer) {
+                        requestsListContainer.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-user-slash"></i>
+                                <p>Silakan login terlebih dahulu</p>
+                            </div>
+                        `;
+                    }
+                    if (approvedByContainer) {
+                        approvedByContainer.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-user-slash"></i>
+                                <p>Silakan login terlebih dahulu</p>
+                            </div>
+                        `;
+                    }
+                    return;
+                }
+
+                try {
+                    const rabDb = getRABDatabase();
+                    
+                    rabDb.ref('claims')
+                        .orderByChild('timestamp')
+                        .once('value')
+                        .then((claimsSnapshot) => {
+                            const claimsData = claimsSnapshot.val();
+                            const claims = [];
+                            
+                            if (claimsData) {
+                                Object.keys(claimsData).forEach(key => {
+                                    const data = claimsData[key];
+                                    claims.push({
+                                        id: key,
+                                        ...data,
+                                        timestampDate: data.timestamp ? new Date(data.timestamp) : new Date()
+                                    });
+                                });
+                            }
+                            
+                            claims.sort((a, b) => b.timestamp - a.timestamp);
+                            
+                            return rabDb.ref('projects').once('value').then((projectsSnapshot) => {
+                                const projectsData = projectsSnapshot.val();
+                                const projects = projectsData || {};
+                                return { claims, projects };
                             });
+                        })
+                        .then(({ claims, projects }) => {
+                            const userPermission = userPermissions[userEmail];
+                            const isAdmin = userEmail === 'crenata@genetek.co.id' || userEmail === 'ulandari@genetek.co.id';
+                            
+                            let filteredClaims = claims;
+                            
+                            if (!isAdmin && userPermission) {
+                                filteredClaims = claims.filter(claim => {
+                                    const approvers = getApprovedByForRABRequest(claim);
+                                    return approvers && approvers.includes(userName);
+                                });
+                            } else if (!isAdmin && !userPermission) {
+                                filteredClaims = [];
+                            }
+
+                            if (requestsListContainer) {
+                                renderRABRequestsList(requestsListContainer, filteredClaims, projects);
+                            }
+
+                            if (approvedByContainer) {
+                                renderRABApprovedByList(approvedByContainer, filteredClaims, projects, userName);
+                            }
+
+                            updateNotificationCountForRAB(filteredClaims, userName);
+                        })
+                        .catch((error) => {
+                            console.error("Error loading RAB claims:", error);
+                            let errorMessage = "Gagal memuat data claim RAB";
+                            if (error.code === 'PERMISSION_DENIED' || error.message.includes('permission')) {
+                                errorMessage = "Akses ke database RAB ditolak. Pastikan Anda memiliki izin yang cukup.";
+                            }
+                            if (requestsListContainer) {
+                                requestsListContainer.innerHTML = `
+                                    <div class="empty-state">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        <p>${errorMessage}</p>
+                                        <p style="font-size: 0.8rem; margin-top: 10px; color: #94a3b8;">Error: ${error.message}</p>
+                                        <button class="btn btn-primary btn-sm" onclick="loadRABClaims()" style="margin-top: 10px;">
+                                            <i class="fas fa-sync-alt"></i> Coba Lagi
+                                        </button>
+                                    </div>
+                                `;
+                            }
+                            if (approvedByContainer) {
+                                approvedByContainer.innerHTML = `
+                                    <div class="empty-state">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        <p>${errorMessage}</p>
+                                        <p style="font-size: 0.8rem; margin-top: 10px; color: #94a3b8;">Error: ${error.message}</p>
+                                    </div>
+                                `;
+                            }
                         });
-
-                        // Get projects from RAB Monitoring
-                        return rabDb.collection('projects').get().then((projectSnapshot) => {
-                            const projects = {};
-                            projectSnapshot.forEach((doc) => {
-                                projects[doc.id] = doc.data();
-                            });
-                            return { claims, projects };
-                        });
-                    })
-                    .then(({ claims, projects }) => {
-                        // Filter claims based on user permissions
-                        const userPermission = userPermissions[userEmail];
-                        const isAdmin = userEmail === 'crenata@genetek.co.id' || userEmail === 'ulandari@genetek.co.id';
-                        
-                        let filteredClaims = claims;
-                        
-                        if (!isAdmin && userPermission) {
-                            // For RAB, show claims that the user can approve
-                            filteredClaims = claims.filter(claim => {
-                                const approvers = getApprovedByForRABRequest(claim);
-                                return approvers.includes(userName);
-                            });
-                        } else if (!isAdmin && !userPermission) {
-                            // Guest or no permission
-                            filteredClaims = [];
-                        }
-
-                        // Sort by timestamp (newest first)
-                        filteredClaims.sort((a, b) => b.timestamp - a.timestamp);
-
-                        // Render requests list
-                        if (requestsListContainer) {
-                            renderRABRequestsList(requestsListContainer, filteredClaims, projects);
-                        }
-
-                        // Render approved by list
-                        if (approvedByContainer) {
-                            renderRABApprovedByList(approvedByContainer, filteredClaims, projects, userName);
-                        }
-
-                        // Update notification count
-                        updateNotificationCountForRAB(filteredClaims, userName);
-                    })
-                    .catch((error) => {
-                        console.error("Error loading RAB claims:", error);
-                        if (requestsListContainer) {
-                            requestsListContainer.innerHTML = `
-                                <div class="empty-state">
-                                    <i class="fas fa-exclamation-triangle"></i>
-                                    <p>Gagal memuat data claim RAB</p>
-                                    <p style="font-size: 0.8rem; margin-top: 10px;">Error: ${error.message}</p>
-                                </div>
-                            `;
-                        }
-                        if (approvedByContainer) {
-                            approvedByContainer.innerHTML = `
-                                <div class="empty-state">
-                                    <i class="fas fa-exclamation-triangle"></i>
-                                    <p>Gagal memuat data claim RAB</p>
-                                    <p style="font-size: 0.8rem; margin-top: 10px;">Error: ${error.message}</p>
-                                </div>
-                            `;
-                        }
-                    });
+                } catch (error) {
+                    console.error("Error initializing RAB Database:", error);
+                    if (requestsListContainer) {
+                        requestsListContainer.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <p>Gagal menginisialisasi koneksi ke RAB Monitoring</p>
+                                <p style="font-size: 0.8rem; margin-top: 10px; color: #94a3b8;">${error.message}</p>
+                            </div>
+                        `;
+                    }
+                    if (approvedByContainer) {
+                        approvedByContainer.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <p>Gagal menginisialisasi koneksi ke RAB Monitoring</p>
+                            </div>
+                        `;
+                    }
+                }
             }
 
             function renderRABRequestsList(container, claims, projects) {
@@ -2672,17 +2634,14 @@
                     const project = projects[claim.projectId] || { name: 'Unknown Project' };
                     const projectName = project.name || 'Unknown Project';
                     
-                    // Determine status
                     let status = claim.status || 'pending';
                     let statusClass = status === 'approved' ? 'approved' : (status === 'rejected' ? 'rejected' : 'pending');
                     let statusText = status === 'approved' ? 'Disetujui' : (status === 'rejected' ? 'Ditolak' : 'Menunggu');
                     
-                    // Payment method
                     const paymentMethod = claim.paymentMethod || 'petty-cash';
                     const paymentLabel = paymentMethod === 'po' ? 'PO' : 'Petty Cash';
                     const paymentClass = paymentMethod === 'po' ? 'payment-po' : 'payment-petty-cash';
                     
-                    // Items details
                     let itemsHtml = '';
                     if (claim.items && claim.items.length > 0) {
                         claim.items.forEach(item => {
@@ -2699,7 +2658,6 @@
                         });
                     }
                     
-                    // Redirect info
                     const redirectedToGA = claim.redirectedToGA || false;
                     const redirectBadge = redirectedToGA ? 
                         '<span class="ga-redirect-badge"><i class="fas fa-external-link-alt"></i> Redirected to GA</span>' : '';
@@ -2714,7 +2672,7 @@
                     });
 
                     html += `
-                        <div class="request-item rab-claim" data-claim-id="${claim.id}" style="animation-delay: ${index * 0.05}s;">
+                        <div class="request-item rab-item" data-claim-id="${claim.id}" style="animation-delay: ${index * 0.05}s;">
                             <div class="request-info">
                                 <div class="request-title">
                                     <i class="fas fa-chart-pie" style="color: #8b5cf6;"></i>
@@ -2757,7 +2715,6 @@
 
                 container.innerHTML = html;
 
-                // Add event listeners for approve/reject buttons
                 container.querySelectorAll('.rab-approve-btn').forEach(btn => {
                     btn.addEventListener('click', function(e) {
                         e.stopPropagation();
@@ -2776,10 +2733,8 @@
             }
 
             function renderRABApprovedByList(container, claims, projects, currentUserName) {
-                // Get pending claims that need approval
                 const pendingClaims = claims.filter(c => c.status === 'pending');
                 
-                // Further filter to only show claims where current user is an approver
                 const userApprovals = pendingClaims.filter(claim => {
                     const approvers = getApprovedByForRABRequest(claim);
                     return approvers.includes(currentUserName);
@@ -2828,7 +2783,7 @@
                     }
 
                     html += `
-                        <div class="request-item rab-claim" style="flex-direction: column; align-items: flex-start; gap: 10px; animation-delay: ${index * 0.05}s;">
+                        <div class="request-item rab-item" style="flex-direction: column; align-items: flex-start; gap: 10px; animation-delay: ${index * 0.05}s;">
                             <div class="request-info" style="width: 100%;">
                                 <div class="request-title">
                                     <i class="fas fa-chart-pie" style="color: #8b5cf6;"></i>
@@ -2866,11 +2821,9 @@
 
                 container.innerHTML = html;
 
-                // Add event listeners
                 container.querySelectorAll('.rab-approve-btn').forEach(btn => {
                     btn.addEventListener('click', function() {
                         const claimId = this.dataset.claimId;
-                        // Check all checkboxes for this claim
                         const checkboxes = container.querySelectorAll(`input[data-claim-id="${claimId}"]`);
                         checkboxes.forEach(cb => {
                             if (!cb.disabled) cb.checked = true;
@@ -2888,108 +2841,89 @@
             }
 
             function handleRABApproval(claimId, status) {
-                // Initialize RAB Firebase app
-                const rabFirebaseConfig = {
-                    apiKey: "AIzaSyAQWeEYQNtocfIuKvKk8tbpKuIeW4CmZOI",
-                    authDomain: "rab-monitoring.firebaseapp.com",
-                    databaseURL: "https://rab-monitoring-default-rtdb.asia-southeast1.firebasedatabase.app",
-                    projectId: "rab-monitoring",
-                    storageBucket: "rab-monitoring.firebasestorage.app",
-                    messagingSenderId: "712435056277",
-                    appId: "1:712435056277:web:54db7d9ffd327bc3d9259c"
-                };
-
-                let rabApp;
-                try {
-                    rabApp = firebase.initializeApp(rabFirebaseConfig, 'rabApp');
-                } catch (e) {
-                    rabApp = firebase.app('rabApp');
-                }
-                const rabDb = firebase.firestore(rabApp);
-
-                // Get current user
                 const currentUser = auth.currentUser;
                 const userEmail = currentUser ? currentUser.email : null;
                 const userName = userEmail ? emailToNameMap[userEmail] : null;
 
-                // Get the claim first
-                rabDb.collection('claims').doc(claimId).get()
-                    .then((doc) => {
-                        if (!doc.exists) {
-                            throw new Error('Claim not found');
-                        }
-                        const claimData = doc.data();
-                        
-                        // Update approval status in RAB database
-                        const updates = {
-                            status: status,
-                            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                            updatedBy: userEmail || 'system'
-                        };
+                if (!userName) {
+                    showAlert('Anda harus login terlebih dahulu!', 'danger');
+                    return;
+                }
 
-                        // If approved, add to approvedBy array
-                        if (status === 'approved') {
-                            const approvedBy = claimData.approvedBy || [];
-                            if (userName && !approvedBy.includes(userName)) {
-                                approvedBy.push(userName);
+                try {
+                    const rabDb = getRABDatabase();
+                    
+                    rabDb.ref(`claims/${claimId}`).once('value')
+                        .then((snapshot) => {
+                            if (!snapshot.exists()) {
+                                throw new Error('Claim not found');
                             }
-                            updates.approvedBy = approvedBy;
+                            const claimData = snapshot.val();
                             
-                            // Check if all approvers have approved
-                            const approvers = getApprovedByForRABRequest(claimData);
-                            const allApproved = approvers.every(a => approvedBy.includes(a));
-                            if (allApproved) {
-                                updates.status = 'approved';
+                            const updates = {};
+                            updates[`claims/${claimId}/status`] = status;
+                            updates[`claims/${claimId}/updatedAt`] = new Date().toISOString();
+                            updates[`claims/${claimId}/updatedBy`] = userEmail || 'system';
+
+                            if (status === 'approved') {
+                                const approvedBy = claimData.approvedBy || [];
+                                if (userName && !approvedBy.includes(userName)) {
+                                    approvedBy.push(userName);
+                                }
+                                updates[`claims/${claimId}/approvedBy`] = approvedBy;
                                 
-                                // Also update RAB items realization
-                                if (claimData.items && claimData.items.length > 0) {
-                                    claimData.items.forEach(item => {
-                                        // Update the corresponding RAB item
-                                        if (item.itemId) {
-                                            rabDb.collection('rabItems').doc(item.itemId).get()
-                                                .then((rabDoc) => {
-                                                    if (rabDoc.exists) {
-                                                        const rabData = rabDoc.data();
-                                                        const currentReal = parseFloat(rabData.realisasi) || 0;
-                                                        const nominal = parseFloat(item.nominal) || 0;
-                                                        rabDb.collection('rabItems').doc(item.itemId).update({
-                                                            realisasi: currentReal + nominal
-                                                        });
-                                                    }
-                                                })
-                                                .catch(err => console.error('Error updating RAB item:', err));
-                                        }
-                                    });
+                                const approvers = getApprovedByForRABRequest(claimData);
+                                const allApproved = approvers.every(a => approvedBy.includes(a));
+                                if (allApproved) {
+                                    updates[`claims/${claimId}/status`] = 'approved';
+                                    
+                                    if (claimData.items && claimData.items.length > 0) {
+                                        claimData.items.forEach(item => {
+                                            if (item.itemId) {
+                                                rabDb.ref(`rabItems/${item.itemId}`).once('value')
+                                                    .then((rabSnapshot) => {
+                                                        if (rabSnapshot.exists()) {
+                                                            const rabData = rabSnapshot.val();
+                                                            const currentReal = parseFloat(rabData.realisasi) || 0;
+                                                            const nominal = parseFloat(item.nominal) || 0;
+                                                            rabDb.ref(`rabItems/${item.itemId}/realisasi`)
+                                                                .set(currentReal + nominal);
+                                                        }
+                                                    })
+                                                    .catch(err => console.error('Error updating RAB item:', err));
+                                            }
+                                        });
+                                    }
                                 }
                             }
-                        }
 
-                        return rabDb.collection('claims').doc(claimId).update(updates);
-                    })
-                    .then(() => {
-                        const message = status === 'approved' ? 'Claim RAB berhasil disetujui!' : 'Claim RAB ditolak!';
-                        showAlert(message, status === 'approved' ? 'success' : 'danger');
-                        
-                        // Refresh the RAB claims list
-                        setTimeout(() => {
-                            loadRABClaims();
-                        }, 500);
-                    })
-                    .catch((error) => {
-                        console.error('Error handling RAB approval:', error);
-                        showAlert('Gagal memproses persetujuan: ' + error.message, 'danger');
-                    });
+                            return rabDb.ref().update(updates);
+                        })
+                        .then(() => {
+                            const message = status === 'approved' ? 'Claim RAB berhasil disetujui!' : 'Claim RAB ditolak!';
+                            showAlert(message, status === 'approved' ? 'success' : 'danger');
+                            
+                            setTimeout(() => {
+                                loadRABClaims();
+                            }, 500);
+                        })
+                        .catch((error) => {
+                            console.error('Error handling RAB approval:', error);
+                            showAlert('Gagal memproses persetujuan: ' + error.message, 'danger');
+                        });
+                } catch (error) {
+                    console.error('Error:', error);
+                    showAlert('Gagal memproses persetujuan: ' + error.message, 'danger');
+                }
             }
 
             function updateNotificationCountForRAB(claims, userName) {
-                // Count pending claims that need approval from current user
                 const pendingClaims = claims.filter(c => c.status === 'pending');
                 const userApprovals = pendingClaims.filter(claim => {
                     const approvers = getApprovedByForRABRequest(claim);
                     return approvers.includes(userName);
                 });
 
-                // Update the notification count (reuse existing notification system)
                 const notificationCount = document.getElementById('notification-count');
                 if (notificationCount) {
                     const currentCount = parseInt(notificationCount.textContent) || 0;
@@ -3001,146 +2935,124 @@
                 }
             }
 
-            // ========== NOTIFICATION SYSTEM ==========
-            
-            let notificationUnsubscribeFunctions = [];
-            let lastNotificationCheck = {};
-            const BROWSER_NOTIFICATION_COOLDOWN = 30000;
-
+            // ==================== NOTIFICATION SYSTEM ====================
             function loadAllUserNotifications(userEmail) {
-                console.log(`Memuat semua notifikasi untuk: ${userEmail}`);
-                
                 if (!userEmail) return;
                 
                 const userName = emailToNameMap[userEmail] || userEmail.split('@')[0];
                 let allNotifications = [];
                 
-                // Load RAB claims notifications
-                const rabFirebaseConfig = {
-                    apiKey: "AIzaSyAQWeEYQNtocfIuKvKk8tbpKuIeW4CmZOI",
-                    authDomain: "rab-monitoring.firebaseapp.com",
-                    databaseURL: "https://rab-monitoring-default-rtdb.asia-southeast1.firebasedatabase.app",
-                    projectId: "rab-monitoring",
-                    storageBucket: "rab-monitoring.firebasestorage.app",
-                    messagingSenderId: "712435056277",
-                    appId: "1:712435056277:web:54db7d9ffd327bc3d9259c"
-                };
-
-                let rabApp;
                 try {
-                    rabApp = firebase.initializeApp(rabFirebaseConfig, 'rabApp');
-                } catch (e) {
-                    rabApp = firebase.app('rabApp');
-                }
-                const rabDb = firebase.firestore(rabApp);
-
-                const rabClaimsPromise = rabDb.collection('claims')
-                    .where('status', '==', 'pending')
-                    .orderBy('timestamp', 'desc')
-                    .limit(20)
-                    .get()
-                    .then((querySnapshot) => {
-                        querySnapshot.forEach((doc) => {
-                            const data = doc.data();
-                            // Check if this claim needs approval from current user
-                            const approvers = getApprovedByForRABRequest(data);
-                            if (approvers.includes(userName)) {
-                                // Check if already approved by this user
-                                const approvedBy = data.approvedBy || [];
-                                const isRead = approvedBy.includes(userName);
-                                
-                                allNotifications.push({
-                                    id: `rab_${doc.id}_${userEmail}`,
-                                    formType: 'rab',
-                                    requestId: doc.id,
-                                    request: {
-                                        nama: data.projectId || 'RAB Claim',
-                                        status: 'pending'
-                                    },
-                                    timestamp: data.timestamp ? new Date(data.timestamp) : new Date(),
-                                    read: isRead,
-                                    isNew: !isRead,
-                                    isRABNotification: true,
-                                    title: 'Claim RAB Menunggu Persetujuan',
-                                    message: `Claim RAB dari project membutuhkan persetujuan Anda`
+                    const rabDb = getRABDatabase();
+                    
+                    const rabClaimsPromise = rabDb.ref('claims')
+                        .orderByChild('status')
+                        .equalTo('pending')
+                        .once('value')
+                        .then((snapshot) => {
+                            const claimsData = snapshot.val();
+                            if (claimsData) {
+                                Object.keys(claimsData).forEach(key => {
+                                    const data = claimsData[key];
+                                    const approvers = getApprovedByForRABRequest(data);
+                                    if (approvers.includes(userName)) {
+                                        const approvedBy = data.approvedBy || [];
+                                        const isRead = approvedBy.includes(userName);
+                                        
+                                        allNotifications.push({
+                                            id: `rab_${key}_${userEmail}`,
+                                            formType: 'rab',
+                                            requestId: key,
+                                            request: {
+                                                nama: data.projectId || 'RAB Claim',
+                                                status: 'pending'
+                                            },
+                                            timestamp: data.timestamp ? new Date(data.timestamp) : new Date(),
+                                            read: isRead,
+                                            isNew: !isRead,
+                                            isRABNotification: true,
+                                            title: 'Claim RAB Menunggu Persetujuan',
+                                            message: `Claim RAB dari project membutuhkan persetujuan Anda`
+                                        });
+                                    }
                                 });
                             }
+                        })
+                        .catch((error) => {
+                            console.error("Error loading RAB notifications:", error);
                         });
-                    })
-                    .catch((error) => {
-                        console.error("Error loading RAB notifications:", error);
-                    });
 
-                // Load existing notifications from user_notifications
-                const ulanNotificationsPromise = userEmail === 'ulandari@genetek.co.id' ? 
-                    db.collection('user_notifications')
-                        .where('userId', '==', userEmail)
-                        .orderBy('createdAt', 'desc')
-                        .limit(20)
-                        .get()
-                        .then((querySnapshot) => {
-                            querySnapshot.forEach((doc) => {
-                                const data = doc.data();
-                                allNotifications.push({
-                                    id: `notif_${doc.id}`,
-                                    formType: data.formType || 'atk',
-                                    requestId: data.requestId,
-                                    request: {
-                                        nama: data.message.includes('dari') ? 
-                                              data.message.split('dari')[1]?.split('(')[0]?.trim() || 'User' : 'User',
-                                        status: data.type === 'new_request' ? 'pending' : 'approved'
-                                    },
-                                    timestamp: data.createdAt ? data.createdAt.toDate() : new Date(),
-                                    read: data.isRead || false,
-                                    isNew: !data.isRead,
-                                    notificationType: data.type,
-                                    originalMessage: data.message,
-                                    title: data.title,
-                                    isUlanNotification: true
+                    const ulanNotificationsPromise = userEmail === 'ulandari@genetek.co.id' ? 
+                        db.collection('user_notifications')
+                            .where('userId', '==', userEmail)
+                            .orderBy('createdAt', 'desc')
+                            .limit(20)
+                            .get()
+                            .then((querySnapshot) => {
+                                querySnapshot.forEach((doc) => {
+                                    const data = doc.data();
+                                    allNotifications.push({
+                                        id: `notif_${doc.id}`,
+                                        formType: data.formType || 'atk',
+                                        requestId: data.requestId,
+                                        request: {
+                                            nama: data.message.includes('dari') ? 
+                                                  data.message.split('dari')[1]?.split('(')[0]?.trim() || 'User' : 'User',
+                                            status: data.type === 'new_request' ? 'pending' : 'approved'
+                                        },
+                                        timestamp: data.createdAt ? data.createdAt.toDate() : new Date(),
+                                        read: data.isRead || false,
+                                        isNew: !data.isRead,
+                                        notificationType: data.type,
+                                        originalMessage: data.message,
+                                        title: data.title,
+                                        isUlanNotification: true
+                                    });
+                                });
+                            }) : Promise.resolve();
+
+                    const formTypes = ['atk', 'idcard', 'konsumsi', 'laptop', 'kartunama', 'feedback'];
+                    const requestsPromises = formTypes.map(formType => {
+                        return db.collection(`requests_${formType}`)
+                            .orderBy('createdAt', 'desc')
+                            .limit(30)
+                            .get()
+                            .then((querySnapshot) => {
+                                querySnapshot.forEach((doc) => {
+                                    const request = { id: doc.id, formType, ...doc.data() };
+                                    
+                                    if (isNotificationRelevant(request, userName, userEmail)) {
+                                        const notificationId = `${formType}_${doc.id}_${userEmail}`;
+                                        const isNew = isNewNotification(notificationId, request);
+                                        
+                                        allNotifications.push({
+                                            id: notificationId,
+                                            formType,
+                                            requestId: doc.id,
+                                            request,
+                                            timestamp: request.createdAt ? request.createdAt.toDate() : new Date(),
+                                            read: getNotificationReadStatus(notificationId),
+                                            isNew: isNew,
+                                            isUlanNotification: false
+                                        });
+                                    }
                                 });
                             });
-                        }) : Promise.resolve();
-
-                // Load other requests
-                const formTypes = ['atk', 'idcard', 'konsumsi', 'laptop', 'kartunama', 'feedback'];
-                const requestsPromises = formTypes.map(formType => {
-                    return db.collection(`requests_${formType}`)
-                        .orderBy('createdAt', 'desc')
-                        .limit(30)
-                        .get()
-                        .then((querySnapshot) => {
-                            querySnapshot.forEach((doc) => {
-                                const request = { id: doc.id, formType, ...doc.data() };
-                                
-                                if (isNotificationRelevant(request, userName, userEmail)) {
-                                    const notificationId = `${formType}_${doc.id}_${userEmail}`;
-                                    const isNew = isNewNotification(notificationId, request);
-                                    
-                                    allNotifications.push({
-                                        id: notificationId,
-                                        formType,
-                                        requestId: doc.id,
-                                        request,
-                                        timestamp: request.createdAt ? request.createdAt.toDate() : new Date(),
-                                        read: getNotificationReadStatus(notificationId),
-                                        isNew: isNew,
-                                        isUlanNotification: false
-                                    });
-                                }
-                            });
-                        });
-                });
-                
-                Promise.all([rabClaimsPromise, ulanNotificationsPromise, ...requestsPromises])
-                    .then(() => {
-                        allNotifications.sort((a, b) => b.timestamp - a.timestamp);
-                        displayGroupedNotifications(allNotifications);
-                        updateNotificationCount(allNotifications);
-                        lastNotificationCheck[userEmail] = new Date();
-                    })
-                    .catch((error) => {
-                        console.error("Error loading all notifications:", error);
                     });
+                    
+                    Promise.all([rabClaimsPromise, ulanNotificationsPromise, ...requestsPromises])
+                        .then(() => {
+                            allNotifications.sort((a, b) => b.timestamp - a.timestamp);
+                            displayGroupedNotifications(allNotifications);
+                            updateNotificationCount(allNotifications);
+                            lastNotificationCheck[userEmail] = new Date();
+                        })
+                        .catch((error) => {
+                            console.error("Error loading all notifications:", error);
+                        });
+                } catch (error) {
+                    console.error("Error loading RAB notifications:", error);
+                }
             }
 
             function initializeRealtimeNotifications(userEmail) {
@@ -3151,39 +3063,30 @@
                 notificationUnsubscribeFunctions.forEach(unsubscribe => unsubscribe());
                 notificationUnsubscribeFunctions = [];
                 
-                // RAB claims realtime listener
-                const rabFirebaseConfig = {
-                    apiKey: "AIzaSyAQWeEYQNtocfIuKvKk8tbpKuIeW4CmZOI",
-                    authDomain: "rab-monitoring.firebaseapp.com",
-                    databaseURL: "https://rab-monitoring-default-rtdb.asia-southeast1.firebasedatabase.app",
-                    projectId: "rab-monitoring",
-                    storageBucket: "rab-monitoring.firebasestorage.app",
-                    messagingSenderId: "712435056277",
-                    appId: "1:712435056277:web:54db7d9ffd327bc3d9259c"
-                };
-
-                let rabApp;
                 try {
-                    rabApp = firebase.initializeApp(rabFirebaseConfig, 'rabApp');
-                } catch (e) {
-                    rabApp = firebase.app('rabApp');
-                }
-                const rabDb = firebase.firestore(rabApp);
-
-                const rabUnsubscribe = rabDb.collection('claims')
-                    .where('status', '==', 'pending')
-                    .orderBy('timestamp', 'desc')
-                    .onSnapshot((querySnapshot) => {
-                        console.log('Realtime update for RAB claims', querySnapshot.size, 'claims');
-                        loadAllUserNotifications(userEmail);
-                        loadRABClaims();
-                    }, (error) => {
-                        console.error('Error in RAB claims listener:', error);
+                    const rabDb = getRABDatabase();
+                    
+                    const onClaimsChange = rabDb.ref('claims')
+                        .orderByChild('timestamp')
+                        .limitToLast(50)
+                        .on('value', (snapshot) => {
+                            console.log('Realtime update for RAB claims');
+                            loadAllUserNotifications(userEmail);
+                            loadRABClaims();
+                        }, (error) => {
+                            console.error('Error in RAB claims listener:', error);
+                            if (error.code === 'PERMISSION_DENIED') {
+                                console.warn('Permission denied for RAB claims. Please check Firebase Security Rules.');
+                            }
+                        });
+                    
+                    notificationUnsubscribeFunctions.push(() => {
+                        rabDb.ref('claims').off('value', onClaimsChange);
                     });
-                
-                notificationUnsubscribeFunctions.push(rabUnsubscribe);
+                } catch (error) {
+                    console.error('Error setting up RAB listener:', error);
+                }
 
-                // Other form types
                 const formTypes = ['atk', 'idcard', 'konsumsi', 'laptop', 'kartunama', 'feedback'];
                 formTypes.forEach(formType => {
                     const unsubscribe = db.collection(`requests_${formType}`)
@@ -3353,7 +3256,6 @@
                     notificationElement.querySelector('.unread-indicator')?.remove();
                     notificationElement.querySelector('.new-badge')?.remove();
                 } else if (notification.isRABNotification) {
-                    // For RAB notifications, mark as read in localStorage
                     markNotificationAsRead(notificationId);
                     notificationElement.classList.remove('unread');
                     notificationElement.classList.add('read');
@@ -3364,7 +3266,6 @@
                     db.collection('user_notifications').doc(originalNotificationId).update({
                         isRead: true
                     }).then(() => {
-                        console.log('Notifikasi Ulan ditandai sebagai sudah dibaca');
                         notificationElement.classList.remove('unread');
                         notificationElement.classList.add('read');
                         notificationElement.querySelector('.unread-indicator')?.remove();
@@ -3476,12 +3377,7 @@
                 const yesterday = new Date(today);
                 yesterday.setDate(yesterday.getDate() - 1);
                 
-                const groups = {
-                    today: [],
-                    yesterday: [],
-                    thisWeek: [],
-                    older: []
-                };
+                const groups = { today: [], yesterday: [], thisWeek: [], older: [] };
                 
                 notifications.forEach(notification => {
                     const notifDate = new Date(notification.timestamp);
@@ -3569,25 +3465,6 @@
                 return timestamp.toLocaleDateString('id-ID');
             }
 
-            // ========== HELPER FUNCTIONS ==========
-            
-            function formatRp(val) { 
-                return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val || 0); 
-            }
-
-            function getFormTitle(formType) {
-                const titles = {
-                    atk: 'ATK',
-                    idcard: 'ID Card',
-                    konsumsi: 'Konsumsi',
-                    laptop: 'Laptop',
-                    kartunama: 'Kartu Nama',
-                    feedback: 'Feedback',
-                    rab: 'RAB'
-                };
-                return titles[formType] || '';
-            }
-
             function isNotificationRelevant(request, userName, userEmail) {
                 const userPermission = userPermissions[userEmail];
                 const status = request.status || 'pending';
@@ -3654,8 +3531,7 @@
                 }
             }
 
-            // ========== MAIN APPLICATION CODE ==========
-
+            // ==================== MAIN APPLICATION CODE ====================
             const cards = document.querySelectorAll('.card');
             const sections = document.querySelectorAll('section');
             const backButtons = document.querySelectorAll('.back-button');
@@ -3842,18 +3718,10 @@
                     const password = loginPassword.value;
 
                     const allowedLoginEmails = [
-                        "crenata@genetek.co.id",
-                        "rossiana.yl@genetek.co.id",
-                        "galih@genetek.co.id",
-                        "maida@genetek.co.id",
-                        "anggita-s@genetek.co.id",
-                        "wahyu_yib@genetek.co.id",
-                        "david@genetek.co.id",
-                        "m_husni@genetek.co.id",
-                        "ulandari@genetek.co.id",
-                        "edwin@genetek.co.id",
-                        "heksi@genetek.co.id",
-                        "fikihernawan@genetek.co.id"
+                        "crenata@genetek.co.id", "rossiana.yl@genetek.co.id", "galih@genetek.co.id",
+                        "maida@genetek.co.id", "anggita-s@genetek.co.id", "wahyu_yib@genetek.co.id",
+                        "david@genetek.co.id", "m_husni@genetek.co.id", "ulandari@genetek.co.id",
+                        "edwin@genetek.co.id", "heksi@genetek.co.id", "fikihernawan@genetek.co.id"
                     ];
 
                     if (!allowedLoginEmails.includes(email)) {
@@ -3999,7 +3867,6 @@
                     const formType = targetId.replace('form-', '');
                     if (formType === 'rab') {
                         showFormTab('rab', 'requests');
-                        // Load RAB claims when section is shown
                         setTimeout(() => loadRABClaims(), 300);
                     } else {
                         showFormTab(formType, 'form');
@@ -4032,7 +3899,6 @@
                 const isGuest = !currentUser || currentUser.isAnonymous;
                 const userEmail = currentUser ? currentUser.email : null;
                 
-                // For RAB, always show requests list
                 if (formType === 'rab') {
                     if (tabType === 'requests') {
                         if (requestsElement) {
@@ -4078,8 +3944,6 @@
                 }
             }
 
-            // ========== LOAD REQUESTS FOR OTHER FORMS ==========
-            
             function loadRequests(formType) {
                 const requestsListContainer = document.getElementById(`${formType}-requests-list`);
                 if (!requestsListContainer) return;
@@ -4092,8 +3956,6 @@
                 `;
 
                 const collectionName = `requests_${formType}`;
-                console.log(`Loading requests from collection: ${collectionName}`);
-
                 const currentUser = auth.currentUser;
                 const userEmail = currentUser ? currentUser.email : null;
                 const userName = userEmail ? emailToNameMap[userEmail] : null;
@@ -4118,8 +3980,6 @@
                             requests.push({ id: doc.id, ...doc.data() });
                         });
 
-                        console.log(`Loaded ${requests.length} requests for ${formType}`, requests);
-
                         const filteredRequests = requests.filter(request => {
                             if (['ulandari@genetek.co.id', 'crenata@genetek.co.id'].includes(userEmail)) {
                                 if (['kartunama', 'idcard', 'konsumsi'].includes(formType)) {
@@ -4143,8 +4003,6 @@
                             const userPermission = userPermissions[userEmail];
                             return userPermission && userPermission.allowedForms.includes(formType);
                         });
-
-                        console.log(`Filtered to ${filteredRequests.length} requests for ${userName}`);
 
                         if (filteredRequests.length === 0) {
                             requestsListContainer.innerHTML = `
@@ -4626,8 +4484,6 @@
             }
 
             function sendApprovalNotificationToUlan(formType, requestId, requestData) {
-                console.log(`Mengirim notifikasi persetujuan ke Ulan untuk request ${formType} dengan ID: ${requestId}`);
-                
                 if (formType === 'atk' && requestData.status === 'approved') {
                     const notificationData = {
                         userId: 'ulandari@genetek.co.id',
@@ -4727,7 +4583,7 @@
                 }
             }
 
-            // ========== EVENT LISTENERS ==========
+            // ==================== EVENT LISTENERS ====================
             
             cards.forEach(card => {
                 card.addEventListener('click', function() {
@@ -4748,7 +4604,6 @@
                 });
             });
 
-            // RAB refresh buttons
             document.getElementById('refresh-rab')?.addEventListener('click', function() {
                 loadRABClaims();
                 const icon = this.querySelector('i');
@@ -4775,7 +4630,6 @@
                 showAlert('Data RAB berhasil di-refresh', 'success');
             });
 
-            // Other refresh buttons
             document.querySelectorAll('[id^="refresh-"]').forEach(button => {
                 if (button.id !== 'refresh-rab' && button.id !== 'refresh-rab-approved') {
                     button.addEventListener('click', function() {
@@ -4799,7 +4653,6 @@
                 }
             });
 
-            // Form submissions
             Object.keys(forms).forEach(formKey => {
                 if (forms[formKey]) {
                     forms[formKey].addEventListener('submit', function(e) {
@@ -4835,7 +4688,6 @@
                             selectedKonsumsi.push(checkbox.value);
                         }
                     });
-                    
                     formObject.jenis = selectedKonsumsi;
                 }
                 
@@ -4895,7 +4747,6 @@
                 });
             }
 
-            // Konsumsi checkbox handling
             document.querySelectorAll('input[name="jenis-konsumsi"]').forEach(checkbox => {
                 checkbox.addEventListener('change', function() {
                     updateCheckboxOptions();
@@ -4909,7 +4760,6 @@
                 });
             });
 
-            // Set minimum date to today
             const today = new Date().toISOString().split('T')[0];
             document.querySelectorAll('input[type="date"]').forEach(input => {
                 if (input) {
@@ -4918,6 +4768,9 @@
             });
 
             updateCheckboxOptions();
+
+            // Make loadRABClaims available globally for the refresh button
+            window.loadRABClaims = loadRABClaims;
         });
     </script>
 </body>
