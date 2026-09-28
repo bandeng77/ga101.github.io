@@ -2153,7 +2153,6 @@
             { name: "Anggina Herbimaya", department: "Supply Chain", atasanLangsung: "Rossiana Y.L" },
             { name: "Evi Komalasari", department: "Supply Chain", atasanLangsung: "Rossiana Y.L" },
             { name: "Maida Faza Kusnadi", department: "Supply Chain", atasanLangsung: "Rossiana Y.L" },
-            { name: "Netia", department: "Supply Chain", atasanLangsung: "Rossiana Y.L" },
             { name: "Apriadi", department: "Supply Chain", atasanLangsung: "Rossiana Y.L" },
             { name: "Mawarto N", department: "Supply Chain", atasanLangsung: "Rossiana Y.L" },
             { name: "Abdul Kafi", department: "Supply Chain", atasanLangsung: "Rossiana Y.L" },
@@ -2365,7 +2364,6 @@
                 'crenata@genetek.co.id': 'Caecilia Renata',
                 'rossiana.yl@genetek.co.id': 'Rossiana Y.L',
                 'maida@genetek.co.id': 'Maida',
-                'netia@genetek.co.id': 'Netia',
                 'ulandari@genetek.co.id': 'Ulan',
                 'm_husni@genetek.co.id': 'Muhamad Husni',
                 'anggita-s@genetek.co.id': 'Anggita Septiani',
@@ -2392,11 +2390,6 @@
                 'maida@genetek.co.id': {
                     name: 'Maida',
                     allowedForms: ['laptop', 'rab']
-                },
-                'netia@genetek.co.id': {
-                    name: 'Netia',
-                    allowedForms: ['laptop', 'rab'],
-                    viewOnly: true
                 },
                 'rossiana.yl@genetek.co.id': {
                     name: 'Rossiana Y.L',
@@ -2558,149 +2551,268 @@
                             if (!isAdmin && userPermission) {
                                 filteredClaims = claims.filter(claim => {
                                     const approvers = getApprovedByForRABRequest(claim);
-                                    return approvers && approvers.includes(userPermission.name);
+                                    return approvers && approvers.includes(userName);
                                 });
+                            } else if (!isAdmin && !userPermission) {
+                                filteredClaims = [];
                             }
-                            
-                            renderRABRequestsList(filteredClaims, projects, requestsListContainer, userName, userEmail);
-                            renderRABApprovedByList(filteredClaims, projects, approvedByContainer, userName, userEmail);
+
+                            if (requestsListContainer) {
+                                renderRABRequestsList(requestsListContainer, filteredClaims, projects);
+                            }
+
+                            if (approvedByContainer) {
+                                renderRABApprovedByList(approvedByContainer, filteredClaims, projects, userName);
+                            }
+
+                            updateNotificationCountForRAB(filteredClaims, userName);
                         })
                         .catch((error) => {
                             console.error("Error loading RAB claims:", error);
+                            let errorMessage = "Gagal memuat data claim RAB";
+                            if (error.code === 'PERMISSION_DENIED' || error.message.includes('permission')) {
+                                errorMessage = "Akses ke database RAB ditolak. Pastikan Anda memiliki izin yang cukup.";
+                            }
                             if (requestsListContainer) {
                                 requestsListContainer.innerHTML = `
                                     <div class="empty-state">
                                         <i class="fas fa-exclamation-triangle"></i>
-                                        <p>Gagal memuat data RAB: ${error.message}</p>
+                                        <p>${errorMessage}</p>
+                                        <p style="font-size: 0.8rem; margin-top: 10px; color: #94a3b8;">Error: ${error.message}</p>
+                                        <button class="btn btn-primary btn-sm" onclick="loadRABClaims()" style="margin-top: 10px;">
+                                            <i class="fas fa-sync-alt"></i> Coba Lagi
+                                        </button>
+                                    </div>
+                                `;
+                            }
+                            if (approvedByContainer) {
+                                approvedByContainer.innerHTML = `
+                                    <div class="empty-state">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        <p>${errorMessage}</p>
+                                        <p style="font-size: 0.8rem; margin-top: 10px; color: #94a3b8;">Error: ${error.message}</p>
                                     </div>
                                 `;
                             }
                         });
-                } catch (e) {
-                    console.error("Error initializing RAB DB:", e);
+                } catch (error) {
+                    console.error("Error initializing RAB Database:", error);
+                    if (requestsListContainer) {
+                        requestsListContainer.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <p>Gagal menginisialisasi koneksi ke RAB Monitoring</p>
+                                <p style="font-size: 0.8rem; margin-top: 10px; color: #94a3b8;">${error.message}</p>
+                            </div>
+                        `;
+                    }
+                    if (approvedByContainer) {
+                        approvedByContainer.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <p>Gagal menginisialisasi koneksi ke RAB Monitoring</p>
+                            </div>
+                        `;
+                    }
                 }
             }
 
-            function renderRABRequestsList(claims, projects, container, userName, userEmail) {
-                if (!container) return;
-                
-                if (!claims || claims.length === 0) {
+            function renderRABRequestsList(container, claims, projects) {
+                if (claims.length === 0) {
                     container.innerHTML = `
                         <div class="empty-state">
                             <i class="fas fa-inbox"></i>
-                            <p>Belum ada claim RAB</p>
+                            <p>Belum ada claim RAB yang masuk</p>
+                            <p style="font-size: 0.8rem; color: #94a3b8; margin-top: 5px;">Data akan muncul dari aplikasi RAB Monitoring</p>
                         </div>
                     `;
                     return;
                 }
 
-                const userPermission = userPermissions[userEmail];
-                const isViewOnly = userPermission && userPermission.viewOnly;
-
                 let html = '';
-                claims.forEach(claim => {
-                    const project = projects[claim.projectId] || {};
-                    const projectName = project.title || claim.projectName || 'Project Tidak Diketahui';
-                    const formattedDate = claim.timestampDate ? claim.timestampDate.toLocaleDateString('id-ID', {
-                        day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
-                    }) : '-';
+                claims.forEach((claim, index) => {
+                    const project = projects[claim.projectId] || { name: 'Unknown Project' };
+                    const projectName = project.name || 'Unknown Project';
                     
-                    const totalAmount = claim.amount || 0;
-                    const status = claim.status || 'pending';
-                    const statusClass = status === 'approved' ? 'status-approved' : (status === 'rejected' ? 'status-rejected' : 'status-pending');
-                    const statusText = status === 'approved' ? 'Approved' : (status === 'rejected' ? 'Rejected' : 'Pending');
-
+                    let status = claim.status || 'pending';
+                    let statusClass = status === 'approved' ? 'approved' : (status === 'rejected' ? 'rejected' : 'pending');
+                    let statusText = status === 'approved' ? 'Disetujui' : (status === 'rejected' ? 'Ditolak' : 'Menunggu');
+                    
+                    const paymentMethod = claim.paymentMethod || 'petty-cash';
+                    const paymentLabel = paymentMethod === 'po' ? 'PO' : 'Petty Cash';
+                    const paymentClass = paymentMethod === 'po' ? 'payment-po' : 'payment-petty-cash';
+                    
                     let itemsHtml = '';
-                    if (claim.items && Array.isArray(claim.items)) {
-                        itemsHtml = '<div class="claim-items-list">';
+                    if (claim.items && claim.items.length > 0) {
                         claim.items.forEach(item => {
+                            const nominal = item.nominal || 0;
+                            const vendor = item.vendor || '-';
+                            const tanggal = item.tanggal || '-';
                             itemsHtml += `
-                                <span class="claim-item">
-                                    ${item.description || item.name || 'Item'} - 
-                                    <span class="amount">${formatRp(item.amount || 0)}</span>
-                                </span>
+                                <div class="claim-item">
+                                    <strong>${item.itemName || 'Item'}</strong>
+                                    <span class="amount">${formatRp(nominal)}</span>
+                                    <span style="font-size: 0.7rem; color: #64748b;">| ${vendor} | ${tanggal}</span>
+                                </div>
                             `;
                         });
-                        itemsHtml += '</div>';
                     }
-
-                    const approvedBy = getApprovedByForRABRequest(claim);
-                    const userApproved = claim.approvedBy && claim.approvedBy.includes(userName);
+                    
+                    const redirectedToGA = claim.redirectedToGA || false;
+                    const redirectBadge = redirectedToGA ? 
+                        '<span class="ga-redirect-badge"><i class="fas fa-external-link-alt"></i> Redirected to GA</span>' : '';
+                    
+                    const date = claim.timestampDate || new Date(claim.timestamp);
+                    const formattedDate = date.toLocaleDateString('id-ID', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
 
                     html += `
-                        <div class="request-item rab-item" id="rab-claim-${claim.id}">
+                        <div class="request-item rab-item" data-claim-id="${claim.id}" style="animation-delay: ${index * 0.05}s;">
                             <div class="request-info">
                                 <div class="request-title">
-                                    <i class="fas fa-file-invoice-dollar"></i> ${projectName}
-                                    <span class="rab-badge">RAB Claim</span>
+                                    <i class="fas fa-chart-pie" style="color: #8b5cf6;"></i>
+                                    Claim RAB: ${projectName}
+                                    ${redirectBadge}
                                 </div>
                                 <div class="request-details">
-                                    <div class="detail-row">
-                                        <span class="label">Pemohon:</span> ${claim.submittedBy || claim.userName || '-'} | 
-                                        <span class="label">Tanggal:</span> ${formattedDate}
+                                    <div class="claim-items-list">
+                                        ${itemsHtml}
                                     </div>
                                     <div class="detail-row">
-                                        <span class="label">Total Claim:</span> <strong>${formatRp(totalAmount)}</strong> | 
-                                        <span class="label">Metode Pembayaran:</span> ${claim.paymentMethod || 'Petty Cash'}
+                                        <span class="label">Total:</span>
+                                        <strong>${formatRp(claim.totalNominal || 0)}</strong>
                                     </div>
-                                    ${claim.notes ? `<div class="detail-row"><span class="label">Catatan:</span> ${claim.notes}</div>` : ''}
-                                    ${itemsHtml}
-                                    <div class="detail-row" style="margin-top: 6px;">
-                                        <span class="label">Daftar Approver:</span> ${approvedBy.join(', ')}
+                                    <div class="detail-row">
+                                        <span class="label">Payment:</span>
+                                        <span class="request-payment ${paymentClass}">${paymentLabel}</span>
+                                    </div>
+                                    <div class="detail-row" style="font-size: 0.75rem; color: #94a3b8;">
+                                        <i class="far fa-clock"></i> ${formattedDate}
                                     </div>
                                 </div>
                             </div>
                             <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
-                                <span class="request-status ${statusClass}">${statusText}</span>
-                                ${!isViewOnly && status === 'pending' && !userApproved ? `
-                                    <button class="btn-rab-approve" onclick="approveRABClaim('${claim.id}')">
-                                        <i class="fas fa-check"></i> Approve Claim
-                                    </button>
+                                <span class="request-status status-${statusClass}">${statusText}</span>
+                                ${status === 'pending' ? `
+                                    <div class="request-actions">
+                                        <button class="btn btn-success btn-sm rab-approve-btn" data-claim-id="${claim.id}">
+                                            <i class="fas fa-check"></i> Approve
+                                        </button>
+                                        <button class="btn btn-danger btn-sm rab-reject-btn" data-claim-id="${claim.id}">
+                                            <i class="fas fa-times"></i> Reject
+                                        </button>
+                                    </div>
                                 ` : ''}
-                                ${userApproved ? `<span style="font-size: 0.75rem; color: var(--success);"><i class="fas fa-check-circle"></i> Anda menyetujui</span>` : ''}
                             </div>
                         </div>
                     `;
                 });
 
                 container.innerHTML = html;
+
+                container.querySelectorAll('.rab-approve-btn').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const claimId = this.dataset.claimId;
+                        handleRABApproval(claimId, 'approved');
+                    });
+                });
+
+                container.querySelectorAll('.rab-reject-btn').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const claimId = this.dataset.claimId;
+                        handleRABApproval(claimId, 'rejected');
+                    });
+                });
             }
 
-            function renderRABApprovedByList(claims, projects, container, userName, userEmail) {
-                if (!container) return;
+            function renderRABApprovedByList(container, claims, projects, currentUserName) {
+                const pendingClaims = claims.filter(c => c.status === 'pending');
+                
+                const userApprovals = pendingClaims.filter(claim => {
+                    const approvers = getApprovedByForRABRequest(claim);
+                    return approvers.includes(currentUserName);
+                });
 
-                const approvedClaims = claims.filter(c => c.approvedBy && c.approvedBy.length > 0);
-
-                if (approvedClaims.length === 0) {
+                if (userApprovals.length === 0) {
                     container.innerHTML = `
                         <div class="empty-state">
                             <i class="fas fa-check-double"></i>
-                            <p>Belum ada persetujuan claim RAB</p>
+                            <p>Tidak ada claim RAB yang menunggu persetujuan Anda</p>
                         </div>
                     `;
                     return;
                 }
 
                 let html = '';
-                approvedClaims.forEach(claim => {
-                    const project = projects[claim.projectId] || {};
-                    const projectName = project.title || claim.projectName || 'Project Tidak Diketahui';
-                    const approversList = Array.isArray(claim.approvedBy) ? claim.approvedBy.join(', ') : claim.approvedBy;
+                userApprovals.forEach((claim, index) => {
+                    const project = projects[claim.projectId] || { name: 'Unknown Project' };
+                    const projectName = project.name || 'Unknown Project';
+                    
+                    const approvers = getApprovedByForRABRequest(claim);
+                    const approvedBy = claim.approvedBy || [];
+                    const approvalStatus = approvers.map(approver => {
+                        const isApproved = approvedBy.includes(approver);
+                        return `
+                            <div class="approver-option">
+                                <input type="checkbox" id="rab-approve-${claim.id}-${approver}"
+                                    data-claim-id="${claim.id}"
+                                    data-approver="${approver}"
+                                    ${isApproved ? 'checked' : ''}
+                                    ${currentUserName !== approver ? 'disabled' : ''}>
+                                <label for="rab-approve-${claim.id}-${approver}" style="margin-bottom: 0;">${approver}</label>
+                            </div>
+                        `;
+                    }).join('');
+
+                    const paymentMethod = claim.paymentMethod || 'petty-cash';
+                    const paymentLabel = paymentMethod === 'po' ? 'PO' : 'Petty Cash';
+                    const paymentClass = paymentMethod === 'po' ? 'payment-po' : 'payment-petty-cash';
+
+                    let itemsSummary = '';
+                    if (claim.items && claim.items.length > 0) {
+                        itemsSummary = claim.items.map(item => 
+                            `${item.itemName || 'Item'} (${formatRp(item.nominal || 0)})`
+                        ).join(', ');
+                    }
 
                     html += `
-                        <div class="request-item rab-item">
-                            <div class="request-info">
-                                <div class="request-title"><i class="fas fa-file-invoice-dollar"></i> ${projectName}</div>
+                        <div class="request-item rab-item" style="flex-direction: column; align-items: flex-start; gap: 10px; animation-delay: ${index * 0.05}s;">
+                            <div class="request-info" style="width: 100%;">
+                                <div class="request-title">
+                                    <i class="fas fa-chart-pie" style="color: #8b5cf6;"></i>
+                                    Claim RAB: ${projectName}
+                                </div>
                                 <div class="request-details">
-                                    <div class="detail-row">
-                                        <span class="label">Pemohon:</span> ${claim.submittedBy || claim.userName || '-'}
+                                    <div><strong>Items:</strong> ${itemsSummary}</div>
+                                    <div><strong>Total:</strong> ${formatRp(claim.totalNominal || 0)}</div>
+                                    <div>
+                                        <strong>Payment:</strong> 
+                                        <span class="request-payment ${paymentClass}">${paymentLabel}</span>
                                     </div>
-                                    <div class="detail-row">
-                                        <span class="label">Total Claim:</span> ${formatRp(claim.amount || 0)}
+                                    <div style="font-size: 0.75rem; color: #94a3b8;">
+                                        <i class="far fa-clock"></i> ${new Date(claim.timestamp).toLocaleDateString('id-ID')}
                                     </div>
-                                    <div class="detail-row" style="color: var(--success); font-weight: 500;">
-                                        <span class="label">Telah Disetujui Oleh:</span> ${approversList}
-                                    </div>
+                                </div>
+                            </div>
+                            <div style="width: 100%; border-top: 1px solid var(--border); padding-top: 10px; margin-top: 5px;">
+                                <label style="font-weight: 600; margin-bottom: 5px;">Status Persetujuan:</label>
+                                <div class="approver-checkboxes">
+                                    ${approvalStatus}
+                                </div>
+                                <div class="action-buttons">
+                                    <button class="btn btn-rab btn-sm rab-approve-btn" data-claim-id="${claim.id}">
+                                        <i class="fas fa-check"></i> Setujui
+                                    </button>
+                                    <button class="btn btn-danger btn-sm rab-reject-btn" data-claim-id="${claim.id}">
+                                        <i class="fas fa-times"></i> Tolak
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -2708,183 +2820,1957 @@
                 });
 
                 container.innerHTML = html;
+
+                container.querySelectorAll('.rab-approve-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const claimId = this.dataset.claimId;
+                        const checkboxes = container.querySelectorAll(`input[data-claim-id="${claimId}"]`);
+                        checkboxes.forEach(cb => {
+                            if (!cb.disabled) cb.checked = true;
+                        });
+                        handleRABApproval(claimId, 'approved');
+                    });
+                });
+
+                container.querySelectorAll('.rab-reject-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const claimId = this.dataset.claimId;
+                        handleRABApproval(claimId, 'rejected');
+                    });
+                });
             }
 
-            window.approveRABClaim = function(claimId) {
+            function handleRABApproval(claimId, status) {
                 const currentUser = auth.currentUser;
-                if (!currentUser) return;
+                const userEmail = currentUser ? currentUser.email : null;
+                const userName = userEmail ? emailToNameMap[userEmail] : null;
 
-                const userEmail = currentUser.email;
-                const userPermission = userPermissions[userEmail];
-                
-                if (userPermission && userPermission.viewOnly) {
-                    alert('Akun Anda hanya memiliki akses view saja dan tidak dapat menyetujui permintaan.');
+                if (!userName) {
+                    showAlert('Anda harus login terlebih dahulu!', 'danger');
                     return;
                 }
 
-                const userName = emailToNameMap[userEmail];
-                if (!userName) return;
+                try {
+                    const rabDb = getRABDatabase();
+                    
+                    rabDb.ref(`claims/${claimId}`).once('value')
+                        .then((snapshot) => {
+                            if (!snapshot.exists()) {
+                                throw new Error('Claim not found');
+                            }
+                            const claimData = snapshot.val();
+                            
+                            const updates = {};
+                            updates[`claims/${claimId}/status`] = status;
+                            updates[`claims/${claimId}/updatedAt`] = new Date().toISOString();
+                            updates[`claims/${claimId}/updatedBy`] = userEmail || 'system';
 
-                const rabDb = getRABDatabase();
-                const claimRef = rabDb.ref(`claims/${claimId}`);
+                            if (status === 'approved') {
+                                const approvedBy = claimData.approvedBy || [];
+                                if (userName && !approvedBy.includes(userName)) {
+                                    approvedBy.push(userName);
+                                }
+                                updates[`claims/${claimId}/approvedBy`] = approvedBy;
+                                
+                                const approvers = getApprovedByForRABRequest(claimData);
+                                const allApproved = approvers.every(a => approvedBy.includes(a));
+                                if (allApproved) {
+                                    updates[`claims/${claimId}/status`] = 'approved';
+                                    
+                                    if (claimData.items && claimData.items.length > 0) {
+                                        claimData.items.forEach(item => {
+                                            if (item.itemId) {
+                                                rabDb.ref(`rabItems/${item.itemId}`).once('value')
+                                                    .then((rabSnapshot) => {
+                                                        if (rabSnapshot.exists()) {
+                                                            const rabData = rabSnapshot.val();
+                                                            const currentReal = parseFloat(rabData.realisasi) || 0;
+                                                            const nominal = parseFloat(item.nominal) || 0;
+                                                            rabDb.ref(`rabItems/${item.itemId}/realisasi`)
+                                                                .set(currentReal + nominal);
+                                                        }
+                                                    })
+                                                    .catch(err => console.error('Error updating RAB item:', err));
+                                            }
+                                        });
+                                    }
+                                }
+                            }
 
-                claimRef.once('value').then(snapshot => {
-                    const claim = snapshot.val();
-                    if (!claim) return;
+                            return rabDb.ref().update(updates);
+                        })
+                        .then(() => {
+                            const message = status === 'approved' ? 'Claim RAB berhasil disetujui!' : 'Claim RAB ditolak!';
+                            showAlert(message, status === 'approved' ? 'success' : 'danger');
+                            
+                            setTimeout(() => {
+                                loadRABClaims();
+                            }, 500);
+                        })
+                        .catch((error) => {
+                            console.error('Error handling RAB approval:', error);
+                            showAlert('Gagal memproses persetujuan: ' + error.message, 'danger');
+                        });
+                } catch (error) {
+                    console.error('Error:', error);
+                    showAlert('Gagal memproses persetujuan: ' + error.message, 'danger');
+                }
+            }
 
-                    let approvedBy = claim.approvedBy || [];
-                    if (!Array.isArray(approvedBy)) approvedBy = [approvedBy];
-
-                    if (!approvedBy.includes(userName)) {
-                        approvedBy.push(userName);
-                    }
-
-                    const requiredApprovers = getApprovedByForRABRequest(claim);
-                    const isFullyApproved = requiredApprovers.every(app => approvedBy.includes(app));
-
-                    const updates = {
-                        approvedBy: approvedBy,
-                        status: isFullyApproved ? 'approved' : (claim.status || 'pending')
-                    };
-
-                    return claimRef.update(updates).then(() => {
-                        loadRABClaims();
-                    });
-                }).catch(err => {
-                    console.error("Error approving RAB claim:", err);
+            function updateNotificationCountForRAB(claims, userName) {
+                const pendingClaims = claims.filter(c => c.status === 'pending');
+                const userApprovals = pendingClaims.filter(claim => {
+                    const approvers = getApprovedByForRABRequest(claim);
+                    return approvers.includes(userName);
                 });
+
+                const notificationCount = document.getElementById('notification-count');
+                if (notificationCount) {
+                    const currentCount = parseInt(notificationCount.textContent) || 0;
+                    const newCount = currentCount + userApprovals.length;
+                    if (newCount > 0) {
+                        notificationCount.textContent = newCount > 99 ? '99+' : newCount;
+                        notificationCount.style.display = 'flex';
+                    }
+                }
+            }
+
+            // ==================== NOTIFICATION SYSTEM ====================
+            function loadAllUserNotifications(userEmail) {
+                if (!userEmail) return;
+                
+                const userName = emailToNameMap[userEmail] || userEmail.split('@')[0];
+                let allNotifications = [];
+                
+                try {
+                    const rabDb = getRABDatabase();
+                    
+                    const rabClaimsPromise = rabDb.ref('claims')
+                        .orderByChild('status')
+                        .equalTo('pending')
+                        .once('value')
+                        .then((snapshot) => {
+                            const claimsData = snapshot.val();
+                            if (claimsData) {
+                                Object.keys(claimsData).forEach(key => {
+                                    const data = claimsData[key];
+                                    const approvers = getApprovedByForRABRequest(data);
+                                    if (approvers.includes(userName)) {
+                                        const approvedBy = data.approvedBy || [];
+                                        const isRead = approvedBy.includes(userName);
+                                        
+                                        allNotifications.push({
+                                            id: `rab_${key}_${userEmail}`,
+                                            formType: 'rab',
+                                            requestId: key,
+                                            request: {
+                                                nama: data.projectId || 'RAB Claim',
+                                                status: 'pending'
+                                            },
+                                            timestamp: data.timestamp ? new Date(data.timestamp) : new Date(),
+                                            read: isRead,
+                                            isNew: !isRead,
+                                            isRABNotification: true,
+                                            title: 'Claim RAB Menunggu Persetujuan',
+                                            message: `Claim RAB dari project membutuhkan persetujuan Anda`
+                                        });
+                                    }
+                                });
+                            }
+                        })
+                        .catch((error) => {
+                            console.error("Error loading RAB notifications:", error);
+                        });
+
+                    const ulanNotificationsPromise = userEmail === 'ulandari@genetek.co.id' ? 
+                        db.collection('user_notifications')
+                            .where('userId', '==', userEmail)
+                            .orderBy('createdAt', 'desc')
+                            .limit(20)
+                            .get()
+                            .then((querySnapshot) => {
+                                querySnapshot.forEach((doc) => {
+                                    const data = doc.data();
+                                    allNotifications.push({
+                                        id: `notif_${doc.id}`,
+                                        formType: data.formType || 'atk',
+                                        requestId: data.requestId,
+                                        request: {
+                                            nama: data.message.includes('dari') ? 
+                                                  data.message.split('dari')[1]?.split('(')[0]?.trim() || 'User' : 'User',
+                                            status: data.type === 'new_request' ? 'pending' : 'approved'
+                                        },
+                                        timestamp: data.createdAt ? data.createdAt.toDate() : new Date(),
+                                        read: data.isRead || false,
+                                        isNew: !data.isRead,
+                                        notificationType: data.type,
+                                        originalMessage: data.message,
+                                        title: data.title,
+                                        isUlanNotification: true
+                                    });
+                                });
+                            }) : Promise.resolve();
+
+                    const formTypes = ['atk', 'idcard', 'konsumsi', 'laptop', 'kartunama', 'feedback'];
+                    const requestsPromises = formTypes.map(formType => {
+                        return db.collection(`requests_${formType}`)
+                            .orderBy('createdAt', 'desc')
+                            .limit(30)
+                            .get()
+                            .then((querySnapshot) => {
+                                querySnapshot.forEach((doc) => {
+                                    const request = { id: doc.id, formType, ...doc.data() };
+                                    
+                                    if (isNotificationRelevant(request, userName, userEmail)) {
+                                        const notificationId = `${formType}_${doc.id}_${userEmail}`;
+                                        const isNew = isNewNotification(notificationId, request);
+                                        
+                                        allNotifications.push({
+                                            id: notificationId,
+                                            formType,
+                                            requestId: doc.id,
+                                            request,
+                                            timestamp: request.createdAt ? request.createdAt.toDate() : new Date(),
+                                            read: getNotificationReadStatus(notificationId),
+                                            isNew: isNew,
+                                            isUlanNotification: false
+                                        });
+                                    }
+                                });
+                            });
+                    });
+                    
+                    Promise.all([rabClaimsPromise, ulanNotificationsPromise, ...requestsPromises])
+                        .then(() => {
+                            allNotifications.sort((a, b) => b.timestamp - a.timestamp);
+                            displayGroupedNotifications(allNotifications);
+                            updateNotificationCount(allNotifications);
+                            lastNotificationCheck[userEmail] = new Date();
+                        })
+                        .catch((error) => {
+                            console.error("Error loading all notifications:", error);
+                        });
+                } catch (error) {
+                    console.error("Error loading RAB notifications:", error);
+                }
+            }
+
+            function initializeRealtimeNotifications(userEmail) {
+                if (!userEmail) return;
+                
+                console.log(`Initializing realtime notifications for: ${userEmail}`);
+                
+                notificationUnsubscribeFunctions.forEach(unsubscribe => unsubscribe());
+                notificationUnsubscribeFunctions = [];
+                
+                try {
+                    const rabDb = getRABDatabase();
+                    
+                    const onClaimsChange = rabDb.ref('claims')
+                        .orderByChild('timestamp')
+                        .limitToLast(50)
+                        .on('value', (snapshot) => {
+                            console.log('Realtime update for RAB claims');
+                            loadAllUserNotifications(userEmail);
+                            loadRABClaims();
+                        }, (error) => {
+                            console.error('Error in RAB claims listener:', error);
+                            if (error.code === 'PERMISSION_DENIED') {
+                                console.warn('Permission denied for RAB claims. Please check Firebase Security Rules.');
+                            }
+                        });
+                    
+                    notificationUnsubscribeFunctions.push(() => {
+                        rabDb.ref('claims').off('value', onClaimsChange);
+                    });
+                } catch (error) {
+                    console.error('Error setting up RAB listener:', error);
+                }
+
+                const formTypes = ['atk', 'idcard', 'konsumsi', 'laptop', 'kartunama', 'feedback'];
+                formTypes.forEach(formType => {
+                    const unsubscribe = db.collection(`requests_${formType}`)
+                        .orderBy('createdAt', 'desc')
+                        .limit(50)
+                        .onSnapshot((querySnapshot) => {
+                            console.log(`Realtime update detected for ${formType}`, querySnapshot.size, 'documents');
+                            loadAllUserNotifications(userEmail);
+                            showBrowserNotificationForNewItems(querySnapshot, userEmail);
+                        }, (error) => {
+                            console.error(`Error in realtime listener for ${formType}:`, error);
+                        });
+                    
+                    notificationUnsubscribeFunctions.push(unsubscribe);
+                });
+                
+                console.log(`Realtime notifications initialized with ${notificationUnsubscribeFunctions.length} listeners`);
+            }
+
+            function showBrowserNotificationForNewItems(querySnapshot, userEmail) {
+                if (!('Notification' in window) || Notification.permission !== 'granted') {
+                    return;
+                }
+                
+                const currentTime = new Date();
+                const cooldownKey = `notificationCooldown_${userEmail}`;
+                const lastNotificationTime = localStorage.getItem(cooldownKey);
+                
+                if (lastNotificationTime && (currentTime - new Date(lastNotificationTime)) < BROWSER_NOTIFICATION_COOLDOWN) {
+                    return;
+                }
+                
+                let newItemsCount = 0;
+                let latestItem = null;
+                
+                querySnapshot.docChanges().forEach(change => {
+                    if (change.type === 'added') {
+                        const data = change.doc.data();
+                        const itemTime = data.createdAt ? data.createdAt.toDate() : new Date();
+                        
+                        if ((currentTime - itemTime) < 120000) {
+                            newItemsCount++;
+                            if (!latestItem || itemTime > latestItem.timestamp) {
+                                latestItem = {
+                                    data: data,
+                                    timestamp: itemTime,
+                                    formType: change.doc.ref.parent.id.replace('requests_', '')
+                                };
+                            }
+                        }
+                    }
+                });
+                
+                if (newItemsCount > 0 && latestItem) {
+                    const formTitle = getFormTitle(latestItem.formType);
+                    const notificationTitle = `Request ${formTitle} Baru`;
+                    const notificationBody = latestItem.data.nama ? 
+                        `Request dari ${latestItem.data.nama}` : 
+                        `Ada ${newItemsCount} request baru`;
+                    
+                    new Notification(notificationTitle, {
+                        body: notificationBody,
+                        icon: '/favicon.ico',
+                        tag: 'new-request'
+                    });
+                    
+                    localStorage.setItem(cooldownKey, currentTime.toISOString());
+                }
+            }
+
+            function displayGroupedNotifications(notifications) {
+                const notificationList = document.getElementById('notification-list');
+                if (!notificationList) return;
+                
+                if (notifications.length === 0) {
+                    notificationList.innerHTML = `
+                        <div class="notification-empty">
+                            <i class="fas fa-bell-slash"></i>
+                            <p>Tidak ada notifikasi</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                const groups = groupNotificationsByTime(notifications);
+                notificationList.innerHTML = '';
+                
+                if (groups.today.length > 0) {
+                    const groupTitle = document.createElement('div');
+                    groupTitle.className = 'notification-group-title';
+                    groupTitle.textContent = 'Hari Ini';
+                    notificationList.appendChild(groupTitle);
+                    groups.today.forEach(notification => createNotificationElement(notification));
+                }
+                
+                if (groups.yesterday.length > 0) {
+                    const groupTitle = document.createElement('div');
+                    groupTitle.className = 'notification-group-title';
+                    groupTitle.textContent = 'Kemarin';
+                    notificationList.appendChild(groupTitle);
+                    groups.yesterday.forEach(notification => createNotificationElement(notification));
+                }
+                
+                if (groups.thisWeek.length > 0) {
+                    const groupTitle = document.createElement('div');
+                    groupTitle.className = 'notification-group-title';
+                    groupTitle.textContent = 'Minggu Ini';
+                    notificationList.appendChild(groupTitle);
+                    groups.thisWeek.forEach(notification => createNotificationElement(notification));
+                }
+                
+                if (groups.older.length > 0) {
+                    const groupTitle = document.createElement('div');
+                    groupTitle.className = 'notification-group-title';
+                    groupTitle.textContent = 'Lebih Lama';
+                    notificationList.appendChild(groupTitle);
+                    groups.older.forEach(notification => createNotificationElement(notification));
+                }
+            }
+
+            function createNotificationElement(notification) {
+                const notificationList = document.getElementById('notification-list');
+                if (!notificationList) return;
+                
+                const notificationElement = document.createElement('div');
+                notificationElement.className = `notification-item ${notification.read ? 'read' : 'unread'}`;
+                notificationElement.dataset.notificationId = notification.id;
+                notificationElement.dataset.formType = notification.formType || 'rab';
+                notificationElement.dataset.requestId = notification.requestId;
+                
+                const { iconClass, message, isImportant } = getNotificationContent(notification);
+                const timeAgo = getTimeAgo(notification.timestamp);
+                
+                const newBadge = notification.isNew && !notification.read ? 
+                    '<span class="new-badge">BARU</span>' : '';
+                
+                notificationElement.innerHTML = `
+                    <div class="notification-icon ${iconClass} ${isImportant ? 'important' : ''}">
+                        <i class="fas ${iconClass === 'approved' ? 'fa-check' : iconClass === 'rejected' ? 'fa-times' : 'fa-clock'}"></i>
+                    </div>
+                    <div class="notification-content">
+                        <div class="notification-message">
+                            ${newBadge}
+                            ${message}
+                        </div>
+                        <div class="notification-time">${timeAgo}</div>
+                    </div>
+                    ${!notification.read ? '<div class="unread-indicator"></div>' : ''}
+                `;
+                
+                notificationElement.addEventListener('click', function() {
+                    handleNotificationClick(this, notification);
+                });
+                
+                notificationList.appendChild(notificationElement);
+            }
+
+            function handleNotificationClick(notificationElement, notification) {
+                const formType = notificationElement.dataset.formType;
+                const requestId = notificationElement.dataset.requestId;
+                const notificationId = notificationElement.dataset.notificationId;
+                
+                if (!notification.isUlanNotification && !notification.isRABNotification) {
+                    markNotificationAsRead(notificationId);
+                    notificationElement.classList.remove('unread');
+                    notificationElement.classList.add('read');
+                    notificationElement.querySelector('.unread-indicator')?.remove();
+                    notificationElement.querySelector('.new-badge')?.remove();
+                } else if (notification.isRABNotification) {
+                    markNotificationAsRead(notificationId);
+                    notificationElement.classList.remove('unread');
+                    notificationElement.classList.add('read');
+                    notificationElement.querySelector('.unread-indicator')?.remove();
+                    notificationElement.querySelector('.new-badge')?.remove();
+                } else {
+                    const originalNotificationId = notificationId.replace('notif_', '');
+                    db.collection('user_notifications').doc(originalNotificationId).update({
+                        isRead: true
+                    }).then(() => {
+                        notificationElement.classList.remove('unread');
+                        notificationElement.classList.add('read');
+                        notificationElement.querySelector('.unread-indicator')?.remove();
+                        notificationElement.querySelector('.new-badge')?.remove();
+                    }).catch((error) => {
+                        console.error('Error menandai notifikasi Ulan:', error);
+                    });
+                }
+                
+                showSection(`form-${formType}`);
+                
+                setTimeout(() => {
+                    if (formType === 'rab') {
+                        showFormTab('rab', 'requests');
+                    } else {
+                        showFormTab(formType, 'requests');
+                    }
+                    
+                    setTimeout(() => {
+                        const requestElement = document.querySelector(`[data-request-id="${requestId}"]`);
+                        if (requestElement) {
+                            requestElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            requestElement.classList.add('request-highlight');
+                            
+                            setTimeout(() => {
+                                requestElement.classList.remove('request-highlight');
+                            }, 3000);
+                        }
+                    }, 500);
+                }, 300);
+                
+                notificationDropdown.classList.remove('active');
+                
+                const currentUser = auth.currentUser;
+                if (currentUser && currentUser.email) {
+                    loadAllUserNotifications(currentUser.email);
+                }
+            }
+
+            function getNotificationContent(notification) {
+                if (notification.isUlanNotification) {
+                    let iconClass = 'pending';
+                    let message = notification.originalMessage;
+                    let isImportant = true;
+                    
+                    if (notification.notificationType === 'new_request') {
+                        iconClass = 'pending important';
+                    } else if (notification.notificationType === 'approval_notification') {
+                        iconClass = 'approved important';
+                    }
+                    
+                    return { iconClass, message, isImportant };
+                }
+                
+                if (notification.isRABNotification) {
+                    return {
+                        iconClass: 'pending important',
+                        message: `<strong>${notification.title || 'Claim RAB'}</strong><br>${notification.message || 'Menunggu persetujuan Anda'}`,
+                        isImportant: true
+                    };
+                }
+                
+                const { formType, request } = notification;
+                const status = request.status || 'pending';
+                const formTitle = getFormTitle(formType);
+                
+                let iconClass = '';
+                let message = '';
+                let isImportant = false;
+                
+                if (status === 'approved') {
+                    iconClass = 'approved';
+                    message = `<strong>Request ${formTitle} Disetujui</strong><br>${request.judul || request.nama}`;
+                    isImportant = true;
+                } else if (status === 'rejected') {
+                    iconClass = 'rejected';
+                    message = `<strong>Request ${formTitle} Ditolak</strong><br>${request.judul || request.nama}`;
+                    isImportant = true;
+                } else {
+                    iconClass = 'pending';
+                    if (formType === 'atk') {
+                        const approvers = getApprovedByForRequest(request.nama, request.nilai);
+                        const approverNames = approvers.join(' & ');
+                        message = `<strong>Request ATK Menunggu Persetujuan ${approverNames}</strong><br>Dari: ${request.nama} (${request.department})`;
+                        isImportant = true;
+                    } else if (formType === 'laptop') {
+                        const approvers = getApprovedByForITRequest(request.nama);
+                        const approvedCount = request.approvedBy ? request.approvedBy.length : 0;
+                        const totalApprovers = approvers.length;
+                        message = `<strong>Request IT Menunggu (${approvedCount}/${totalApprovers})</strong><br>Dari: ${request.nama}`;
+                        isImportant = (approvedCount >= 3);
+                    } else if (formType === 'kartunama' || formType === 'idcard' || formType === 'konsumsi') {
+                        message = `<strong>Request ${formTitle} Menunggu Persetujuan</strong><br>Dari: ${request.nama}`;
+                        isImportant = true;
+                    } else if (formType === 'feedback') {
+                        message = `<strong>Feedback Baru Diterima</strong><br>Dari: ${request.nama}`;
+                        isImportant = true;
+                    } else {
+                        message = `<strong>Request ${formTitle} Menunggu Persetujuan</strong><br>Dari: ${request.nama}`;
+                    }
+                }
+                
+                return { iconClass, message, isImportant };
+            }
+
+            function groupNotificationsByTime(notifications) {
+                const now = new Date();
+                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                const yesterday = new Date(today);
+                yesterday.setDate(yesterday.getDate() - 1);
+                
+                const groups = { today: [], yesterday: [], thisWeek: [], older: [] };
+                
+                notifications.forEach(notification => {
+                    const notifDate = new Date(notification.timestamp);
+                    
+                    if (notifDate >= today) {
+                        groups.today.push(notification);
+                    } else if (notifDate >= yesterday) {
+                        groups.yesterday.push(notification);
+                    } else if (notifDate >= new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)) {
+                        groups.thisWeek.push(notification);
+                    } else {
+                        groups.older.push(notification);
+                    }
+                });
+                
+                return groups;
+            }
+
+            function isNewNotification(notificationId, request) {
+                const lastCheck = lastNotificationCheck[auth.currentUser?.email];
+                if (!lastCheck) return true;
+                
+                const requestTime = request.updatedAt ? request.updatedAt.toDate() : 
+                                request.createdAt ? request.createdAt.toDate() : new Date();
+                
+                return requestTime > lastCheck;
+            }
+
+            function getNotificationReadStatus(notificationId) {
+                const userEmail = auth.currentUser?.email;
+                if (!userEmail) return false;
+                
+                const userNotifications = JSON.parse(localStorage.getItem(`notifications_${userEmail}`) || '{}');
+                return !!userNotifications[notificationId]?.read;
+            }
+
+            function markNotificationAsRead(notificationId) {
+                const userEmail = auth.currentUser?.email;
+                if (!userEmail) return;
+                
+                const userNotifications = JSON.parse(localStorage.getItem(`notifications_${userEmail}`) || '{}');
+                userNotifications[notificationId] = {
+                    read: true,
+                    readAt: new Date().toISOString()
+                };
+                localStorage.setItem(`notifications_${userEmail}`, JSON.stringify(userNotifications));
+            }
+
+            function markAllNotificationsAsRead() {
+                const userEmail = auth.currentUser?.email;
+                if (!userEmail) return;
+                
+                const notificationItems = document.querySelectorAll('.notification-item');
+                const userNotifications = JSON.parse(localStorage.getItem(`notifications_${userEmail}`) || '{}');
+                
+                notificationItems.forEach(item => {
+                    const notificationId = item.dataset.notificationId;
+                    userNotifications[notificationId] = {
+                        read: true,
+                        readAt: new Date().toISOString()
+                    };
+                    item.classList.remove('unread');
+                    item.classList.add('read');
+                    item.querySelector('.unread-indicator')?.remove();
+                    item.querySelector('.new-badge')?.remove();
+                });
+                
+                localStorage.setItem(`notifications_${userEmail}`, JSON.stringify(userNotifications));
+                updateNotificationCount();
+                showAlert('Semua notifikasi telah ditandai sebagai sudah dibaca', 'success');
+            }
+
+            function getTimeAgo(timestamp) {
+                const now = new Date();
+                const diffMs = now - timestamp;
+                const diffMins = Math.floor(diffMs / 60000);
+                const diffHours = Math.floor(diffMins / 60);
+                const diffDays = Math.floor(diffHours / 24);
+                
+                if (diffMins < 1) return 'Baru saja';
+                if (diffMins < 60) return `${diffMins} menit lalu`;
+                if (diffHours < 24) return `${diffHours} jam lalu`;
+                if (diffDays < 7) return `${diffDays} hari lalu`;
+                
+                return timestamp.toLocaleDateString('id-ID');
+            }
+
+            function isNotificationRelevant(request, userName, userEmail) {
+                const userPermission = userPermissions[userEmail];
+                const status = request.status || 'pending';
+                
+                if (!['pending', 'approved', 'rejected'].includes(status)) {
+                    return false;
+                }
+                
+                if (userPermission && userPermission.allowedForms.includes(request.formType)) {
+                    if (request.formType === 'atk') {
+                        const approvers = getApprovedByForRequest(request.nama, request.nilai);
+                        if (approvers.includes(userName)) {
+                            return true;
+                        }
+                    }
+                    if (request.formType === 'laptop') {
+                        const approvers = getApprovedByForITRequest(request.nama);
+                        if (approvers.includes(userName)) {
+                            return true;
+                        }
+                    }
+                    if (['kartunama', 'idcard', 'konsumsi'].includes(request.formType) && 
+                        ['Ulan', 'Caecilia Renata'].includes(userName)) {
+                        return true;
+                    }
+                    if (request.formType === 'feedback' && userName === 'Caecilia Renata') {
+                        return true;
+                    }
+                }
+                
+                if (request.nama && (request.nama.includes(userName) || request.nama === userName)) {
+                    return true;
+                }
+                
+                return false;
+            }
+
+            function updateNotificationCount(notifications) {
+                const notificationCount = document.getElementById('notification-count');
+                if (!notificationCount) return;
+                
+                let unreadCount = 0;
+                
+                if (notifications && notifications.length > 0) {
+                    unreadCount = notifications.filter(n => !n.read).length;
+                } else {
+                    const unreadItems = document.querySelectorAll('.notification-item.unread');
+                    unreadCount = unreadItems.length;
+                }
+                
+                if (unreadCount > 0) {
+                    notificationCount.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                    notificationCount.style.display = 'flex';
+                    
+                    if (unreadCount > 5) {
+                        notificationCount.className = 'notification-count high';
+                    } else if (unreadCount > 2) {
+                        notificationCount.className = 'notification-count medium';
+                    } else {
+                        notificationCount.className = 'notification-count';
+                    }
+                } else {
+                    notificationCount.style.display = 'none';
+                }
+            }
+
+            // ==================== MAIN APPLICATION CODE ====================
+            const cards = document.querySelectorAll('.card');
+            const sections = document.querySelectorAll('section');
+            const backButtons = document.querySelectorAll('.back-button');
+            
+            const forms = {
+                atk: document.getElementById('atkForm'),
+                idcard: document.getElementById('idcardForm'),
+                konsumsi: document.getElementById('konsumsiForm'),
+                laptop: document.getElementById('laptopForm'),
+                kartunama: document.getElementById('kartunamaForm'),
+                feedback: document.getElementById('feedbackForm')
+            };
+            
+            const confirmations = {
+                atk: document.getElementById('atk-confirmation'),
+                idcard: document.getElementById('idcard-confirmation'),
+                konsumsi: document.getElementById('konsumsi-confirmation'),
+                laptop: document.getElementById('laptop-confirmation'),
+                kartunama: document.getElementById('kartunama-confirmation'),
+                feedback: document.getElementById('feedback-confirmation')
+            };
+            
+            const requestsLists = {
+                atk: document.getElementById('atk-requests'),
+                idcard: document.getElementById('idcard-requests'),
+                konsumsi: document.getElementById('konsumsi-requests'),
+                laptop: document.getElementById('laptop-requests'),
+                kartunama: document.getElementById('kartunama-requests'),
+                feedback: document.getElementById('feedback-requests'),
+                'laptop-approved-by': document.getElementById('laptop-approved-by'),
+                'atk-approved-by': document.getElementById('atk-approved-by'),
+                'rab-requests': document.getElementById('rab-requests'),
+                'rab-approved-by': document.getElementById('rab-approved-by')
             };
 
-            // Event handler refresh RAB
-            const refreshRabBtn = document.getElementById('refresh-rab');
-            if (refreshRabBtn) refreshRabBtn.addEventListener('click', loadRABClaims);
-            
-            const refreshRabAppBtn = document.getElementById('refresh-rab-approved');
-            if (refreshRabAppBtn) refreshRabAppBtn.addEventListener('click', loadRABClaims);
+            const allFormTabs = document.querySelectorAll('.form-section .form-tab');
 
-            // Authentication & UI Handling
-            auth.onAuthStateChanged(user => {
-                if (user) {
-                    document.getElementById('login-page').classList.remove('active');
+            const loginPage = document.getElementById('login-page');
+            const loginForm = document.getElementById('login-form');
+            const loginEmail = document.getElementById('login-email');
+            const loginPassword = document.getElementById('login-password');
+            const guestLoginBtn = document.getElementById('guest-login-btn');
+            const loginError = document.getElementById('login-error');
+            const logoutBtn = document.getElementById('logout-btn');
+            const userInfo = document.getElementById('user-info');
+            const userName = document.getElementById('user-name');
+            const userAvatar = document.getElementById('user-avatar');
+            
+            const notificationBell = document.getElementById('notification-bell');
+            const notificationCount = document.getElementById('notification-count');
+            const notificationDropdown = document.getElementById('notification-dropdown');
+            const notificationList = document.getElementById('notification-list');
+            const markAllReadBtn = document.getElementById('mark-all-read');
+            const notificationSettings = document.getElementById('notification-settings');
+            const enableNotificationsBtn = document.getElementById('enable-notifications');
+            const notificationStatus = document.getElementById('notification-status');
+
+            const laptopSoAda = document.getElementById('laptop-so-ada');
+            const laptopNoSoContainer = document.getElementById('laptop-no-so-container');
+            const laptopNoSo = document.getElementById('laptop-no-so');
+
+            if (laptopSoAda) {
+                laptopSoAda.addEventListener('change', function() {
+                    if (this.value === 'Ya') {
+                        laptopNoSoContainer.style.display = 'block';
+                        laptopNoSo.required = true;
+                    } else {
+                        laptopNoSoContainer.style.display = 'none';
+                        laptopNoSo.required = false;
+                        laptopNoSo.value = '';
+                    }
+                });
+            }
+
+            function toggleLoginState(isLoggedIn, user = null) {
+                if (isLoggedIn && user) {
+                    loginPage.style.display = 'none';
                     document.querySelector('header').style.display = 'block';
                     document.querySelector('main').style.display = 'block';
                     document.querySelector('footer').style.display = 'block';
                     
-                    const userEmail = user.email;
-                    const userName = emailToNameMap[userEmail] || user.displayName || user.email;
+                    logoutBtn.style.display = 'inline-flex';
                     
-                    document.getElementById('user-name').textContent = userName;
-                    document.getElementById('user-avatar').textContent = userName.charAt(0).toUpperCase();
-                    document.getElementById('user-info').style.display = 'flex';
-                    document.getElementById('logout-btn').style.display = 'inline-flex';
-
-                    // Update visible cards based on user permissions
-                    const userPermission = userPermissions[userEmail];
-                    const cards = document.querySelectorAll('.dashboard .card');
-                    
-                    cards.forEach(card => {
-                        const targetForm = card.getAttribute('data-target').replace('form-', '');
-                        if (userPermission && userPermission.allowedForms) {
-                            if (userPermission.allowedForms.includes(targetForm)) {
-                                card.style.display = 'flex';
-                            } else {
-                                card.style.display = 'none';
-                            }
-                        } else {
-                            card.style.display = 'flex';
+                    if (user.email) {
+                        const displayName = emailToNameMap[user.email] || user.email.split('@')[0];
+                        userName.textContent = displayName;
+                        userAvatar.textContent = displayName.charAt(0).toUpperCase();
+                        userInfo.style.display = 'flex';
+                        
+                        updateFormTabsVisibility(user.email);
+                        
+                        console.log('Initializing notifications for:', user.email);
+                        initializeRealtimeNotifications(user.email);
+                        requestNotificationPermission();
+                        
+                        setTimeout(() => {
+                            loadAllUserNotifications(user.email);
+                            loadRABClaims();
+                        }, 1000);
+                        
+                        if (notificationSettings) {
+                            notificationSettings.style.display = 'block';
                         }
-                    });
-
-                    initializeAllAutocompletes();
+                    } else {
+                        userName.textContent = 'Tamu';
+                        userAvatar.textContent = 'T';
+                        userInfo.style.display = 'flex';
+                        
+                        document.querySelectorAll('[id$="-requests-tab"], [id$="-approved-tab"]').forEach(tab => {
+                            if (tab.id !== 'rab-requests-tab' && tab.id !== 'rab-approved-tab') {
+                                tab.style.display = 'none';
+                            }
+                        });
+                        
+                        notificationBell.style.display = 'none';
+                        if (notificationSettings) {
+                            notificationSettings.style.display = 'none';
+                        }
+                    }
+                    
+                    showSection('dashboard');
                 } else {
-                    document.getElementById('login-page').classList.add('active');
+                    loginPage.style.display = 'flex';
                     document.querySelector('header').style.display = 'none';
                     document.querySelector('main').style.display = 'none';
                     document.querySelector('footer').style.display = 'none';
+                    
+                    logoutBtn.style.display = 'none';
+                    userInfo.style.display = 'none';
+                    
+                    if (loginForm) loginForm.reset();
+                    if (loginError) loginError.style.display = 'none';
+                    
+                    notificationUnsubscribeFunctions.forEach(unsubscribe => unsubscribe());
+                    notificationUnsubscribeFunctions = [];
+                }
+            }
+
+            function updateFormTabsVisibility(userEmail) {
+                if (!userEmail || !userPermissions[userEmail]) return;
+                
+                const userPermission = userPermissions[userEmail];
+                const allFormTypes = ['atk', 'idcard', 'konsumsi', 'laptop', 'feedback', 'kartunama', 'rab'];
+                
+                allFormTypes.forEach(formType => {
+                    const requestTab = document.getElementById(`${formType}-requests-tab`);
+                    const approvedTab = document.getElementById(`${formType}-approved-tab`);
+                    
+                    if (requestTab) {
+                        requestTab.style.display = userPermission.allowedForms.includes(formType) ? 'block' : 'none';
+                    }
+                    
+                    if (approvedTab) {
+                        if (userEmail === 'ulandari@genetek.co.id' && formType !== 'rab') {
+                            approvedTab.style.display = 'none';
+                        } else {
+                            approvedTab.style.display = userPermission.allowedForms.includes(formType) ? 'block' : 'none';
+                        }
+                    }
+                });
+            }
+
+            auth.onAuthStateChanged(user => {
+                console.log("Auth state changed:", user);
+                if (user) {
+                    console.log("User logged in:", user.email || "Guest");
+                    toggleLoginState(true, user);
+                    
+                    setTimeout(() => {
+                        if (typeof initializeAllAutocompletes === 'function') {
+                            initializeAllAutocompletes();
+                        }
+                    }, 1000);
+                } else {
+                    console.log("User logged out");
+                    toggleLoginState(false);
                 }
             });
 
-            // Login Form Event
-            const loginForm = document.getElementById('login-form');
             if (loginForm) {
-                loginForm.addEventListener('submit', e => {
+                loginForm.addEventListener('submit', function(e) {
                     e.preventDefault();
-                    const email = document.getElementById('login-email').value;
-                    const password = document.getElementById('login-password').value;
-                    const errorEl = document.getElementById('login-error');
-                    
-                    errorEl.style.display = 'none';
+                    const email = loginEmail.value;
+                    const password = loginPassword.value;
+
+                    const allowedLoginEmails = [
+                        "crenata@genetek.co.id", "rossiana.yl@genetek.co.id", "galih@genetek.co.id",
+                        "maida@genetek.co.id", "anggita-s@genetek.co.id", "wahyu_yib@genetek.co.id",
+                        "david@genetek.co.id", "m_husni@genetek.co.id", "ulandari@genetek.co.id",
+                        "edwin@genetek.co.id", "heksi@genetek.co.id", "fikihernawan@genetek.co.id"
+                    ];
+
+                    if (!allowedLoginEmails.includes(email)) {
+                        loginError.textContent = "Email tidak terdaftar sebagai approver yang diizinkan.";
+                        loginError.style.display = 'block';
+                        return;
+                    }
+
+                    const submitBtn = loginForm.querySelector('button[type="submit"]');
+                    const originalText = submitBtn.innerHTML;
+                    submitBtn.innerHTML = '<div class="loading"></div> Login...';
+                    submitBtn.disabled = true;
 
                     auth.signInWithEmailAndPassword(email, password)
-                        .catch(error => {
-                            errorEl.textContent = "Login gagal: " + error.message;
-                            errorEl.style.display = 'block';
+                        .then((userCredential) => {
+                            const user = userCredential.user;
+                            console.log("Login successful:", user.email);
+                            loginError.style.display = 'none';
+                            submitBtn.innerHTML = originalText;
+                            submitBtn.disabled = false;
+                        })
+                        .catch((error) => {
+                            const errorCode = error.code;
+                            const errorMessage = error.message;
+                            console.error("Login failed:", errorCode, errorMessage);
+                            loginError.textContent = "Login gagal: " + errorMessage;
+                            loginError.style.display = 'block';
+                            submitBtn.innerHTML = originalText;
+                            submitBtn.disabled = false;
                         });
                 });
             }
 
-            // Logout Event
-            const logoutBtn = document.getElementById('logout-btn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', () => {
-                    auth.signOut();
+            if (guestLoginBtn) {
+                guestLoginBtn.addEventListener('click', function() {
+                    const originalText = guestLoginBtn.innerHTML;
+                    guestLoginBtn.innerHTML = '<div class="loading"></div> Login...';
+                    guestLoginBtn.disabled = true;
+
+                    auth.signInAnonymously()
+                        .then((userCredential) => {
+                            console.log("Signed in as guest:", userCredential.user.uid);
+                            loginError.style.display = 'none';
+                            guestLoginBtn.innerHTML = originalText;
+                            guestLoginBtn.disabled = false;
+                            showAlert('Login sebagai tamu berhasil!', 'success');
+                        })
+                        .catch((error) => {
+                            const errorCode = error.code;
+                            const errorMessage = error.message;
+                            console.error("Guest login failed:", errorCode, errorMessage);
+                            
+                            let userFriendlyError = "Gagal masuk sebagai tamu. Silakan coba lagi.";
+                            if (errorCode === 'auth/admin-restricted-operation') {
+                                userFriendlyError = "Login tamu dinonaktifkan. Silakan hubungi administrator.";
+                            } else if (errorCode === 'auth/network-request-failed') {
+                                userFriendlyError = "Koneksi internet bermasalah. Periksa koneksi Anda.";
+                            }
+                            
+                            loginError.textContent = userFriendlyError;
+                            loginError.style.display = 'block';
+                            guestLoginBtn.innerHTML = originalText;
+                            guestLoginBtn.disabled = false;
+                        });
                 });
             }
 
-            // Dashboard Card Navigation
-            const cards = document.querySelectorAll('.card');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function() {
+                    const originalText = logoutBtn.innerHTML;
+                    logoutBtn.innerHTML = '<div class="loading"></div> Logout...';
+                    logoutBtn.disabled = true;
+
+                    auth.signOut().then(() => {
+                        console.log("User signed out");
+                        logoutBtn.innerHTML = originalText;
+                        logoutBtn.disabled = false;
+                    }).catch((error) => {
+                        console.error("Logout failed:", error);
+                        showAlert('Logout gagal', 'danger');
+                        logoutBtn.innerHTML = originalText;
+                        logoutBtn.disabled = false;
+                    });
+                });
+            }
+            
+            if (notificationBell) {
+                notificationBell.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    notificationDropdown.classList.toggle('active');
+                    
+                    if (notificationDropdown.classList.contains('active')) {
+                        const currentUser = auth.currentUser;
+                        if (currentUser && currentUser.email) {
+                            loadAllUserNotifications(currentUser.email);
+                        }
+                    }
+                });
+            }
+            
+            if (markAllReadBtn) {
+                markAllReadBtn.addEventListener('click', function() {
+                    markAllNotificationsAsRead();
+                });
+            }
+            
+            if (enableNotificationsBtn) {
+                enableNotificationsBtn.addEventListener('click', function() {
+                    requestNotificationPermission();
+                });
+            }
+            
+            document.addEventListener('click', function() {
+                if (notificationDropdown.classList.contains('active')) {
+                    notificationDropdown.classList.remove('active');
+                }
+            });
+            
+            if (notificationDropdown) {
+                notificationDropdown.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                });
+            }
+            
+            const logoHomeButton = document.getElementById('logo-home-button');
+            if (logoHomeButton) {
+                logoHomeButton.addEventListener('click', function() {
+                    showSection('dashboard');
+                });
+            }
+            
+            function showSection(targetId) {
+                sections.forEach(section => {
+                    section.classList.remove('active');
+                });
+                
+                const targetSection = document.getElementById(targetId);
+                if (targetSection) {
+                    targetSection.classList.add('active');
+                }
+                
+                if (targetId !== 'dashboard') {
+                    const formType = targetId.replace('form-', '');
+                    if (formType === 'rab') {
+                        showFormTab('rab', 'requests');
+                        setTimeout(() => loadRABClaims(), 300);
+                    } else {
+                        showFormTab(formType, 'form');
+                    }
+                }
+            }
+            
+            function showFormTab(formType, tabType) {
+                const currentFormSection = document.getElementById(`form-${formType}`);
+                if (!currentFormSection) return;
+
+                const formElement = currentFormSection.querySelector('form');
+                const confirmationElement = confirmations[formType];
+                const requestsElement = requestsLists[formType];
+                const approvedByElement = document.getElementById(`${formType}-approved-by`);
+                
+                currentFormSection.querySelectorAll('.form-tab').forEach(tab => {
+                    tab.classList.remove('active');
+                    if (tab.dataset.tab === tabType) {
+                        tab.classList.add('active');
+                    }
+                });
+                
+                if (formElement) formElement.style.display = 'none';
+                if (confirmationElement) confirmationElement.style.display = 'none';
+                if (requestsElement) requestsElement.style.display = 'none';
+                if (approvedByElement) approvedByElement.style.display = 'none';
+
+                const currentUser = auth.currentUser;
+                const isGuest = !currentUser || currentUser.isAnonymous;
+                const userEmail = currentUser ? currentUser.email : null;
+                
+                if (formType === 'rab') {
+                    if (tabType === 'requests') {
+                        if (requestsElement) {
+                            requestsElement.style.display = 'block';
+                            setTimeout(() => loadRABClaims(), 100);
+                        }
+                    } else if (tabType === 'approved-by') {
+                        if (approvedByElement) {
+                            approvedByElement.style.display = 'block';
+                            setTimeout(() => loadRABClaims(), 100);
+                        }
+                    }
+                    return;
+                }
+                
+                if ((tabType === 'requests' || tabType === 'approved-by') && userEmail) {
+                    const userPermission = userPermissions[userEmail];
+                    if (!userPermission || !userPermission.allowedForms.includes(formType)) {
+                        showAlert('Anda tidak memiliki akses untuk melihat daftar request ini', 'warning');
+                        if (formElement) formElement.style.display = 'block';
+                        return;
+                    }
+                }
+                
+                if (tabType === 'form') {
+                    if (formElement) formElement.style.display = 'block';
+                } else if (tabType === 'requests') {
+                    if (requestsElement && !isGuest) {
+                        requestsElement.style.display = 'block';
+                        loadRequests(formType);
+                    } else if (isGuest) {
+                        if (formElement) formElement.style.display = 'block';
+                        showAlert('Fitur ini tidak tersedia untuk tamu', 'warning');
+                    }
+                } else if (tabType === 'approved-by' && (formType === 'laptop' || formType === 'atk')) {
+                    if (approvedByElement && !isGuest) {
+                        approvedByElement.style.display = 'block';
+                        loadApprovedByRequests(formType);
+                    } else if (isGuest) {
+                        if (formElement) formElement.style.display = 'block';
+                        showAlert('Fitur ini tidak tersedia untuk tamu', 'warning');
+                    }
+                }
+            }
+
+            function loadRequests(formType) {
+                const requestsListContainer = document.getElementById(`${formType}-requests-list`);
+                if (!requestsListContainer) return;
+
+                requestsListContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="loading"></div>
+                        <p>Memuat data request...</p>
+                    </div>
+                `;
+
+                const collectionName = `requests_${formType}`;
+                const currentUser = auth.currentUser;
+                const userEmail = currentUser ? currentUser.email : null;
+                const userName = userEmail ? emailToNameMap[userEmail] : null;
+                const isGuest = !userEmail || currentUser.isAnonymous;
+
+                if (isGuest) {
+                    requestsListContainer.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-user-slash"></i>
+                            <p>Fitur ini tidak tersedia untuk tamu</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                db.collection(collectionName)
+                    .orderBy('createdAt', 'desc')
+                    .get()
+                    .then((querySnapshot) => {
+                        const requests = [];
+                        querySnapshot.forEach((doc) => {
+                            requests.push({ id: doc.id, ...doc.data() });
+                        });
+
+                        const filteredRequests = requests.filter(request => {
+                            if (['ulandari@genetek.co.id', 'crenata@genetek.co.id'].includes(userEmail)) {
+                                if (['kartunama', 'idcard', 'konsumsi'].includes(formType)) {
+                                    return true;
+                                }
+                            }
+                            if (userEmail === 'ulandari@genetek.co.id' && formType === 'atk') {
+                                return true;
+                            }
+                            
+                            if (formType === 'atk') {
+                                const approvers = getApprovedByForRequest(request.nama, request.nilai);
+                                return approvers.includes(userName);
+                            }
+                            
+                            if (formType === 'laptop') {
+                                const approvers = getApprovedByForITRequest(request.nama);
+                                return approvers.includes(userName);
+                            }
+                            
+                            const userPermission = userPermissions[userEmail];
+                            return userPermission && userPermission.allowedForms.includes(formType);
+                        });
+
+                        if (filteredRequests.length === 0) {
+                            requestsListContainer.innerHTML = `
+                                <div class="empty-state">
+                                    <i class="fas fa-inbox"></i>
+                                    <p>Belum ada request ${getFormTitle(formType)} yang relevan untuk Anda</p>
+                                </div>
+                            `;
+                            return;
+                        }
+                        
+                        requestsListContainer.innerHTML = '';
+                        filteredRequests.forEach((request, index) => {
+                            let status = request.status || 'pending';
+                            let statusClass = 'pending';
+                            let statusText = 'Menunggu';
+                            
+                            if (formType === 'atk') {
+                                const approvers = getApprovedByForRequest(request.nama, request.nilai);
+                                const isAllApproved = approvers.every(approver => 
+                                    request.approvedBy && request.approvedBy.includes(approver)
+                                );
+                                
+                                if (isAllApproved) {
+                                    status = 'approved';
+                                    statusClass = 'approved';
+                                    statusText = 'Disetujui';
+                                } else if (request.status === 'approved') {
+                                    statusClass = 'approved';
+                                    statusText = 'Disetujui';
+                                } else if (request.status === 'rejected') {
+                                    statusClass = 'rejected';
+                                    statusText = 'Ditolak';
+                                } else {
+                                    statusText = `Menunggu ${approvers.join(' & ')}`;
+                                }
+                            } else if (formType === 'laptop') {
+                                const approvers = getApprovedByForITRequest(request.nama);
+                                const isAllApproved = approvers.every(approver => 
+                                    request.approvedBy && request.approvedBy.includes(approver)
+                                );
+                                
+                                if (isAllApproved) {
+                                    status = 'approved';
+                                    statusClass = 'approved';
+                                    statusText = 'Disetujui';
+                                } else if (request.status === 'approved') {
+                                    statusClass = 'approved';
+                                    statusText = 'Disetujui';
+                                } else if (request.status === 'rejected') {
+                                    statusClass = 'rejected';
+                                    statusText = 'Ditolak';
+                                } else {
+                                    const approvedCount = request.approvedBy ? request.approvedBy.length : 0;
+                                    const totalApprovers = approvers.length;
+                                    statusText = `Menunggu (${approvedCount}/${totalApprovers})`;
+                                }
+                            } else {
+                                if (request.status === 'approved') {
+                                    statusClass = 'approved';
+                                    statusText = 'Disetujui';
+                                } else if (request.status === 'rejected') {
+                                    statusClass = 'rejected';
+                                    statusText = 'Ditolak';
+                                } else {
+                                    statusClass = 'pending';
+                                    statusText = 'Menunggu';
+                                }
+                            }
+                            
+                            const requestElement = document.createElement('div');
+                            requestElement.className = 'request-item';
+                            requestElement.dataset.requestId = request.id;
+                            
+                            let requestDetails = '';
+                            
+                            if (formType === 'atk') {
+                                requestDetails = `
+                                    <div>Oleh: ${request.nama} • ${request.department}</div>
+                                    <div>Tanggal: ${request.tanggal}</div>
+                                    <div>Kategori: ${request.jenis}</div>
+                                    <div>Nilai: ${request.nilai || 'Tidak ditentukan'}</div>
+                                    <div>Detail: ${request.detail}</div>
+                                `;
+                            } else if (formType === 'idcard') {
+                                requestDetails = `
+                                    <div>Oleh: ${request.nama} • ${request.department}</div>
+                                    <div>Posisi: ${request.posisi}</div>
+                                    <div>Jenis Request: ${request['jenis-request']}</div>
+                                    <div>Keterangan: ${request.keterangan || '-'}</div>
+                                `;
+                            } else if (formType === 'konsumsi') {
+                                requestDetails = `
+                                    <div>Oleh: ${request.nama} • ${request.department}</div>
+                                    <div>Acara: ${request.acara}</div>
+                                    <div>Tanggal: ${request.tanggal} • Waktu: ${request.waktu}</div>
+                                    <div>Jumlah Peserta: ${request['jumlah-peserta']}</div>
+                                    <div>Jenis Konsumsi: ${Array.isArray(request.jenis) ? request.jenis.join(', ') : request.jenis}</div>
+                                `;
+                            } else if (formType === 'laptop') {
+                                requestDetails = `
+                                    <div>Oleh: ${request.nama} • ${request.department}</div>
+                                    <div>Tanggal: ${request.tanggal}</div>
+                                    <div>Jenis Request: ${request['jenis-request']}</div>
+                                    ${request.spesifikasi ? `<div>Spesifikasi: ${request.spesifikasi}</div>` : ''}
+                                    ${request['merk-model'] ? `<div>Merk/Model: ${request['merk-model']}</div>` : ''}
+                                    ${request['so-ada'] ? `<div>SO: ${request['so-ada']}</div>` : ''}
+                                    ${request['so-ada'] === 'Ya' && request['no-so'] ? `<div>No. SO: ${request['no-so']}</div>` : ''}
+                                `;
+                            } else if (formType === 'kartunama') {
+                                requestDetails = `
+                                    <div>Oleh: ${request.nama} • ${request.department}</div>
+                                    <div>Posisi: ${request.posisi}</div>
+                                    <div>Email: ${request.email}</div>
+                                    <div>Telpon: ${request.telpon}</div>
+                                    <div>Jumlah: ${request.jumlah} kartu</div>
+                                    ${request.keterangan ? `<div>Keterangan: ${request.keterangan}</div>` : ''}
+                                `;
+                            } else if (formType === 'feedback') {
+                                requestDetails = `
+                                    <div>Oleh: ${request.nama} • ${request.department}</div>
+                                    <div>Tanggal: ${request.tanggal}</div>
+                                    <div>Kategori: ${request.kategori}</div>
+                                    <div>Penilaian: ${request.penilaian}/10</div>
+                                `;
+                            }
+                            
+                            const userPermission = userPermissions[userEmail];
+                            const canEditStatus = userPermission && userPermission.allowedForms.includes(formType);
+                            
+                            let statusControl;
+                            if (['kartunama', 'idcard', 'konsumsi'].includes(formType) && canEditStatus) {
+                                statusControl = `
+                                    <select class="status-dropdown ${statusClass}" data-request-id="${request.id}" data-form-type="${formType}">
+                                        <option value="pending" ${status === 'pending' ? 'selected' : ''}>Menunggu</option>
+                                        <option value="approved" ${status === 'approved' ? 'selected' : ''}>Disetujui</option>
+                                        <option value="rejected" ${status === 'rejected' ? 'selected' : ''}>Ditolak</option>
+                                    </select>
+                                `;
+                            } else {
+                                statusControl = `<div class="request-status status-${statusClass}">${statusText}</div>`;
+                            }
+                            
+                            requestElement.innerHTML = `
+                                <div class="request-info">
+                                    <div class="request-title">${request.judul || getRequestTitle(formType, request)}</div>
+                                    <div class="request-details">
+                                        ${requestDetails}
+                                        ${request.approvedBy && request.approvedBy.length > 0 ? `<div>Disetujui oleh: ${request.approvedBy.join(', ')}</div>` : ''}
+                                    </div>
+                                </div>
+                                ${statusControl}
+                            `;
+                            
+                            requestElement.style.animationDelay = `${index * 0.1}s`;
+                            requestsListContainer.appendChild(requestElement);
+                        });
+                        
+                        requestsListContainer.querySelectorAll('.status-dropdown').forEach(dropdown => {
+                            dropdown.addEventListener('change', function() {
+                                const requestId = this.dataset.requestId;
+                                const formType = this.dataset.formType;
+                                const newStatus = this.value;
+                                
+                                updateRequestStatus(formType, requestId, newStatus);
+                                
+                                this.className = `status-dropdown ${newStatus}`;
+                                
+                                showAlert(`Status berhasil diubah menjadi ${getStatusText(newStatus)}`, 'success');
+                            });
+                        });
+                    })
+                    .catch((error) => {
+                        console.error("Error loading requests:", error);
+                        requestsListContainer.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <p>Gagal memuat data request</p>
+                                <p style="font-size: 0.8rem; margin-top: 10px;">Error: ${error.message}</p>
+                            </div>
+                        `;
+                    });
+            }
+
+            function loadApprovedByRequests(formType) {
+                const approvedByListContainer = document.getElementById(`${formType}-approved-by-list`);
+                if (!approvedByListContainer) return;
+
+                approvedByListContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="loading"></div>
+                        <p>Memuat data request...</p>
+                    </div>
+                `;
+
+                db.collection(`requests_${formType}`)
+                    .where('status', 'in', ['pending', 'approved'])
+                    .orderBy('createdAt', 'desc')
+                    .get()
+                    .then((querySnapshot) => {
+                        const allRequests = [];
+                        querySnapshot.forEach((doc) => {
+                            allRequests.push({ id: doc.id, ...doc.data() });
+                        });
+
+                        const currentUserEmail = auth.currentUser ? auth.currentUser.email : null;
+                        const currentUserName = currentUserEmail ? emailToNameMap[currentUserEmail] : null;
+
+                        const pendingRequests = allRequests.filter(request => {
+                            if (formType === 'atk') {
+                                const approvers = getApprovedByForRequest(request.nama, request.nilai);
+                                return approvers.includes(currentUserName);
+                            } else if (formType === 'laptop') {
+                                const approvers = getApprovedByForITRequest(request.nama);
+                                return approvers.includes(currentUserName);
+                            }
+                            return false;
+                        });
+
+                        if (pendingRequests.length === 0) {
+                            approvedByListContainer.innerHTML = `
+                                <div class="empty-state">
+                                    <i class="fas fa-check-double"></i>
+                                    <p>Tidak ada request ${getFormTitle(formType)} yang menunggu persetujuan Anda.</p>
+                                </div>
+                            `;
+                            return;
+                        }
+
+                        approvedByListContainer.innerHTML = '';
+                        
+                        pendingRequests.forEach((request, index) => {
+                            let isApproved = false;
+                            let approvalText = '';
+                            let approvers = [];
+                            
+                            if (formType === 'laptop') {
+                                approvers = getApprovedByForITRequest(request.nama);
+                                const isAllApproved = approvers.every(approver => 
+                                    request.approvedBy && request.approvedBy.includes(approver)
+                                );
+                                
+                                isApproved = isAllApproved;
+                                const approvedCount = request.approvedBy ? request.approvedBy.length : 0;
+                                approvalText = isAllApproved ? 'Sudah disetujui semua' : `Menunggu (${approvedCount}/${approvers.length})`;
+                                
+                                if (isApproved && request.status !== 'approved') {
+                                    db.collection(`requests_${formType}`).doc(request.id).update({
+                                        status: 'approved'
+                                    });
+                                }
+                            } else if (formType === 'atk') {
+                                approvers = getApprovedByForRequest(request.nama, request.nilai);
+                                const isAllApproved = approvers.every(approver => 
+                                    request.approvedBy && request.approvedBy.includes(approver)
+                                );
+                                
+                                isApproved = isAllApproved;
+                                approvalText = isAllApproved ? 'Sudah disetujui' : `Menunggu ${approvers.join(' & ')}`;
+                                
+                                if (isApproved && request.status !== 'approved') {
+                                    db.collection(`requests_${formType}`).doc(request.id).update({
+                                        status: 'approved'
+                                    });
+                                }
+                            }
+                            
+                            const requestElement = document.createElement('div');
+                            requestElement.className = 'request-item';
+                            requestElement.style.flexDirection = 'column';
+                            requestElement.style.alignItems = 'flex-start';
+                            requestElement.style.gap = '10px';
+                            
+                            let requestDetails = '';
+                            if (formType === 'atk') {
+                                requestDetails = `
+                                    <div>Oleh: ${request.nama} • ${request.department}</div>
+                                    <div>Tanggal: ${request.tanggal}</div>
+                                    <div>Kategori: ${request.jenis}</div>
+                                    <div>Nilai: ${request.nilai || 'Tidak ditentukan'}</div>
+                                    <div>Detail: ${request.detail}</div>
+                                    <div>Alasan: ${request.alasan}</div>
+                                    <div>Status Persetujuan: ${approvalText}</div>
+                                `;
+                            } else if (formType === 'laptop') {
+                                requestDetails = `
+                                    <div>Oleh: ${request.nama} • ${request.department}</div>
+                                    <div>Tanggal: ${request.tanggal}</div>
+                                    <div>Jenis Request: ${request['jenis-request']}</div>
+                                    ${request.spesifikasi ? `<div>Spesifikasi: ${request.spesifikasi}</div>` : ''}
+                                    ${request['merk-model'] ? `<div>Merk/Model: ${request['merk-model']}</div>` : ''}
+                                    ${request['so-ada'] ? `<div>SO: ${request['so-ada']}</div>` : ''}
+                                    ${request['so-ada'] === 'Ya' && request['no-so'] ? `<div>No. SO: ${request['no-so']}</div>` : ''}
+                                    <div>Deskripsi: ${request['masalah-kebutuhan']}</div>
+                                    <div>Status Persetujuan: ${approvalText}</div>
+                                `;
+                            }
+                            
+                            requestElement.innerHTML = `
+                                <div class="request-info" style="width: 100%;">
+                                    <div class="request-title">${request.judul || getRequestTitle(formType, request)}</div>
+                                    <div class="request-details">
+                                        ${requestDetails}
+                                    </div>
+                                </div>
+                                <div class="approved-by-options" style="width: 100%; border-top: 1px solid var(--border); padding-top: 10px; margin-top: 10px;">
+                                    <label style="font-weight: 600; margin-bottom: 5px;">Status Persetujuan:</label>
+                                    <div class="approver-checkboxes">
+                                        ${approvers.map(approver => {
+                                            const isCurrentUserApprover = (currentUserName === approver);
+                                            const isChecked = request.approvedBy && request.approvedBy.includes(approver);
+
+                                            return `
+                                                <div class="approver-option">
+                                                    <input type="checkbox" id="approve-${request.id}-${approver}"
+                                                        data-request-id="${request.id}"
+                                                        data-approver="${approver}"
+                                                        ${isChecked ? 'checked' : ''}
+                                                        ${!isCurrentUserApprover ? 'disabled' : ''}>
+                                                    <label for="approve-${request.id}-${approver}" style="margin-bottom: 0;">${approver}</label>
+                                                </div>
+                                            `;
+                                        }).join('')}
+                                    </div>
+                                    <div class="action-buttons">
+                                        <button class="btn btn-primary btn-sm approve-btn" data-request-id="${request.id}" ${!currentUserName ? 'disabled' : ''}>
+                                            <i class="fas fa-check"></i> Setujui
+                                        </button>
+                                        <button class="btn btn-danger btn-sm reject-btn" data-request-id="${request.id}" ${!currentUserName ? 'disabled' : ''}>
+                                            <i class="fas fa-times"></i> Tolak
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+
+                            approvedByListContainer.appendChild(requestElement);
+                        });
+
+                        approvedByListContainer.querySelectorAll('.approve-btn').forEach(button => {
+                            button.addEventListener('click', function() {
+                                const requestId = this.dataset.requestId;
+                                const currentUserEmail = auth.currentUser ? auth.currentUser.email : null;
+                                const currentUserName = currentUserEmail ? emailToNameMap[currentUserEmail] : null;
+                                
+                                if (currentUserName) {
+                                    updateApprovalStatus(formType, requestId, currentUserName, true);
+                                    
+                                    db.collection(`requests_${formType}`).doc(requestId).get()
+                                        .then((doc) => {
+                                            if (doc.exists) {
+                                                const request = doc.data();
+                                                
+                                                if (formType === 'laptop') {
+                                                    const approvers = getApprovedByForITRequest(request.nama);
+                                                    const isAllApproved = approvers.every(approver => 
+                                                        request.approvedBy && request.approvedBy.includes(approver)
+                                                    );
+                                                    
+                                                    if (isAllApproved) {
+                                                        db.collection(`requests_${formType}`).doc(requestId).update({
+                                                            status: 'approved'
+                                                        });
+                                                        showAlert('Request telah disetujui oleh semua approver!', 'success');
+                                                    } else {
+                                                        showAlert('Anda telah menyetujui request ini!', 'success');
+                                                    }
+                                                } else if (formType === 'atk') {
+                                                    const approvers = getApprovedByForRequest(request.nama, request.nilai);
+                                                    const isAllApproved = approvers.every(approver => 
+                                                        request.approvedBy && request.approvedBy.includes(approver)
+                                                    );
+                                                    
+                                                    if (isAllApproved) {
+                                                        db.collection(`requests_${formType}`).doc(requestId).update({
+                                                            status: 'approved'
+                                                        });
+                                                        showAlert('Request telah disetujui oleh semua approver!', 'success');
+                                                    } else {
+                                                        showAlert('Anda telah menyetujui request ini!', 'success');
+                                                    }
+                                                }
+                                            }
+                                        });
+                                }
+                            });
+                        });
+
+                        approvedByListContainer.querySelectorAll('.reject-btn').forEach(button => {
+                            button.addEventListener('click', function() {
+                                const requestId = this.dataset.requestId;
+                                updateRequestStatus(formType, requestId, 'rejected');
+                                showAlert('Request telah ditolak!', 'danger');
+                            });
+                        });
+                    })
+                    .catch((error) => {
+                        console.error("Error loading approved by requests:", error);
+                        approvedByListContainer.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <p>Gagal memuat data request</p>
+                                <p style="font-size: 0.8rem; margin-top: 10px;">Error: ${error.message}</p>
+                            </div>
+                        `;
+                    });
+            }
+
+            function updateApprovalStatus(formType, requestId, approverName, isApproved) {
+                return db.collection(`requests_${formType}`).doc(requestId).get()
+                    .then((doc) => {
+                        if (doc.exists) {
+                            const request = doc.data();
+                            const approvedBy = request.approvedBy || [];
+                            
+                            if (isApproved) {
+                                if (!approvedBy.includes(approverName)) {
+                                    approvedBy.push(approverName);
+                                }
+                            } else {
+                                const index = approvedBy.indexOf(approverName);
+                                if (index > -1) {
+                                    approvedBy.splice(index, 1);
+                                }
+                            }
+                            
+                            return db.collection(`requests_${formType}`).doc(requestId).update({
+                                approvedBy: approvedBy
+                            }).then(() => {
+                                if (isApproved && approverName === 'Caecilia Renata' && formType === 'atk') {
+                                    return db.collection(`requests_${formType}`).doc(requestId).get()
+                                        .then((updatedDoc) => {
+                                            if (updatedDoc.exists) {
+                                                const updatedRequest = updatedDoc.data();
+                                                sendApprovalNotificationToUlan(formType, requestId, updatedRequest);
+                                            }
+                                        });
+                                }
+                                return { approvedBy: approvedBy };
+                            });
+                        }
+                    })
+                    .then((result) => {
+                        loadApprovedByRequests(formType);
+                        loadRequests(formType);
+                        return result;
+                    })
+                    .catch((error) => {
+                        console.error("Error updating approval status:", error);
+                        showAlert('Gagal memperbarui status persetujuan', 'danger');
+                    });
+            }
+
+            function updateRequestStatus(formType, requestId, newStatus) {
+                db.collection(`requests_${formType}`).doc(requestId).get()
+                    .then((doc) => {
+                        if (doc.exists) {
+                            const requestData = doc.data();
+                            
+                            return db.collection(`requests_${formType}`).doc(requestId).update({
+                                status: newStatus,
+                                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                            }).then(() => {
+                                if (newStatus === 'approved' && formType === 'atk') {
+                                    sendApprovalNotificationToUlan(formType, requestId, { ...requestData, status: newStatus });
+                                }
+                                return { success: true };
+                            });
+                        }
+                    })
+                    .then((result) => {
+                        if (result && result.success) {
+                            console.log(`Status updated to ${newStatus} for request ${requestId}`);
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("Error updating request status:", error);
+                        showAlert('Gagal memperbarui status request', 'danger');
+                    });
+            }
+
+            function sendApprovalNotificationToUlan(formType, requestId, requestData) {
+                if (formType === 'atk' && requestData.status === 'approved') {
+                    const notificationData = {
+                        userId: 'ulandari@genetek.co.id',
+                        title: 'Request GA Disetujui',
+                        message: `Request GA dari ${requestData.nama} (${requestData.department}) telah disetujui dan siap untuk diproses lebih lanjut.`,
+                        formType: formType,
+                        requestId: requestId,
+                        isRead: false,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        type: 'approval_notification',
+                        priority: 'high'
+                    };
+                    
+                    db.collection('user_notifications').add(notificationData)
+                    .then(() => {
+                        console.log('Notifikasi persetujuan BERHASIL dikirim ke Ulan');
+                    })
+                    .catch((error) => {
+                        console.error('Error mengirim notifikasi persetujuan ke Ulan:', error);
+                    });
+                }
+            }
+
+            function getStatusText(status) {
+                const statusTexts = {
+                    'pending': 'Menunggu',
+                    'approved': 'Disetujui',
+                    'rejected': 'Ditolak'
+                };
+                return statusTexts[status] || status;
+            }
+
+            function getRequestTitle(formType, request) {
+                switch(formType) {
+                    case 'atk': return `Permintaan ${request.jenis}`;
+                    case 'idcard': return `Permintaan ID Card - ${request.nama}`;
+                    case 'konsumsi': return `Konsumsi ${request.acara}`;
+                    case 'laptop': return `Permintaan ${request['jenis-request']} IT`;
+                    case 'kartunama': return `Permintaan Kartu Nama - ${request.nama}`;
+                    case 'feedback': return `Feedback ${request.kategori} - ${request.nama}`;
+                    default: return 'Permintaan';
+                }
+            }
+
+            function showAlert(message, type = 'success') {
+                const alert = document.createElement('div');
+                alert.className = `custom-alert alert-${type}`;
+                alert.innerHTML = `
+                    <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'danger' ? 'fa-times-circle' : 'fa-exclamation-circle'}"></i>
+                    ${message}
+                `;
+                
+                document.body.appendChild(alert);
+                
+                setTimeout(() => {
+                    if (alert.parentNode) {
+                        alert.remove();
+                    }
+                }, 3000);
+            }
+
+            function requestNotificationPermission() {
+                if ('Notification' in window) {
+                    if (Notification.permission === 'default') {
+                        Notification.requestPermission().then(permission => {
+                            if (permission === 'granted') {
+                                console.log('Notification permission granted');
+                                showAlert('Notifikasi browser diaktifkan', 'success');
+                            }
+                            updateNotificationStatus();
+                        });
+                    }
+                    updateNotificationStatus();
+                }
+            }
+
+            function updateNotificationStatus() {
+                if (!notificationStatus) return;
+                
+                if ('Notification' in window) {
+                    if (Notification.permission === 'granted') {
+                        notificationStatus.innerHTML = '<span style="color: var(--success);"><i class="fas fa-check-circle"></i> Notifikasi browser aktif</span>';
+                        if (enableNotificationsBtn) enableNotificationsBtn.style.display = 'none';
+                    } else if (Notification.permission === 'denied') {
+                        notificationStatus.innerHTML = '<span style="color: var(--danger);"><i class="fas fa-times-circle"></i> Notifikasi browser diblokir</span>';
+                        if (enableNotificationsBtn) {
+                            enableNotificationsBtn.style.display = 'block';
+                            enableNotificationsBtn.innerHTML = '<i class="fas fa-unlock"></i> Buka Blokir di Pengaturan Browser';
+                        }
+                    } else {
+                        notificationStatus.innerHTML = '<span style="color: var(--warning);"><i class="fas fa-bell-slash"></i> Notifikasi browser belum diaktifkan</span>';
+                        if (enableNotificationsBtn) enableNotificationsBtn.style.display = 'block';
+                    }
+                } else {
+                    notificationStatus.innerHTML = '<span style="color: var(--secondary);"><i class="fas fa-info-circle"></i> Browser tidak mendukung notifikasi</span>';
+                    if (enableNotificationsBtn) enableNotificationsBtn.style.display = 'none';
+                }
+            }
+
+            // ==================== EVENT LISTENERS ====================
+            
             cards.forEach(card => {
                 card.addEventListener('click', function() {
-                    const targetId = this.getAttribute('data-target');
-                    document.getElementById('dashboard').style.display = 'none';
-                    
-                    const targetSection = document.getElementById(targetId);
-                    if (targetSection) {
-                        targetSection.classList.add('active');
-                        if (targetId === 'form-rab') {
-                            loadRABClaims();
+                    showSection(this.dataset.target);
+                });
+            });
+            
+            backButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    showSection('dashboard');
+                });
+            });
+            
+            allFormTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const formId = this.closest('.form-section').id.replace('form-', '');
+                    showFormTab(formId, this.dataset.tab);
+                });
+            });
+
+            document.getElementById('refresh-rab')?.addEventListener('click', function() {
+                loadRABClaims();
+                const icon = this.querySelector('i');
+                if (icon) {
+                    icon.style.transition = 'transform 0.5s';
+                    icon.style.transform = 'rotate(360deg)';
+                    setTimeout(() => {
+                        icon.style.transform = 'rotate(0deg)';
+                    }, 500);
+                }
+                showAlert('Data RAB berhasil di-refresh', 'success');
+            });
+
+            document.getElementById('refresh-rab-approved')?.addEventListener('click', function() {
+                loadRABClaims();
+                const icon = this.querySelector('i');
+                if (icon) {
+                    icon.style.transition = 'transform 0.5s';
+                    icon.style.transform = 'rotate(360deg)';
+                    setTimeout(() => {
+                        icon.style.transform = 'rotate(0deg)';
+                    }, 500);
+                }
+                showAlert('Data RAB berhasil di-refresh', 'success');
+            });
+
+            document.querySelectorAll('[id^="refresh-"]').forEach(button => {
+                if (button.id !== 'refresh-rab' && button.id !== 'refresh-rab-approved') {
+                    button.addEventListener('click', function() {
+                        const formType = this.id.replace('refresh-', '');
+                        if (formType.includes('approved')) {
+                            const baseFormType = formType.replace('-approved', '');
+                            loadApprovedByRequests(baseFormType);
+                        } else {
+                            loadRequests(formType);
                         }
+                        
+                        const icon = this.querySelector('i');
+                        if (icon) {
+                            icon.style.transition = 'transform 0.5s';
+                            icon.style.transform = 'rotate(360deg)';
+                            setTimeout(() => {
+                                icon.style.transform = 'rotate(0deg)';
+                            }, 500);
+                        }
+                    });
+                }
+            });
+
+            Object.keys(forms).forEach(formKey => {
+                if (forms[formKey]) {
+                    forms[formKey].addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        submitFormData(formKey, this);
+                    });
+                }
+            });
+
+            function submitFormData(formKey, formElement) {
+                const formData = new FormData(formElement);
+                const formObject = {
+                    status: 'pending',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    tanggal: new Date().toLocaleDateString('id-ID'),
+                    waktu: new Date().toLocaleTimeString('id-ID'),
+                    approvedBy: []
+                };
+                
+                formData.forEach((value, key) => {
+                    formObject[key] = value;
+                });
+                
+                if (formKey === 'konsumsi') {
+                    const selectedKonsumsi = [];
+                    document.querySelectorAll('input[name="jenis-konsumsi"]:checked').forEach(checkbox => {
+                        if (checkbox.value === 'Lainnya') {
+                            const lainnyaDetail = document.getElementById('konsumsi-lainnya-detail-input').value;
+                            if (lainnyaDetail) {
+                                selectedKonsumsi.push(lainnyaDetail);
+                            }
+                        } else {
+                            selectedKonsumsi.push(checkbox.value);
+                        }
+                    });
+                    formObject.jenis = selectedKonsumsi;
+                }
+                
+                if (formKey === 'laptop') {
+                    if (formObject['so-ada'] === 'Tidak') {
+                        formObject['no-so'] = '';
+                    }
+                }
+                
+                formObject.judul = getRequestTitle(formKey, formObject);
+                
+                const collectionName = `requests_${formKey}`;
+                console.log(`Saving to collection: ${collectionName}`, formObject);
+
+                db.collection(collectionName).add(formObject)
+                    .then((docRef) => {
+                        console.log("Document written with ID: ", docRef.id);
+                        
+                        formElement.style.display = 'none';
+                        if (confirmations[formKey]) {
+                            confirmations[formKey].classList.add('active');
+                        }
+                        
+                        formElement.reset();
+                        updateCheckboxOptions();
+                        
+                        if (formKey === 'laptop') {
+                            laptopNoSoContainer.style.display = 'none';
+                            laptopNoSo.required = false;
+                        }
+                        
+                        document.getElementById('konsumsi-lainnya-detail').style.display = 'none';
+                        
+                        setTimeout(() => {
+                            if (confirmations[formKey]) {
+                                confirmations[formKey].classList.remove('active');
+                            }
+                            formElement.style.display = 'block';
+                        }, 3000);
+                        
+                        showAlert('Permintaan berhasil diajukan!', 'success');
+                    })
+                    .catch((error) => {
+                        console.error("Error adding document: ", error);
+                        showAlert('Gagal mengajukan permintaan: ' + error.message, 'danger');
+                    });
+            }
+
+            function updateCheckboxOptions() {
+                document.querySelectorAll('.checkbox-option').forEach(option => {
+                    const checkbox = option.querySelector('input[type="checkbox"]');
+                    if (checkbox.checked) {
+                        option.classList.add('selected');
+                    } else {
+                        option.classList.remove('selected');
+                    }
+                });
+            }
+
+            document.querySelectorAll('input[name="jenis-konsumsi"]').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    updateCheckboxOptions();
+                    
+                    if (this.id === 'konsumsi-lainnya' && this.checked) {
+                        document.getElementById('konsumsi-lainnya-detail').style.display = 'block';
+                    } else if (this.id === 'konsumsi-lainnya' && !this.checked) {
+                        document.getElementById('konsumsi-lainnya-detail').style.display = 'none';
+                        document.getElementById('konsumsi-lainnya-detail-input').value = '';
                     }
                 });
             });
 
-            // Back to Dashboard
-            const backButtons = document.querySelectorAll('.back-button');
-            backButtons.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    document.querySelectorAll('.form-section').forEach(sec => sec.classList.remove('active'));
-                    document.getElementById('dashboard').style.display = 'grid';
-                });
+            const today = new Date().toISOString().split('T')[0];
+            document.querySelectorAll('input[type="date"]').forEach(input => {
+                if (input) {
+                    input.min = today;
+                }
             });
 
-            const logoHomeBtn = document.getElementById('logo-home-button');
-            if (logoHomeBtn) {
-                logoHomeBtn.addEventListener('click', () => {
-                    document.querySelectorAll('.form-section').forEach(sec => sec.classList.remove('active'));
-                    document.getElementById('dashboard').style.display = 'grid';
-                });
-            }
+            updateCheckboxOptions();
 
-            // Form Tabs Switching
-            const tabs = document.querySelectorAll('.form-tab');
-            tabs.forEach(tab => {
-                tab.addEventListener('click', function() {
-                    const parentSection = this.closest('.form-section');
-                    parentSection.querySelectorAll('.form-tab').forEach(t => t.classList.remove('active'));
-                    this.classList.add('active');
-
-                    const tabTarget = this.getAttribute('data-tab');
-                    const formEl = parentSection.querySelector('form');
-                    const confirmEl = parentSection.querySelector('.confirmation');
-                    const requestsList = parentSection.querySelector('#' + parentSection.id.replace('form-', '') + '-requests');
-                    const approvedList = parentSection.querySelector('#' + parentSection.id.replace('form-', '') + '-approved-by');
-
-                    if (formEl) formEl.style.display = tabTarget === 'form' ? 'block' : 'none';
-                    if (confirmEl) confirmEl.classList.remove('active');
-                    if (requestsList) requestsList.style.display = tabTarget === 'requests' ? 'block' : 'none';
-                    if (approvedList) approvedList.style.display = tabTarget === 'approved-by' ? 'block' : 'none';
-                });
-            });
+            // Make loadRABClaims available globally for the refresh button
+            window.loadRABClaims = loadRABClaims;
         });
     </script>
 </body>
