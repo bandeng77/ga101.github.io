@@ -1269,6 +1269,19 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 6px -1px rgba(139, 92, 246, 0.3);
         }
+
+        .view-only-badge {
+            background: #e0f2fe;
+            color: #0369a1;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            margin-left: 10px;
+        }
     </style>
 </head>
 <body>
@@ -2364,6 +2377,7 @@
                 'crenata@genetek.co.id': 'Caecilia Renata',
                 'rossiana.yl@genetek.co.id': 'Rossiana Y.L',
                 'maida@genetek.co.id': 'Maida',
+                'netia@genetek.co.id': 'Netia',
                 'ulandari@genetek.co.id': 'Ulan',
                 'm_husni@genetek.co.id': 'Muhamad Husni',
                 'anggita-s@genetek.co.id': 'Anggita Septiani',
@@ -2389,6 +2403,10 @@
                 },
                 'maida@genetek.co.id': {
                     name: 'Maida',
+                    allowedForms: ['laptop', 'rab']
+                },
+                'netia@genetek.co.id': {
+                    name: 'Netia',
                     allowedForms: ['laptop', 'rab']
                 },
                 'rossiana.yl@genetek.co.id': {
@@ -2424,6 +2442,11 @@
                     allowedForms: ['atk', 'laptop']
                 }
             };
+
+            // ==================== VIEW-ONLY USER CHECK ====================
+            function isViewOnlyUser(email) {
+                return email === 'netia@genetek.co.id';
+            }
 
             // ==================== RAB MONITORING FUNCTIONS ====================
             let notificationUnsubscribeFunctions = [];
@@ -2618,6 +2641,10 @@
             }
 
             function renderRABRequestsList(container, claims, projects) {
+                const currentUser = auth.currentUser;
+                const userEmail = currentUser ? currentUser.email : null;
+                const viewOnly = isViewOnlyUser(userEmail);
+
                 if (claims.length === 0) {
                     container.innerHTML = `
                         <div class="empty-state">
@@ -2671,6 +2698,27 @@
                         minute: '2-digit'
                     });
 
+                    // VIEW-ONLY: Sembunyikan tombol approve/reject
+                    let actionButtons = '';
+                    if (!viewOnly && status === 'pending') {
+                        actionButtons = `
+                            <div class="request-actions">
+                                <button class="btn btn-success btn-sm rab-approve-btn" data-claim-id="${claim.id}">
+                                    <i class="fas fa-check"></i> Approve
+                                </button>
+                                <button class="btn btn-danger btn-sm rab-reject-btn" data-claim-id="${claim.id}">
+                                    <i class="fas fa-times"></i> Reject
+                                </button>
+                            </div>
+                        `;
+                    } else if (viewOnly) {
+                        actionButtons = `
+                            <div class="view-only-badge">
+                                <i class="fas fa-eye"></i> View Only
+                            </div>
+                        `;
+                    }
+
                     html += `
                         <div class="request-item rab-item" data-claim-id="${claim.id}" style="animation-delay: ${index * 0.05}s;">
                             <div class="request-info">
@@ -2698,16 +2746,7 @@
                             </div>
                             <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
                                 <span class="request-status status-${statusClass}">${statusText}</span>
-                                ${status === 'pending' ? `
-                                    <div class="request-actions">
-                                        <button class="btn btn-success btn-sm rab-approve-btn" data-claim-id="${claim.id}">
-                                            <i class="fas fa-check"></i> Approve
-                                        </button>
-                                        <button class="btn btn-danger btn-sm rab-reject-btn" data-claim-id="${claim.id}">
-                                            <i class="fas fa-times"></i> Reject
-                                        </button>
-                                    </div>
-                                ` : ''}
+                                ${actionButtons}
                             </div>
                         </div>
                     `;
@@ -2715,24 +2754,30 @@
 
                 container.innerHTML = html;
 
-                container.querySelectorAll('.rab-approve-btn').forEach(btn => {
-                    btn.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        const claimId = this.dataset.claimId;
-                        handleRABApproval(claimId, 'approved');
+                if (!viewOnly) {
+                    container.querySelectorAll('.rab-approve-btn').forEach(btn => {
+                        btn.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            const claimId = this.dataset.claimId;
+                            handleRABApproval(claimId, 'approved');
+                        });
                     });
-                });
 
-                container.querySelectorAll('.rab-reject-btn').forEach(btn => {
-                    btn.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        const claimId = this.dataset.claimId;
-                        handleRABApproval(claimId, 'rejected');
+                    container.querySelectorAll('.rab-reject-btn').forEach(btn => {
+                        btn.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            const claimId = this.dataset.claimId;
+                            handleRABApproval(claimId, 'rejected');
+                        });
                     });
-                });
+                }
             }
 
             function renderRABApprovedByList(container, claims, projects, currentUserName) {
+                const currentUser = auth.currentUser;
+                const userEmail = currentUser ? currentUser.email : null;
+                const viewOnly = isViewOnlyUser(userEmail);
+
                 const pendingClaims = claims.filter(c => c.status === 'pending');
                 
                 const userApprovals = pendingClaims.filter(claim => {
@@ -2765,7 +2810,7 @@
                                     data-claim-id="${claim.id}"
                                     data-approver="${approver}"
                                     ${isApproved ? 'checked' : ''}
-                                    ${currentUserName !== approver ? 'disabled' : ''}>
+                                    ${currentUserName !== approver || viewOnly ? 'disabled' : ''}>
                                 <label for="rab-approve-${claim.id}-${approver}" style="margin-bottom: 0;">${approver}</label>
                             </div>
                         `;
@@ -2780,6 +2825,27 @@
                         itemsSummary = claim.items.map(item => 
                             `${item.itemName || 'Item'} (${formatRp(item.nominal || 0)})`
                         ).join(', ');
+                    }
+
+                    // VIEW-ONLY: Sembunyikan tombol approve/reject
+                    let actionButtons = '';
+                    if (!viewOnly) {
+                        actionButtons = `
+                            <div class="action-buttons">
+                                <button class="btn btn-rab btn-sm rab-approve-btn" data-claim-id="${claim.id}">
+                                    <i class="fas fa-check"></i> Setujui
+                                </button>
+                                <button class="btn btn-danger btn-sm rab-reject-btn" data-claim-id="${claim.id}">
+                                    <i class="fas fa-times"></i> Tolak
+                                </button>
+                            </div>
+                        `;
+                    } else {
+                        actionButtons = `
+                            <div class="view-only-badge">
+                                <i class="fas fa-eye"></i> View Only - Tidak dapat approve
+                            </div>
+                        `;
                     }
 
                     html += `
@@ -2806,14 +2872,7 @@
                                 <div class="approver-checkboxes">
                                     ${approvalStatus}
                                 </div>
-                                <div class="action-buttons">
-                                    <button class="btn btn-rab btn-sm rab-approve-btn" data-claim-id="${claim.id}">
-                                        <i class="fas fa-check"></i> Setujui
-                                    </button>
-                                    <button class="btn btn-danger btn-sm rab-reject-btn" data-claim-id="${claim.id}">
-                                        <i class="fas fa-times"></i> Tolak
-                                    </button>
-                                </div>
+                                ${actionButtons}
                             </div>
                         </div>
                     `;
@@ -2821,23 +2880,25 @@
 
                 container.innerHTML = html;
 
-                container.querySelectorAll('.rab-approve-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const claimId = this.dataset.claimId;
-                        const checkboxes = container.querySelectorAll(`input[data-claim-id="${claimId}"]`);
-                        checkboxes.forEach(cb => {
-                            if (!cb.disabled) cb.checked = true;
+                if (!viewOnly) {
+                    container.querySelectorAll('.rab-approve-btn').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const claimId = this.dataset.claimId;
+                            const checkboxes = container.querySelectorAll(`input[data-claim-id="${claimId}"]`);
+                            checkboxes.forEach(cb => {
+                                if (!cb.disabled) cb.checked = true;
+                            });
+                            handleRABApproval(claimId, 'approved');
                         });
-                        handleRABApproval(claimId, 'approved');
                     });
-                });
 
-                container.querySelectorAll('.rab-reject-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const claimId = this.dataset.claimId;
-                        handleRABApproval(claimId, 'rejected');
+                    container.querySelectorAll('.rab-reject-btn').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const claimId = this.dataset.claimId;
+                            handleRABApproval(claimId, 'rejected');
+                        });
                     });
-                });
+                }
             }
 
             function handleRABApproval(claimId, status) {
@@ -2847,6 +2908,12 @@
 
                 if (!userName) {
                     showAlert('Anda harus login terlebih dahulu!', 'danger');
+                    return;
+                }
+
+                // VIEW-ONLY: Cegah approve/reject
+                if (isViewOnlyUser(userEmail)) {
+                    showAlert('Akun Anda hanya memiliki akses view-only. Tidak dapat melakukan approve/reject.', 'warning');
                     return;
                 }
 
@@ -3719,7 +3786,7 @@
 
                     const allowedLoginEmails = [
                         "crenata@genetek.co.id", "rossiana.yl@genetek.co.id", "galih@genetek.co.id",
-                        "maida@genetek.co.id", "anggita-s@genetek.co.id", "wahyu_yib@genetek.co.id",
+                        "maida@genetek.co.id", "netia@genetek.co.id", "anggita-s@genetek.co.id", "wahyu_yib@genetek.co.id",
                         "david@genetek.co.id", "m_husni@genetek.co.id", "ulandari@genetek.co.id",
                         "edwin@genetek.co.id", "heksi@genetek.co.id", "fikihernawan@genetek.co.id"
                     ];
@@ -3960,6 +4027,7 @@
                 const userEmail = currentUser ? currentUser.email : null;
                 const userName = userEmail ? emailToNameMap[userEmail] : null;
                 const isGuest = !userEmail || currentUser.isAnonymous;
+                const viewOnly = isViewOnlyUser(userEmail);
 
                 if (isGuest) {
                     requestsListContainer.innerHTML = `
@@ -4131,7 +4199,7 @@
                             }
                             
                             const userPermission = userPermissions[userEmail];
-                            const canEditStatus = userPermission && userPermission.allowedForms.includes(formType);
+                            const canEditStatus = userPermission && userPermission.allowedForms.includes(formType) && !viewOnly;
                             
                             let statusControl;
                             if (['kartunama', 'idcard', 'konsumsi'].includes(formType) && canEditStatus) {
@@ -4210,6 +4278,7 @@
 
                         const currentUserEmail = auth.currentUser ? auth.currentUser.email : null;
                         const currentUserName = currentUserEmail ? emailToNameMap[currentUserEmail] : null;
+                        const viewOnly = isViewOnlyUser(currentUserEmail);
 
                         const pendingRequests = allRequests.filter(request => {
                             if (formType === 'atk') {
@@ -4301,6 +4370,65 @@
                                 `;
                             }
                             
+                            // VIEW-ONLY: Sembunyikan checkbox & tombol approve/reject
+                            let approvalControls = '';
+                            if (!viewOnly) {
+                                approvalControls = `
+                                    <div class="approved-by-options" style="width: 100%; border-top: 1px solid var(--border); padding-top: 10px; margin-top: 10px;">
+                                        <label style="font-weight: 600; margin-bottom: 5px;">Status Persetujuan:</label>
+                                        <div class="approver-checkboxes">
+                                            ${approvers.map(approver => {
+                                                const isCurrentUserApprover = (currentUserName === approver);
+                                                const isChecked = request.approvedBy && request.approvedBy.includes(approver);
+
+                                                return `
+                                                    <div class="approver-option">
+                                                        <input type="checkbox" id="approve-${request.id}-${approver}"
+                                                            data-request-id="${request.id}"
+                                                            data-approver="${approver}"
+                                                            ${isChecked ? 'checked' : ''}
+                                                            ${!isCurrentUserApprover ? 'disabled' : ''}>
+                                                        <label for="approve-${request.id}-${approver}" style="margin-bottom: 0;">${approver}</label>
+                                                    </div>
+                                                `;
+                                            }).join('')}
+                                        </div>
+                                        <div class="action-buttons">
+                                            <button class="btn btn-primary btn-sm approve-btn" data-request-id="${request.id}" ${!currentUserName ? 'disabled' : ''}>
+                                                <i class="fas fa-check"></i> Setujui
+                                            </button>
+                                            <button class="btn btn-danger btn-sm reject-btn" data-request-id="${request.id}" ${!currentUserName ? 'disabled' : ''}>
+                                                <i class="fas fa-times"></i> Tolak
+                                            </button>
+                                        </div>
+                                    </div>
+                                `;
+                            } else {
+                                approvalControls = `
+                                    <div class="approved-by-options" style="width: 100%; border-top: 1px solid var(--border); padding-top: 10px; margin-top: 10px;">
+                                        <label style="font-weight: 600; margin-bottom: 5px;">Status Persetujuan:</label>
+                                        <div class="approver-checkboxes">
+                                            ${approvers.map(approver => {
+                                                const isChecked = request.approvedBy && request.approvedBy.includes(approver);
+                                                return `
+                                                    <div class="approver-option">
+                                                        <input type="checkbox" id="approve-${request.id}-${approver}"
+                                                            data-request-id="${request.id}"
+                                                            data-approver="${approver}"
+                                                            ${isChecked ? 'checked' : ''}
+                                                            disabled>
+                                                        <label for="approve-${request.id}-${approver}" style="margin-bottom: 0;">${approver}</label>
+                                                    </div>
+                                                `;
+                                            }).join('')}
+                                        </div>
+                                        <div class="view-only-badge">
+                                            <i class="fas fa-eye"></i> View Only - Tidak dapat approve
+                                        </div>
+                                    </div>
+                                `;
+                            }
+                            
                             requestElement.innerHTML = `
                                 <div class="request-info" style="width: 100%;">
                                     <div class="request-title">${request.judul || getRequestTitle(formType, request)}</div>
@@ -4308,95 +4436,70 @@
                                         ${requestDetails}
                                     </div>
                                 </div>
-                                <div class="approved-by-options" style="width: 100%; border-top: 1px solid var(--border); padding-top: 10px; margin-top: 10px;">
-                                    <label style="font-weight: 600; margin-bottom: 5px;">Status Persetujuan:</label>
-                                    <div class="approver-checkboxes">
-                                        ${approvers.map(approver => {
-                                            const isCurrentUserApprover = (currentUserName === approver);
-                                            const isChecked = request.approvedBy && request.approvedBy.includes(approver);
-
-                                            return `
-                                                <div class="approver-option">
-                                                    <input type="checkbox" id="approve-${request.id}-${approver}"
-                                                        data-request-id="${request.id}"
-                                                        data-approver="${approver}"
-                                                        ${isChecked ? 'checked' : ''}
-                                                        ${!isCurrentUserApprover ? 'disabled' : ''}>
-                                                    <label for="approve-${request.id}-${approver}" style="margin-bottom: 0;">${approver}</label>
-                                                </div>
-                                            `;
-                                        }).join('')}
-                                    </div>
-                                    <div class="action-buttons">
-                                        <button class="btn btn-primary btn-sm approve-btn" data-request-id="${request.id}" ${!currentUserName ? 'disabled' : ''}>
-                                            <i class="fas fa-check"></i> Setujui
-                                        </button>
-                                        <button class="btn btn-danger btn-sm reject-btn" data-request-id="${request.id}" ${!currentUserName ? 'disabled' : ''}>
-                                            <i class="fas fa-times"></i> Tolak
-                                        </button>
-                                    </div>
-                                </div>
+                                ${approvalControls}
                             `;
 
                             approvedByListContainer.appendChild(requestElement);
                         });
 
-                        approvedByListContainer.querySelectorAll('.approve-btn').forEach(button => {
-                            button.addEventListener('click', function() {
-                                const requestId = this.dataset.requestId;
-                                const currentUserEmail = auth.currentUser ? auth.currentUser.email : null;
-                                const currentUserName = currentUserEmail ? emailToNameMap[currentUserEmail] : null;
-                                
-                                if (currentUserName) {
-                                    updateApprovalStatus(formType, requestId, currentUserName, true);
+                        if (!viewOnly) {
+                            approvedByListContainer.querySelectorAll('.approve-btn').forEach(button => {
+                                button.addEventListener('click', function() {
+                                    const requestId = this.dataset.requestId;
+                                    const currentUserEmail = auth.currentUser ? auth.currentUser.email : null;
+                                    const currentUserName = currentUserEmail ? emailToNameMap[currentUserEmail] : null;
                                     
-                                    db.collection(`requests_${formType}`).doc(requestId).get()
-                                        .then((doc) => {
-                                            if (doc.exists) {
-                                                const request = doc.data();
-                                                
-                                                if (formType === 'laptop') {
-                                                    const approvers = getApprovedByForITRequest(request.nama);
-                                                    const isAllApproved = approvers.every(approver => 
-                                                        request.approvedBy && request.approvedBy.includes(approver)
-                                                    );
+                                    if (currentUserName) {
+                                        updateApprovalStatus(formType, requestId, currentUserName, true);
+                                        
+                                        db.collection(`requests_${formType}`).doc(requestId).get()
+                                            .then((doc) => {
+                                                if (doc.exists) {
+                                                    const request = doc.data();
                                                     
-                                                    if (isAllApproved) {
-                                                        db.collection(`requests_${formType}`).doc(requestId).update({
-                                                            status: 'approved'
-                                                        });
-                                                        showAlert('Request telah disetujui oleh semua approver!', 'success');
-                                                    } else {
-                                                        showAlert('Anda telah menyetujui request ini!', 'success');
-                                                    }
-                                                } else if (formType === 'atk') {
-                                                    const approvers = getApprovedByForRequest(request.nama, request.nilai);
-                                                    const isAllApproved = approvers.every(approver => 
-                                                        request.approvedBy && request.approvedBy.includes(approver)
-                                                    );
-                                                    
-                                                    if (isAllApproved) {
-                                                        db.collection(`requests_${formType}`).doc(requestId).update({
-                                                            status: 'approved'
-                                                        });
-                                                        showAlert('Request telah disetujui oleh semua approver!', 'success');
-                                                    } else {
-                                                        showAlert('Anda telah menyetujui request ini!', 'success');
+                                                    if (formType === 'laptop') {
+                                                        const approvers = getApprovedByForITRequest(request.nama);
+                                                        const isAllApproved = approvers.every(approver => 
+                                                            request.approvedBy && request.approvedBy.includes(approver)
+                                                        );
+                                                        
+                                                        if (isAllApproved) {
+                                                            db.collection(`requests_${formType}`).doc(requestId).update({
+                                                                status: 'approved'
+                                                            });
+                                                            showAlert('Request telah disetujui oleh semua approver!', 'success');
+                                                        } else {
+                                                            showAlert('Anda telah menyetujui request ini!', 'success');
+                                                        }
+                                                    } else if (formType === 'atk') {
+                                                        const approvers = getApprovedByForRequest(request.nama, request.nilai);
+                                                        const isAllApproved = approvers.every(approver => 
+                                                            request.approvedBy && request.approvedBy.includes(approver)
+                                                        );
+                                                        
+                                                        if (isAllApproved) {
+                                                            db.collection(`requests_${formType}`).doc(requestId).update({
+                                                                status: 'approved'
+                                                            });
+                                                            showAlert('Request telah disetujui oleh semua approver!', 'success');
+                                                        } else {
+                                                            showAlert('Anda telah menyetujui request ini!', 'success');
+                                                        }
                                                     }
                                                 }
-                                            }
-                                        });
-                                }
+                                            });
+                                    }
+                                });
                             });
-                        });
 
-                        approvedByListContainer.querySelectorAll('.reject-btn').forEach(button => {
-                            button.addEventListener('click', function() {
-                                const requestId = this.dataset.requestId;
-                                updateRequestStatus(formType, requestId, 'rejected');
-                                showAlert('Request telah ditolak!', 'danger');
+                            approvedByListContainer.querySelectorAll('.reject-btn').forEach(button => {
+                                button.addEventListener('click', function() {
+                                    const requestId = this.dataset.requestId;
+                                    updateRequestStatus(formType, requestId, 'rejected');
+                                    showAlert('Request telah ditolak!', 'danger');
+                                });
                             });
-                        });
+                        }
                     })
                     .catch((error) => {
                         console.error("Error loading approved by requests:", error);
@@ -4456,6 +4559,11 @@
             }
 
             function updateRequestStatus(formType, requestId, newStatus) {
+                const currentUserEmail = auth.currentUser ? auth.currentUser.email : null;
+                if (isViewOnlyUser(currentUserEmail)) {
+                    showAlert('Akun Anda hanya memiliki akses view-only. Tidak dapat mengubah status.', 'warning');
+                    return;
+                }
                 db.collection(`requests_${formType}`).doc(requestId).get()
                     .then((doc) => {
                         if (doc.exists) {
