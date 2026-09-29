@@ -2568,11 +2568,16 @@
                         .then(({ claims, projects }) => {
                             const userPermission = userPermissions[userEmail];
                             const isAdmin = userEmail === 'crenata@genetek.co.id' || userEmail === 'ulandari@genetek.co.id';
+                            const isViewOnly = isViewOnlyUser(userEmail);
                             
                             let filteredClaims = claims;
                             
                             if (!isAdmin && userPermission) {
                                 filteredClaims = claims.filter(claim => {
+                                    // VIEW-ONLY (Netia): lihat semua claim RAB
+                                    if (isViewOnly) {
+                                        return true;
+                                    }
                                     const approvers = getApprovedByForRABRequest(claim);
                                     return approvers && approvers.includes(userName);
                                 });
@@ -2780,16 +2785,22 @@
 
                 const pendingClaims = claims.filter(c => c.status === 'pending');
                 
-                const userApprovals = pendingClaims.filter(claim => {
-                    const approvers = getApprovedByForRABRequest(claim);
-                    return approvers.includes(currentUserName);
-                });
+                let userApprovals;
+                if (viewOnly) {
+                    // VIEW-ONLY: tampilkan semua pending claims (read-only)
+                    userApprovals = pendingClaims;
+                } else {
+                    userApprovals = pendingClaims.filter(claim => {
+                        const approvers = getApprovedByForRABRequest(claim);
+                        return approvers.includes(currentUserName);
+                    });
+                }
 
                 if (userApprovals.length === 0) {
                     container.innerHTML = `
                         <div class="empty-state">
                             <i class="fas fa-check-double"></i>
-                            <p>Tidak ada claim RAB yang menunggu persetujuan Anda</p>
+                            <p>${viewOnly ? 'Tidak ada claim RAB yang bisa ditampilkan' : 'Tidak ada claim RAB yang menunggu persetujuan Anda'}</p>
                         </div>
                     `;
                     return;
@@ -2985,6 +2996,15 @@
             }
 
             function updateNotificationCountForRAB(claims, userName) {
+                const currentUser = auth.currentUser;
+                const userEmail = currentUser ? currentUser.email : null;
+                const viewOnly = isViewOnlyUser(userEmail);
+
+                // VIEW-ONLY: tidak menambah notifikasi count
+                if (viewOnly) {
+                    return;
+                }
+
                 const pendingClaims = claims.filter(c => c.status === 'pending');
                 const userApprovals = pendingClaims.filter(claim => {
                     const approvers = getApprovedByForRABRequest(claim);
@@ -3007,6 +3027,7 @@
                 if (!userEmail) return;
                 
                 const userName = emailToNameMap[userEmail] || userEmail.split('@')[0];
+                const viewOnly = isViewOnlyUser(userEmail);
                 let allNotifications = [];
                 
                 try {
@@ -3022,9 +3043,14 @@
                                 Object.keys(claimsData).forEach(key => {
                                     const data = claimsData[key];
                                     const approvers = getApprovedByForRABRequest(data);
-                                    if (approvers.includes(userName)) {
+                                    
+                                    // VIEW-ONLY: Netia boleh lihat semua, tapi tidak sebagai approver
+                                    const isRelevant = viewOnly || approvers.includes(userName);
+                                    
+                                    if (isRelevant) {
                                         const approvedBy = data.approvedBy || [];
-                                        const isRead = approvedBy.includes(userName);
+                                        // VIEW-ONLY: notifikasi selalu dianggap "read" agar tidak muncul badge "BARU"
+                                        const isRead = viewOnly || approvedBy.includes(userName);
                                         
                                         allNotifications.push({
                                             id: `rab_${key}_${userEmail}`,
@@ -3535,6 +3561,7 @@
             function isNotificationRelevant(request, userName, userEmail) {
                 const userPermission = userPermissions[userEmail];
                 const status = request.status || 'pending';
+                const viewOnly = isViewOnlyUser(userEmail);
                 
                 if (!['pending', 'approved', 'rejected'].includes(status)) {
                     return false;
@@ -3548,6 +3575,10 @@
                         }
                     }
                     if (request.formType === 'laptop') {
+                        // VIEW-ONLY: Netia boleh lihat semua request IT
+                        if (viewOnly) {
+                            return true;
+                        }
                         const approvers = getApprovedByForITRequest(request.nama);
                         if (approvers.includes(userName)) {
                             return true;
@@ -4064,6 +4095,10 @@
                             }
                             
                             if (formType === 'laptop') {
+                                // VIEW-ONLY (Netia): lihat semua request IT
+                                if (viewOnly) {
+                                    return true;
+                                }
                                 const approvers = getApprovedByForITRequest(request.nama);
                                 return approvers.includes(userName);
                             }
