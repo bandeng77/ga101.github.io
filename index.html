@@ -2173,7 +2173,8 @@
             { name: "Mashadi", department: "Supply Chain", atasanLangsung: "Rossiana Y.L" },
             { name: "Much Fahmi Ns", department: "HR", atasanLangsung: "Caecilia Renata" },
             { name: "Fadil Fadillah", department: "HR", atasanLangsung: "Caecilia Renata" },
-            { name: "Jumedi", department: "Technic", atasanLangsung: "Fiki Hernawan" }
+            { name: "Jumedi", department: "Technic", atasanLangsung: "Fiki Hernawan" },
+            { name: "Hadi", department: "Sales", atasanLangsung: "David Tides Sagita" }
         ];
 
         function getDepartmentByName(employeeName) {
@@ -2186,38 +2187,46 @@
             return employee ? employee.atasanLangsung : '';
         }
 
+        // ✅ MODIFIKASI: tambah Hadi untuk David (ATK)
         function getApprovedByForRequest(employeeName, nilaiRequest) {
             const atasanLangsung = getAtasanLangsungByName(employeeName);
             const department = getDepartmentByName(employeeName);
             
+            const isDavid = employeeName === "David Tides Sagita";
+            const hadiApprover = isDavid ? ["Hadi"] : [];
+            
             if (department === "Technic") {
                 if (atasanLangsung === "Muhamad Husni") {
-                    if (nilaiRequest === "Bawah 1jt") return [atasanLangsung];
-                    else if (nilaiRequest === "Atas 1jt") return [atasanLangsung, "Caecilia Renata"];
+                    if (nilaiRequest === "Bawah 1jt") return [atasanLangsung, ...hadiApprover];
+                    else if (nilaiRequest === "Atas 1jt") return [atasanLangsung, "Caecilia Renata", ...hadiApprover];
                 } else {
-                    if (nilaiRequest === "Bawah 1jt") return [atasanLangsung, "Muhamad Husni"];
-                    else if (nilaiRequest === "Atas 1jt") return [atasanLangsung, "Muhamad Husni", "Caecilia Renata"];
+                    if (nilaiRequest === "Bawah 1jt") return [atasanLangsung, "Muhamad Husni", ...hadiApprover];
+                    else if (nilaiRequest === "Atas 1jt") return [atasanLangsung, "Muhamad Husni", "Caecilia Renata", ...hadiApprover];
                 }
             } else {
-                if (nilaiRequest === "Bawah 1jt") return [atasanLangsung];
-                else if (nilaiRequest === "Atas 1jt") return [atasanLangsung, "Caecilia Renata"];
+                if (nilaiRequest === "Bawah 1jt") return [atasanLangsung, ...hadiApprover];
+                else if (nilaiRequest === "Atas 1jt") return [atasanLangsung, "Caecilia Renata", ...hadiApprover];
             }
-            return [atasanLangsung];
+            return [atasanLangsung, ...hadiApprover];
         }
 
+        // ✅ MODIFIKASI: tambah Hadi untuk David (IT)
         function getApprovedByForITRequest(employeeName) {
             const atasanLangsung = getAtasanLangsungByName(employeeName);
             const department = getDepartmentByName(employeeName);
             const fixedApprovers = ["Galih", "Maida", "Caecilia Renata", "Rossiana Y.L"];
             
+            const isDavid = employeeName === "David Tides Sagita";
+            const hadiApprover = isDavid ? ["Hadi"] : [];
+            
             if (department === "Technic") {
                 if (atasanLangsung === "Muhamad Husni") {
-                    return [atasanLangsung, ...fixedApprovers];
+                    return [atasanLangsung, ...fixedApprovers, ...hadiApprover];
                 } else {
-                    return [atasanLangsung, "Muhamad Husni", ...fixedApprovers];
+                    return [atasanLangsung, "Muhamad Husni", ...fixedApprovers, ...hadiApprover];
                 }
             } else {
-                return [atasanLangsung, ...fixedApprovers];
+                return [atasanLangsung, ...fixedApprovers, ...hadiApprover];
             }
         }
 
@@ -2385,7 +2394,8 @@
                 'david@genetek.co.id': 'David Tides Sagita',
                 'edwin@genetek.co.id': 'Edwin Qomarudin',
                 'heksi@genetek.co.id': 'Heksi Prasetyo',
-                'fikihernawan@genetek.co.id': 'Fiki Hernawan'
+                'fikihernawan@genetek.co.id': 'Fiki Hernawan',
+                'hadi@genetek.co.id': 'Hadi'
             };
 
             const userPermissions = {
@@ -2439,6 +2449,10 @@
                 },
                 'fikihernawan@genetek.co.id': {
                     name: 'Fiki Hernawan',
+                    allowedForms: ['atk', 'laptop']
+                },
+                'hadi@genetek.co.id': {
+                    name: 'Hadi',
                     allowedForms: ['atk', 'laptop']
                 }
             };
@@ -3819,7 +3833,8 @@
                         "crenata@genetek.co.id", "rossiana.yl@genetek.co.id", "galih@genetek.co.id",
                         "maida@genetek.co.id", "netia@genetek.co.id", "anggita-s@genetek.co.id", "wahyu_yib@genetek.co.id",
                         "david@genetek.co.id", "m_husni@genetek.co.id", "ulandari@genetek.co.id",
-                        "edwin@genetek.co.id", "heksi@genetek.co.id", "fikihernawan@genetek.co.id"
+                        "edwin@genetek.co.id", "heksi@genetek.co.id", "fikihernawan@genetek.co.id",
+                        "hadi@genetek.co.id"
                     ];
 
                     if (!allowedLoginEmails.includes(email)) {
