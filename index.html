@@ -1282,6 +1282,32 @@
             gap: 5px;
             margin-left: 10px;
         }
+
+        /* ===== RAB (PO dari RAB Monitoring) ===== */
+        .rab-info-box {
+            background: #f5f3ff;
+            border: 1px solid #c4b5fd;
+            color: #4c1d95;
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+            margin-bottom: 1rem;
+            font-size: 0.85rem;
+            display: flex;
+            gap: 0.6rem;
+            align-items: flex-start;
+        }
+        .rab-info-box.warning { background: #fffbeb; border-color: #fcd34d; color: #92400e; }
+        .rab-items-wrapper { overflow-x: auto; margin-bottom: 1.2rem; }
+        .rab-items-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .rab-items-table th, .rab-items-table td { border: 1px solid var(--border); padding: 0.5rem 0.6rem; text-align: left; }
+        .rab-items-table th { background: #f5f3ff; color: #5b21b6; font-weight: 600; }
+        .rab-items-table tfoot td { font-weight: 700; background: #faf5ff; }
+        .rab-approver-chip {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;
+            background: #f1f5f9; color: #475569; margin-right: 4px;
+        }
+        .rab-approver-chip.done { background: #dcfce7; color: #166534; }
     </style>
 </head>
 <body>
@@ -1385,8 +1411,8 @@
             
             <div class="card card-rab" data-target="form-rab">
                 <div class="card-icon"><i class="fas fa-chart-pie"></i></div>
-                <h3 class="card-title">RAB Monitoring</h3>
-                <p class="card-desc">Monitor dan approve claim RAB dari aplikasi RAB Monitoring</p>
+                <h3 class="card-title">RAB</h3>
+                <p class="card-desc">Form request pembayaran PO dari RAB Monitoring &amp; approval Heksi / Rossiana</p>
             </div>
             
             <div class="card" data-target="form-kartunama">
@@ -1767,22 +1793,89 @@
             </div>
         </section>
 
-        <!-- Form Request RAB Monitoring -->
+        <!-- Form Request RAB (terhubung ke database RAB Monitoring) -->
         <section id="form-rab" class="form-section">
             <div class="form-header">
-                <h2 class="form-title"><i class="fas fa-chart-pie"></i> RAB Monitoring</h2>
+                <h2 class="form-title"><i class="fas fa-chart-pie"></i> RAB</h2>
                 <span class="rab-badge"><i class="fas fa-sync-alt"></i> Sync dengan RAB System</span>
             </div>
             
             <div class="form-tabs rab-tab-content">
-                <div class="form-tab active rab-tab" data-tab="requests" id="rab-requests-tab">Daftar Claim RAB</div>
+                <div class="form-tab active rab-tab" data-tab="form">Form Request</div>
+                <div class="form-tab rab-tab" data-tab="requests" id="rab-requests-tab">Daftar Request</div>
                 <div class="form-tab rab-tab" data-tab="approved-by" id="rab-approved-tab">Approved By</div>
             </div>
             
             <div class="form-content">
-                <div id="rab-requests" class="requests-list active">
+                <form id="rabForm">
+                    <div class="rab-info-box" id="rab-form-info">
+                        <i class="fas fa-info-circle"></i>
+                        <div>Data form diisi otomatis dari <b>Claim Request</b> aplikasi RAB Monitoring (pembayaran <b>PO</b>). Pilih claim di bawah bila halaman tidak dibuka dari RAB Monitoring.</div>
+                    </div>
+                    <input type="hidden" id="rab-claim-id" name="rabClaimId">
+                    <input type="hidden" id="rab-project-id" name="projectId">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="rab-claim-select">Claim PO dari RAB Monitoring</label>
+                            <select id="rab-claim-select" required>
+                                <option value="">Memuat data claim PO...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="rab-project">Project</label>
+                            <input type="text" id="rab-project" name="projectName" readonly required>
+                        </div>
+                        <div class="form-group">
+                            <label for="rab-nama">Nama Pemohon</label>
+                            <input type="text" id="rab-nama" name="nama" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="rab-department">Department</label>
+                            <input type="text" id="rab-department" name="department" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="rab-tanggal">Tanggal Permintaan</label>
+                            <input type="date" id="rab-tanggal" name="tanggal" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="rab-pembayaran">Pembayaran</label>
+                            <input type="text" id="rab-pembayaran" name="pembayaran" value="PO" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="rab-total-display">Total Nominal</label>
+                            <input type="text" id="rab-total-display" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="rab-approvers-display">Approved By</label>
+                            <input type="text" id="rab-approvers-display" value="Heksi Prasetyo & Rossiana Y.L" readonly>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Detail Item Claim</label>
+                        <div class="rab-items-wrapper" id="rab-items-preview">
+                            <div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada claim dipilih</p></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="rab-keterangan">Keterangan / Kebutuhan</label>
+                        <textarea id="rab-keterangan" name="keterangan" placeholder="Keterangan tambahan untuk proses PO"></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-rab"><i class="fas fa-paper-plane"></i> Ajukan Permintaan</button>
+                    <button type="button" class="btn btn-secondary back-button"><i class="fas fa-arrow-left"></i> Kembali ke Beranda</button>
+                </form>
+                
+                <div id="rab-confirmation" class="confirmation">
+                    <div class="confirmation-icon"><i class="fas fa-check-circle"></i></div>
+                    <h3>Request RAB (PO) Berhasil Diajukan!</h3>
+                    <p>Menunggu persetujuan Heksi Prasetyo &amp; Rossiana Y.L.</p>
+                </div>
+
+                <div id="rab-requests" class="requests-list">
                     <div class="requests-header">
-                        <h3 class="requests-title"><i class="fas fa-list-check"></i> Daftar Claim RAB</h3>
+                        <h3 class="requests-title"><i class="fas fa-list-check"></i> Daftar Request RAB</h3>
                         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                             <span style="font-size: 0.75rem; color: var(--secondary); display: flex; align-items: center; gap: 8px;">
                                 <i class="fas fa-info-circle"></i> Data dari aplikasi RAB Monitoring
@@ -1793,20 +1886,20 @@
                     <div id="rab-requests-list">
                         <div class="empty-state">
                             <i class="fas fa-inbox"></i>
-                            <p>Memuat data claim RAB...</p>
+                            <p>Memuat data request...</p>
                         </div>
                     </div>
                 </div>
 
                 <div id="rab-approved-by" class="requests-list">
                     <div class="requests-header">
-                        <h3 class="requests-title"><i class="fas fa-check-double"></i> Persetujuan Claim RAB</h3>
+                        <h3 class="requests-title"><i class="fas fa-check-double"></i> Persetujuan Request RAB</h3>
                         <button class="btn btn-rab btn-sm" id="refresh-rab-approved"><i class="fas fa-sync-alt"></i> Refresh</button>
                     </div>
                     <div id="rab-approved-by-list">
                         <div class="empty-state">
                             <i class="fas fa-check-double"></i>
-                            <p>Memuat data claim RAB...</p>
+                            <p>Memuat data request...</p>
                         </div>
                     </div>
                 </div>
@@ -2230,7 +2323,12 @@
             }
         }
 
+        // Approver RAB (PO dari RAB Monitoring): Heksi & Rossiana
+        const RAB_GA_APPROVERS = ["Heksi Prasetyo", "Rossiana Y.L"];
+
         function getApprovedByForRABRequest(claimData) {
+            return RAB_GA_APPROVERS.slice();
+            // (konfigurasi approver lama di bawah tidak dipakai lagi)
             const baseApprovers = ["Caecilia Renata", "Rossiana Y.L", "Maida", "Galih"];
             const hasPO = claimData.paymentMethod === 'po' || 
                          (claimData.items && claimData.items.some(item => item.paymentMethod === 'po'));
@@ -2354,7 +2452,8 @@
                 { nameField: 'konsumsi-nama', departmentField: 'konsumsi-department' },
                 { nameField: 'laptop-nama', departmentField: 'laptop-department' },
                 { nameField: 'kartunama-nama', departmentField: 'kartunama-department' },
-                { nameField: 'feedback-nama', departmentField: 'feedback-department' }
+                { nameField: 'feedback-nama', departmentField: 'feedback-department' },
+                { nameField: 'rab-nama', departmentField: 'rab-department' }
             ];
             
             formMappings.forEach(mapping => {
@@ -2445,7 +2544,7 @@
                 },
                 'heksi@genetek.co.id': {
                     name: 'Heksi Prasetyo',
-                    allowedForms: ['atk', 'laptop']
+                    allowedForms: ['atk', 'laptop', 'rab']
                 },
                 'fikihernawan@genetek.co.id': {
                     name: 'Fiki Hernawan',
@@ -2504,7 +2603,7 @@
                 return titles[formType] || '';
             }
 
-            function loadRABClaims() {
+            function loadRABClaimsLegacy() {
                 const requestsListContainer = document.getElementById('rab-requests-list');
                 const approvedByContainer = document.getElementById('rab-approved-by-list');
                 
@@ -3047,43 +3146,33 @@
                 try {
                     const rabDb = getRABDatabase();
                     
-                    const rabClaimsPromise = rabDb.ref('claims')
-                        .orderByChild('status')
-                        .equalTo('pending')
-                        .once('value')
-                        .then((snapshot) => {
-                            const claimsData = snapshot.val();
-                            if (claimsData) {
-                                Object.keys(claimsData).forEach(key => {
-                                    const data = claimsData[key];
-                                    const approvers = getApprovedByForRABRequest(data);
-                                    
-                                    // VIEW-ONLY: Netia boleh lihat semua, tapi tidak sebagai approver
-                                    const isRelevant = viewOnly || approvers.includes(userName);
-                                    
-                                    if (isRelevant) {
-                                        const approvedBy = data.approvedBy || [];
-                                        // VIEW-ONLY: notifikasi selalu dianggap "read" agar tidak muncul badge "BARU"
-                                        const isRead = viewOnly || approvedBy.includes(userName);
-                                        
-                                        allNotifications.push({
-                                            id: `rab_${key}_${userEmail}`,
-                                            formType: 'rab',
-                                            requestId: key,
-                                            request: {
-                                                nama: data.projectId || 'RAB Claim',
-                                                status: 'pending'
-                                            },
-                                            timestamp: data.timestamp ? new Date(data.timestamp) : new Date(),
-                                            read: isRead,
-                                            isNew: !isRead,
-                                            isRABNotification: true,
-                                            title: 'Claim RAB Menunggu Persetujuan',
-                                            message: `Claim RAB dari project membutuhkan persetujuan Anda`
-                                        });
-                                    }
+                    // Notifikasi RAB: dari request RAB (PO) di GA -> approver Heksi & Rossiana
+                    const rabClaimsPromise = db.collection('requests_rab')
+                        .orderBy('createdAt', 'desc')
+                        .limit(50)
+                        .get()
+                        .then((querySnapshot) => {
+                            querySnapshot.forEach((doc) => {
+                                const data = doc.data();
+                                if ((data.status || 'pending') !== 'pending') return;
+                                const approvers = getApprovedByForRABRequest(data);
+                                const isRelevant = viewOnly || approvers.includes(userName);
+                                if (!isRelevant) return;
+                                const approvedBy = data.approvedBy || [];
+                                const isRead = viewOnly || approvedBy.includes(userName);
+                                allNotifications.push({
+                                    id: `rab_${doc.id}_${userEmail}`,
+                                    formType: 'rab',
+                                    requestId: doc.id,
+                                    request: { nama: data.nama || 'RAB', status: 'pending' },
+                                    timestamp: data.createdAt ? data.createdAt.toDate() : new Date(),
+                                    read: isRead,
+                                    isNew: !isRead,
+                                    isRABNotification: true,
+                                    title: 'Request RAB (PO) Menunggu Persetujuan',
+                                    message: `${data.projectName || 'Project'} - ${formatRp(data.totalNominal || 0)} (dari ${data.nama || '-'})`
                                 });
-                            }
+                            });
                         })
                         .catch((error) => {
                             console.error("Error loading RAB notifications:", error);
@@ -3192,6 +3281,25 @@
                     });
                 } catch (error) {
                     console.error('Error setting up RAB listener:', error);
+                }
+
+                // Realtime: request RAB (PO) di GA
+                try {
+                    const unsubscribeRab = db.collection('requests_rab')
+                        .orderBy('createdAt', 'desc')
+                        .limit(50)
+                        .onSnapshot(() => {
+                            loadAllUserNotifications(userEmail);
+                            const rabSection = document.getElementById('form-rab');
+                            if (rabSection && rabSection.classList.contains('active')) {
+                                loadRABClaims();
+                            }
+                        }, (error) => {
+                            console.error('Error in realtime listener for requests_rab:', error);
+                        });
+                    notificationUnsubscribeFunctions.push(unsubscribeRab);
+                } catch (error) {
+                    console.error('Error setting up requests_rab listener:', error);
                 }
 
                 const formTypes = ['atk', 'idcard', 'konsumsi', 'laptop', 'kartunama', 'feedback'];
@@ -3765,6 +3873,8 @@
                     }
                     
                     showSection('dashboard');
+                    // Dibuka dari RAB Monitoring (pembayaran PO) -> langsung ke RAB > Form Request
+                    handleRABDeepLink();
                 } else {
                     loginPage.style.display = 'flex';
                     document.querySelector('header').style.display = 'none';
@@ -3979,8 +4089,7 @@
                 if (targetId !== 'dashboard') {
                     const formType = targetId.replace('form-', '');
                     if (formType === 'rab') {
-                        showFormTab('rab', 'requests');
-                        setTimeout(() => loadRABClaims(), 300);
+                        showFormTab('rab', 'form');
                     } else {
                         showFormTab(formType, 'form');
                     }
@@ -4013,16 +4122,38 @@
                 const userEmail = currentUser ? currentUser.email : null;
                 
                 if (formType === 'rab') {
-                    if (tabType === 'requests') {
-                        if (requestsElement) {
-                            requestsElement.style.display = 'block';
-                            setTimeout(() => loadRABClaims(), 100);
+                    const rabFormEl = document.getElementById('rabForm');
+                    const rabConfirmEl = document.getElementById('rab-confirmation');
+                    const rabRequestsEl = document.getElementById('rab-requests');
+                    const rabApprovedEl = document.getElementById('rab-approved-by');
+                    [rabFormEl, rabRequestsEl, rabApprovedEl].forEach(el => { if (el) el.style.display = 'none'; });
+                    if (rabConfirmEl) rabConfirmEl.classList.remove('active');
+
+                    if ((tabType === 'requests' || tabType === 'approved-by') && isGuest) {
+                        if (rabFormEl) rabFormEl.style.display = 'block';
+                        showAlert('Fitur ini tidak tersedia untuk tamu', 'warning');
+                        tabType = 'form';
+                    } else if ((tabType === 'requests' || tabType === 'approved-by') && userEmail) {
+                        const userPermission = userPermissions[userEmail];
+                        if (!userPermission || !userPermission.allowedForms.includes('rab')) {
+                            showAlert('Anda tidak memiliki akses untuk melihat daftar request ini', 'warning');
+                            tabType = 'form';
                         }
+                    }
+
+                    currentFormSection.querySelectorAll('.form-tab').forEach(tab => {
+                        tab.classList.toggle('active', tab.dataset.tab === tabType);
+                    });
+
+                    if (tabType === 'form') {
+                        if (rabFormEl) rabFormEl.style.display = 'block';
+                        loadRABPOClaimsForSelect();
+                    } else if (tabType === 'requests') {
+                        if (rabRequestsEl) rabRequestsEl.style.display = 'block';
+                        loadRABRequests();
                     } else if (tabType === 'approved-by') {
-                        if (approvedByElement) {
-                            approvedByElement.style.display = 'block';
-                            setTimeout(() => loadRABClaims(), 100);
-                        }
+                        if (rabApprovedEl) rabApprovedEl.style.display = 'block';
+                        loadRABApprovedBy();
                     }
                     return;
                 }
@@ -4926,6 +5057,631 @@
             });
 
             updateCheckboxOptions();
+
+            // =====================================================================
+            // ==================== RAB (PO) - FORM / DAFTAR / APPROVED BY =========
+            // =====================================================================
+            // Sumber data claim : Realtime Database RAB Monitoring (claims, projects, rabItems)
+            // Penyimpanan request: Firestore GA -> collection "requests_rab"
+            // Approver          : Heksi Prasetyo & Rossiana Y.L
+            let rabPOClaimsCache = {};
+            let rabProjectsCache = {};
+            let rabItemsCache = {};
+            let rabDeepLinkPayload = null;
+            let rabAuthPromise = null;
+
+            // Login anonim ke project RAB (opsional, bila rules RAB mensyaratkan auth != null)
+            function ensureRABAuth() {
+                if (rabAuthPromise) return rabAuthPromise;
+                try {
+                    getRABDatabase();
+                    const rabAuth = firebase.app('rabApp').auth();
+                    if (rabAuth.currentUser) {
+                        rabAuthPromise = Promise.resolve(rabAuth.currentUser);
+                    } else {
+                        rabAuthPromise = rabAuth.signInAnonymously()
+                            .then(cred => cred.user)
+                            .catch(err => {
+                                console.warn('RAB anonymous auth tidak aktif / gagal (lanjut tanpa auth):', err.code || err.message);
+                                return null;
+                            });
+                    }
+                } catch (e) {
+                    console.warn('ensureRABAuth error:', e);
+                    rabAuthPromise = Promise.resolve(null);
+                }
+                return rabAuthPromise;
+            }
+
+            function escapeRABHtml(str) {
+                return String(str == null ? '' : str)
+                    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+            }
+
+            function getRABItemName(item) {
+                if (!item) return 'Item';
+                if (item.itemName) return item.itemName;
+                const r = rabItemsCache[item.itemId];
+                return r && r.itemName ? r.itemName : 'Item';
+            }
+
+            function getRABProjectName(claim) {
+                if (!claim) return '-';
+                if (claim.projectName) return claim.projectName;
+                const p = rabProjectsCache[claim.projectId];
+                return p && p.name ? p.name : 'Unknown Project';
+            }
+
+            function readRABDeepLinkPayload() {
+                try {
+                    const hash = window.location.hash || '';
+                    const m = hash.match(/rab=([^&]+)/);
+                    if (!m) return null;
+                    const json = decodeURIComponent(escape(atob(decodeURIComponent(m[1]))));
+                    return JSON.parse(json);
+                } catch (e) {
+                    console.warn('Payload RAB di URL tidak valid:', e);
+                    return null;
+                }
+            }
+
+            function getRABClaimIdFromUrl() {
+                try {
+                    return new URLSearchParams(window.location.search).get('rabClaim');
+                } catch (e) { return null; }
+            }
+
+            function clearRABDeepLink() {
+                try {
+                    const url = new URL(window.location.href);
+                    url.searchParams.delete('rabClaim');
+                    url.hash = '';
+                    window.history.replaceState({}, document.title, url.pathname + url.search);
+                } catch (e) {}
+                rabDeepLinkPayload = null;
+            }
+
+            function handleRABDeepLink() {
+                const claimId = getRABClaimIdFromUrl();
+                if (!claimId) return;
+                rabDeepLinkPayload = readRABDeepLinkPayload();
+                if (rabDeepLinkPayload && rabDeepLinkPayload.claimId === claimId) {
+                    rabPOClaimsCache[claimId] = Object.assign({ id: claimId, paymentMethod: 'po' }, rabPOClaimsCache[claimId] || {}, rabDeepLinkPayload);
+                }
+                setTimeout(() => {
+                    showSection('form-rab');
+                    showAlert('Data claim PO dari RAB Monitoring dimuat otomatis', 'success');
+                }, 200);
+            }
+
+            // Ambil data claim PO dari database RAB untuk dropdown + auto-fill
+            function loadRABPOClaimsForSelect(retry = 0) {
+                const select = document.getElementById('rab-claim-select');
+                if (!select) return Promise.resolve();
+                const deepLinkId = getRABClaimIdFromUrl();
+
+                return ensureRABAuth().then(() => {
+                    const rabDb = getRABDatabase();
+                    return Promise.all([
+                        rabDb.ref('claims').orderByChild('paymentMethod').equalTo('po').once('value'),
+                        rabDb.ref('projects').once('value').catch(() => null),
+                        rabDb.ref('rabItems').once('value').catch(() => null)
+                    ]);
+                }).then(([claimsSnap, projectsSnap, itemsSnap]) => {
+                    rabProjectsCache = (projectsSnap && projectsSnap.val()) || rabProjectsCache;
+                    rabItemsCache = (itemsSnap && itemsSnap.val()) || rabItemsCache;
+                    const data = claimsSnap.val() || {};
+                    Object.keys(data).forEach(k => { rabPOClaimsCache[k] = { id: k, ...data[k] }; });
+
+                    // claim dari deep link belum tersimpan di RAB (race) -> coba ulang
+                    if (deepLinkId && !data[deepLinkId] && retry < 3) {
+                        setTimeout(() => loadRABPOClaimsForSelect(retry + 1), 1500);
+                    }
+                    renderRABClaimSelect(deepLinkId);
+                }).catch(error => {
+                    console.error('Gagal membaca claim PO dari database RAB:', error);
+                    renderRABClaimSelect(deepLinkId);
+                    if (!deepLinkId || !rabPOClaimsCache[deepLinkId]) {
+                        showAlert('Gagal membaca database RAB: ' + error.message, 'danger');
+                    }
+                });
+            }
+
+            function renderRABClaimSelect(preselectId) {
+                const select = document.getElementById('rab-claim-select');
+                if (!select) return;
+                const current = select.value;
+                const list = Object.values(rabPOClaimsCache)
+                    .filter(c => c && c.id && (c.id === preselectId || (!c.gaRequestId && (c.status || 'pending') === 'pending')))
+                    .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+                if (list.length === 0) {
+                    select.innerHTML = '<option value="">Tidak ada claim PO yang menunggu form GA</option>';
+                    fillRABForm(null);
+                    return;
+                }
+
+                select.innerHTML = '<option value="">-- Pilih Claim PO --</option>' + list.map(c => {
+                    const tgl = c.timestamp ? new Date(c.timestamp).toLocaleDateString('id-ID') : '-';
+                    const flag = c.gaRequestId ? ' (sudah diajukan)' : '';
+                    return `<option value="${escapeRABHtml(c.id)}">${escapeRABHtml(getRABProjectName(c))} - ${formatRp(c.totalNominal || 0)} - ${tgl}${flag}</option>`;
+                }).join('');
+
+                const target = preselectId && rabPOClaimsCache[preselectId] ? preselectId : current;
+                if (target && rabPOClaimsCache[target]) {
+                    select.value = target;
+                    fillRABForm(rabPOClaimsCache[target]);
+                } else {
+                    fillRABForm(null);
+                }
+            }
+
+            function fillRABForm(claim) {
+                const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+                const preview = document.getElementById('rab-items-preview');
+                const info = document.getElementById('rab-form-info');
+
+                if (!claim) {
+                    set('rab-claim-id', '');
+                    set('rab-project-id', '');
+                    set('rab-project', '');
+                    set('rab-total-display', '');
+                    if (preview) preview.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada claim dipilih</p></div>';
+                    return;
+                }
+
+                const items = Array.isArray(claim.items) ? claim.items : Object.values(claim.items || {});
+                set('rab-claim-id', claim.id);
+                set('rab-project-id', claim.projectId || '');
+                set('rab-project', getRABProjectName(claim));
+                set('rab-total-display', formatRp(claim.totalNominal || 0));
+                set('rab-pembayaran', 'PO');
+
+                // Nama pemohon: dari user RAB (jika terdaftar) atau user GA yang login
+                const namaEl = document.getElementById('rab-nama');
+                if (namaEl && !namaEl.value) {
+                    const currentUser = auth.currentUser;
+                    const byEmail = (claim.submittedBy && emailToNameMap[claim.submittedBy]) ||
+                                    (currentUser && currentUser.email && emailToNameMap[currentUser.email]) || '';
+                    namaEl.value = byEmail;
+                    set('rab-department', byEmail ? getDepartmentByName(byEmail) : '');
+                }
+
+                const tglEl = document.getElementById('rab-tanggal');
+                if (tglEl && !tglEl.value) tglEl.value = new Date().toISOString().split('T')[0];
+
+                const ketEl = document.getElementById('rab-keterangan');
+                if (ketEl && !ketEl.value) {
+                    const notes = items.map(it => it.desc).filter(Boolean);
+                    ketEl.value = notes.length ? notes.join('; ') : `Pembayaran PO untuk claim RAB project ${getRABProjectName(claim)}`;
+                }
+
+                if (preview) {
+                    preview.innerHTML = `
+                        <table class="rab-items-table">
+                            <thead><tr><th>No</th><th>Item</th><th>Kategori</th><th>Vendor</th><th>Tanggal</th><th>Catatan</th><th>Nominal</th></tr></thead>
+                            <tbody>
+                                ${items.map((it, i) => `
+                                    <tr>
+                                        <td>${i + 1}</td>
+                                        <td>${escapeRABHtml(getRABItemName(it))}</td>
+                                        <td>${escapeRABHtml(it.category || (rabItemsCache[it.itemId] && rabItemsCache[it.itemId].category) || '-')}</td>
+                                        <td>${escapeRABHtml(it.vendor || '-')}</td>
+                                        <td>${escapeRABHtml(it.tanggal || '-')}</td>
+                                        <td>${escapeRABHtml(it.desc || '-')}</td>
+                                        <td>${formatRp(it.nominal || 0)}</td>
+                                    </tr>`).join('')}
+                            </tbody>
+                            <tfoot><tr><td colspan="6">Total</td><td>${formatRp(claim.totalNominal || 0)}</td></tr></tfoot>
+                        </table>`;
+                }
+
+                if (info) {
+                    if (claim.gaRequestId) {
+                        info.className = 'rab-info-box warning';
+                        info.innerHTML = '<i class="fas fa-exclamation-triangle"></i><div>Claim ini <b>sudah diajukan</b> di GA. Cek tab <b>Daftar Request</b>.</div>';
+                    } else {
+                        info.className = 'rab-info-box';
+                        info.innerHTML = '<i class="fas fa-info-circle"></i><div>Data form diisi otomatis dari <b>Claim Request</b> aplikasi RAB Monitoring (pembayaran <b>PO</b>). Approval oleh <b>Heksi Prasetyo &amp; Rossiana Y.L</b>.</div>';
+                    }
+                }
+            }
+
+            document.getElementById('rab-claim-select')?.addEventListener('change', function() {
+                const claim = rabPOClaimsCache[this.value] || null;
+                const ketEl = document.getElementById('rab-keterangan');
+                if (ketEl) ketEl.value = '';
+                fillRABForm(claim);
+            });
+
+            // Submit Form Request RAB -> Firestore requests_rab + update claim di RAB
+            document.getElementById('rabForm')?.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formEl = this;
+                const claimId = document.getElementById('rab-claim-id').value;
+                const claim = rabPOClaimsCache[claimId];
+                const nama = document.getElementById('rab-nama').value.trim();
+
+                if (!claimId || !claim) {
+                    showAlert('Pilih claim PO dari RAB Monitoring terlebih dahulu', 'warning');
+                    return;
+                }
+                if (!nama) {
+                    showAlert('Nama pemohon wajib diisi', 'warning');
+                    return;
+                }
+
+                const submitBtn = formEl.querySelector('button[type="submit"]');
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<div class="loading"></div> Mengirim...';
+                submitBtn.disabled = true;
+
+                const items = (Array.isArray(claim.items) ? claim.items : Object.values(claim.items || {})).map(it => ({
+                    itemId: it.itemId || '',
+                    itemName: getRABItemName(it),
+                    category: it.category || '',
+                    vendor: it.vendor || '',
+                    tanggal: it.tanggal || '',
+                    desc: it.desc || '',
+                    nominal: parseFloat(it.nominal) || 0
+                }));
+
+                const currentUser = auth.currentUser;
+                const requestData = {
+                    formType: 'rab',
+                    status: 'pending',
+                    approvedBy: [],
+                    approvers: getApprovedByForRABRequest(claim),
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    waktu: new Date().toLocaleTimeString('id-ID'),
+                    nama: nama,
+                    department: document.getElementById('rab-department').value || getDepartmentByName(nama) || '',
+                    tanggal: document.getElementById('rab-tanggal').value,
+                    pembayaran: 'PO',
+                    paymentMethod: 'po',
+                    rabClaimId: claimId,
+                    projectId: claim.projectId || '',
+                    projectName: getRABProjectName(claim),
+                    items: items,
+                    totalNominal: parseFloat(claim.totalNominal) || items.reduce((s, i) => s + i.nominal, 0),
+                    keterangan: document.getElementById('rab-keterangan').value || '',
+                    rabSubmittedBy: claim.submittedBy || '',
+                    createdByEmail: currentUser && currentUser.email ? currentUser.email : 'guest'
+                };
+                requestData.judul = `Request PO RAB - ${requestData.projectName}`;
+
+                db.collection('requests_rab').where('rabClaimId', '==', claimId).limit(1).get()
+                    .then(snap => {
+                        if (!snap.empty) {
+                            throw new Error('Claim ini sudah pernah diajukan di GA');
+                        }
+                        return db.collection('requests_rab').add(requestData);
+                    })
+                    .then(docRef => {
+                        // Sinkron ke database RAB (status GA)
+                        return ensureRABAuth().then(() => getRABDatabase().ref(`claims/${claimId}`).update({
+                            gaRequestId: docRef.id,
+                            gaStatus: 'pending',
+                            gaSubmittedAt: Date.now(),
+                            gaApprovers: requestData.approvers
+                        })).catch(err => {
+                            console.warn('Request tersimpan di GA, tapi gagal update claim RAB:', err);
+                        }).then(() => docRef);
+                    })
+                    .then(() => {
+                        if (rabPOClaimsCache[claimId]) rabPOClaimsCache[claimId].gaRequestId = 'submitted';
+                        formEl.reset();
+                        fillRABForm(null);
+                        clearRABDeepLink();
+                        formEl.style.display = 'none';
+                        const conf = document.getElementById('rab-confirmation');
+                        if (conf) conf.classList.add('active');
+                        setTimeout(() => {
+                            if (conf) conf.classList.remove('active');
+                            formEl.style.display = 'block';
+                            loadRABPOClaimsForSelect();
+                        }, 3000);
+                        showAlert('Request RAB (PO) berhasil diajukan!', 'success');
+                    })
+                    .catch(error => {
+                        console.error('Error submit RAB request:', error);
+                        showAlert('Gagal mengajukan request: ' + error.message, 'danger');
+                    })
+                    .finally(() => {
+                        submitBtn.innerHTML = originalText;
+                        submitBtn.disabled = false;
+                    });
+            });
+
+            function getRABApprovalInfo(request) {
+                const approvers = request.approvers && request.approvers.length ? request.approvers : getApprovedByForRABRequest(request);
+                const approvedBy = request.approvedBy || [];
+                const done = approvers.filter(a => approvedBy.includes(a)).length;
+                return { approvers, approvedBy, done, total: approvers.length, allApproved: approvers.every(a => approvedBy.includes(a)) };
+            }
+
+            function renderRABApproverChips(request) {
+                const info = getRABApprovalInfo(request);
+                return info.approvers.map(a => {
+                    const ok = info.approvedBy.includes(a);
+                    return `<span class="rab-approver-chip ${ok ? 'done' : ''}"><i class="fas ${ok ? 'fa-check-circle' : 'fa-clock'}"></i> ${escapeRABHtml(a)}</span>`;
+                }).join('');
+            }
+
+            function renderRABRequestDetails(request) {
+                const items = request.items || [];
+                const info = getRABApprovalInfo(request);
+                return `
+                    <div>Oleh: ${escapeRABHtml(request.nama)}${request.department ? ' • ' + escapeRABHtml(request.department) : ''}</div>
+                    <div>Tanggal: ${escapeRABHtml(request.tanggal || '-')}</div>
+                    <div>Project: <strong>${escapeRABHtml(request.projectName || '-')}</strong></div>
+                    <div>Pembayaran: <span class="request-payment payment-po">PO</span></div>
+                    <div class="claim-items-list">
+                        ${items.map(it => `<div class="claim-item"><strong>${escapeRABHtml(it.itemName || 'Item')}</strong> <span class="amount">${formatRp(it.nominal)}</span> <span style="font-size:0.7rem;color:#64748b;">| ${escapeRABHtml(it.vendor || '-')} | ${escapeRABHtml(it.tanggal || '-')}</span></div>`).join('')}
+                    </div>
+                    <div>Total: <strong>${formatRp(request.totalNominal || 0)}</strong></div>
+                    ${request.keterangan ? `<div>Keterangan: ${escapeRABHtml(request.keterangan)}</div>` : ''}
+                    <div>Status Persetujuan: ${info.allApproved ? 'Sudah disetujui semua' : `Menunggu (${info.done}/${info.total})`}</div>
+                    <div style="margin-top:4px;">${renderRABApproverChips(request)}</div>
+                `;
+            }
+
+            function fetchRABRequests() {
+                return db.collection('requests_rab').orderBy('createdAt', 'desc').get()
+                    .then(snap => {
+                        const list = [];
+                        snap.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
+                        return list;
+                    });
+            }
+
+            // Sub menu: Daftar Request
+            function loadRABRequests() {
+                const container = document.getElementById('rab-requests-list');
+                if (!container) return;
+                const currentUser = auth.currentUser;
+                const userEmail = currentUser ? currentUser.email : null;
+                const userNameNow = userEmail ? emailToNameMap[userEmail] : null;
+
+                if (!userEmail || currentUser.isAnonymous) {
+                    container.innerHTML = '<div class="empty-state"><i class="fas fa-user-slash"></i><p>Fitur ini tidak tersedia untuk tamu</p></div>';
+                    return;
+                }
+                container.innerHTML = '<div class="empty-state"><div class="loading"></div><p>Memuat data request...</p></div>';
+
+                fetchRABRequests().then(requests => {
+                    const isAdmin = ['crenata@genetek.co.id', 'ulandari@genetek.co.id'].includes(userEmail);
+                    const viewOnly = isViewOnlyUser(userEmail);
+                    const filtered = requests.filter(r => {
+                        if (isAdmin || viewOnly) return true;
+                        const info = getRABApprovalInfo(r);
+                        if (info.approvers.includes(userNameNow)) return true;
+                        return r.createdByEmail === userEmail || r.nama === userNameNow;
+                    });
+
+                    if (filtered.length === 0) {
+                        container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada request RAB</p><p style="font-size:0.8rem;color:#94a3b8;margin-top:5px;">Request muncul setelah claim PO dari RAB Monitoring diajukan di Form Request</p></div>';
+                        return;
+                    }
+
+                    container.innerHTML = filtered.map((r, index) => {
+                        const status = r.status || 'pending';
+                        const statusClass = status === 'approved' ? 'approved' : (status === 'rejected' ? 'rejected' : 'pending');
+                        const created = r.createdAt && r.createdAt.toDate ? r.createdAt.toDate().toLocaleString('id-ID') : (r.tanggal || '-');
+                        return `
+                            <div class="request-item rab-item" data-request-id="${r.id}" style="animation-delay: ${index * 0.05}s;">
+                                <div class="request-info">
+                                    <div class="request-title"><i class="fas fa-chart-pie" style="color:#8b5cf6;"></i> ${escapeRABHtml(r.judul || 'Request PO RAB')}</div>
+                                    <div class="request-details">
+                                        ${renderRABRequestDetails(r)}
+                                        <div style="font-size:0.75rem;color:#94a3b8;"><i class="far fa-clock"></i> ${created}</div>
+                                    </div>
+                                </div>
+                                <span class="request-status status-${statusClass}">${getStatusText(status)}</span>
+                            </div>`;
+                    }).join('');
+                }).catch(error => {
+                    console.error('Error loading RAB requests:', error);
+                    container.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Gagal memuat data request</p><p style="font-size:0.8rem;margin-top:10px;">Error: ${escapeRABHtml(error.message)}</p></div>`;
+                });
+            }
+
+            // Sub menu: Approved By (Heksi & Rossiana)
+            function loadRABApprovedBy() {
+                const container = document.getElementById('rab-approved-by-list');
+                if (!container) return;
+                const currentUser = auth.currentUser;
+                const userEmail = currentUser ? currentUser.email : null;
+                const userNameNow = userEmail ? emailToNameMap[userEmail] : null;
+                const viewOnly = isViewOnlyUser(userEmail);
+
+                if (!userEmail || currentUser.isAnonymous) {
+                    container.innerHTML = '<div class="empty-state"><i class="fas fa-user-slash"></i><p>Fitur ini tidak tersedia untuk tamu</p></div>';
+                    return;
+                }
+                container.innerHTML = '<div class="empty-state"><div class="loading"></div><p>Memuat data request...</p></div>';
+
+                fetchRABRequests().then(requests => {
+                    const pending = requests.filter(r => {
+                        if ((r.status || 'pending') !== 'pending') return false;
+                        if (viewOnly) return true;
+                        return getRABApprovalInfo(r).approvers.includes(userNameNow);
+                    });
+
+                    if (pending.length === 0) {
+                        container.innerHTML = `<div class="empty-state"><i class="fas fa-check-double"></i><p>Tidak ada request RAB yang menunggu persetujuan Anda.</p><p style="font-size:0.8rem;color:#94a3b8;margin-top:5px;">Approver: ${RAB_GA_APPROVERS.join(' & ')}</p></div>`;
+                        return;
+                    }
+
+                    container.innerHTML = pending.map((r, index) => {
+                        const info = getRABApprovalInfo(r);
+                        const alreadyApproved = info.approvedBy.includes(userNameNow);
+                        const checkboxes = info.approvers.map(a => `
+                            <div class="approver-option">
+                                <input type="checkbox" id="rab-approve-${r.id}-${a.replace(/[^a-zA-Z]/g, '')}" ${info.approvedBy.includes(a) ? 'checked' : ''} disabled>
+                                <label for="rab-approve-${r.id}-${a.replace(/[^a-zA-Z]/g, '')}" style="margin-bottom:0;">${escapeRABHtml(a)}</label>
+                            </div>`).join('');
+                        const controls = viewOnly ? `
+                                <div class="view-only-badge"><i class="fas fa-eye"></i> View Only - Tidak dapat approve</div>` : `
+                                <div class="action-buttons">
+                                    <button class="btn btn-rab btn-sm rabga-approve-btn" data-request-id="${r.id}" ${alreadyApproved ? 'disabled' : ''}>
+                                        <i class="fas fa-check"></i> ${alreadyApproved ? 'Sudah Anda setujui' : 'Setujui'}
+                                    </button>
+                                    <button class="btn btn-danger btn-sm rabga-reject-btn" data-request-id="${r.id}">
+                                        <i class="fas fa-times"></i> Tolak
+                                    </button>
+                                </div>`;
+                        return `
+                            <div class="request-item rab-item" data-request-id="${r.id}" style="flex-direction:column;align-items:flex-start;gap:10px;animation-delay:${index * 0.05}s;">
+                                <div class="request-info" style="width:100%;">
+                                    <div class="request-title"><i class="fas fa-chart-pie" style="color:#8b5cf6;"></i> ${escapeRABHtml(r.judul || 'Request PO RAB')}</div>
+                                    <div class="request-details">${renderRABRequestDetails(r)}</div>
+                                </div>
+                                <div class="approved-by-options" style="width:100%;border-top:1px solid var(--border);padding-top:10px;margin-top:10px;">
+                                    <label style="font-weight:600;margin-bottom:5px;">Status Persetujuan:</label>
+                                    <div class="approver-checkboxes">${checkboxes}</div>
+                                    ${controls}
+                                </div>
+                            </div>`;
+                    }).join('');
+
+                    if (!viewOnly) {
+                        container.querySelectorAll('.rabga-approve-btn').forEach(btn => {
+                            btn.addEventListener('click', () => handleRABRequestApproval(btn.dataset.requestId, 'approve'));
+                        });
+                        container.querySelectorAll('.rabga-reject-btn').forEach(btn => {
+                            btn.addEventListener('click', () => {
+                                if (confirm('Tolak request RAB (PO) ini?')) {
+                                    handleRABRequestApproval(btn.dataset.requestId, 'reject');
+                                }
+                            });
+                        });
+                    }
+                }).catch(error => {
+                    console.error('Error loading RAB approved-by:', error);
+                    container.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Gagal memuat data request</p><p style="font-size:0.8rem;margin-top:10px;">Error: ${escapeRABHtml(error.message)}</p></div>`;
+                });
+            }
+
+            // Approve / Reject + sinkron ke database RAB Monitoring
+            function handleRABRequestApproval(requestId, action) {
+                const currentUser = auth.currentUser;
+                const userEmail = currentUser ? currentUser.email : null;
+                const approverName = userEmail ? emailToNameMap[userEmail] : null;
+
+                if (isViewOnlyUser(userEmail)) {
+                    showAlert('Akun Anda hanya memiliki akses view-only.', 'warning');
+                    return;
+                }
+                if (!approverName || !RAB_GA_APPROVERS.includes(approverName)) {
+                    showAlert('Hanya Heksi Prasetyo & Rossiana Y.L yang dapat menyetujui request RAB', 'warning');
+                    return;
+                }
+
+                const docRef = db.collection('requests_rab').doc(requestId);
+                let finalStatus = 'pending';
+                let requestData = null;
+
+                db.runTransaction(tx => tx.get(docRef).then(doc => {
+                    if (!doc.exists) throw new Error('Request tidak ditemukan');
+                    requestData = doc.data();
+                    if ((requestData.status || 'pending') !== 'pending') {
+                        throw new Error('Request sudah diproses (' + getStatusText(requestData.status) + ')');
+                    }
+                    const approvedBy = (requestData.approvedBy || []).slice();
+                    const update = { updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
+
+                    if (action === 'approve') {
+                        if (!approvedBy.includes(approverName)) approvedBy.push(approverName);
+                        update.approvedBy = approvedBy;
+                        const info = getRABApprovalInfo({ ...requestData, approvedBy });
+                        if (info.allApproved) {
+                            update.status = 'approved';
+                            update.approvedAt = firebase.firestore.FieldValue.serverTimestamp();
+                        }
+                    } else {
+                        update.status = 'rejected';
+                        update.rejectedBy = approverName;
+                        update.rejectedAt = firebase.firestore.FieldValue.serverTimestamp();
+                    }
+                    finalStatus = update.status || 'pending';
+                    requestData.approvedBy = update.approvedBy || approvedBy;
+                    tx.update(docRef, update);
+                })).then(() => {
+                    return syncRABRequestToRABDatabase(requestData, finalStatus, approverName);
+                }).then(() => {
+                    if (finalStatus === 'approved') {
+                        showAlert('Request RAB disetujui oleh semua approver! Claim di RAB Monitoring ikut ter-approve.', 'success');
+                    } else if (finalStatus === 'rejected') {
+                        showAlert('Request RAB telah ditolak!', 'danger');
+                    } else {
+                        showAlert('Anda telah menyetujui request ini!', 'success');
+                    }
+                    loadRABApprovedBy();
+                    loadRABRequests();
+                    if (userEmail) loadAllUserNotifications(userEmail);
+                }).catch(error => {
+                    console.error('Error approval RAB:', error);
+                    showAlert('Gagal memproses persetujuan: ' + error.message, 'danger');
+                });
+            }
+
+            function syncRABRequestToRABDatabase(requestData, finalStatus, approverName) {
+                if (!requestData || !requestData.rabClaimId) return Promise.resolve();
+                const claimId = requestData.rabClaimId;
+
+                return ensureRABAuth().then(() => {
+                    const rabDb = getRABDatabase();
+                    const claimRef = rabDb.ref(`claims/${claimId}`);
+                    return claimRef.once('value').then(snap => {
+                        const claim = snap.val();
+                        if (!claim) return;
+                        const updates = {
+                            gaStatus: finalStatus,
+                            gaApprovedBy: requestData.approvedBy || [],
+                            gaLastActionBy: approverName,
+                            gaLastActionAt: Date.now()
+                        };
+
+                        if (finalStatus === 'rejected') {
+                            updates.status = 'rejected';
+                            return claimRef.update(updates);
+                        }
+
+                        if (finalStatus === 'approved') {
+                            updates.status = 'approved';
+                            // tambah realisasi RAB item (sekali saja)
+                            if (claim.status !== 'approved' && !claim.realisasiApplied) {
+                                updates.realisasiApplied = true;
+                                const items = Array.isArray(claim.items) ? claim.items : Object.values(claim.items || {});
+                                const tx = items.filter(it => it.itemId).map(it =>
+                                    rabDb.ref(`rabItems/${it.itemId}/realisasi`).transaction(cur => (parseFloat(cur) || 0) + (parseFloat(it.nominal) || 0))
+                                );
+                                return Promise.all(tx).then(() => claimRef.update(updates));
+                            }
+                        }
+                        return claimRef.update(updates);
+                    });
+                }).catch(err => {
+                    console.error('Gagal sinkron status ke database RAB:', err);
+                    showAlert('Status GA tersimpan, tetapi gagal sinkron ke RAB Monitoring: ' + err.message, 'warning');
+                });
+            }
+
+            // Loader utama RAB (dipakai tombol refresh, listener realtime, dll)
+            function loadRABClaims() {
+                const section = document.getElementById('form-rab');
+                const activeTab = section ? section.querySelector('.form-tab.active') : null;
+                const tab = activeTab ? activeTab.dataset.tab : 'form';
+                if (tab === 'requests') {
+                    loadRABRequests();
+                } else if (tab === 'approved-by') {
+                    loadRABApprovedBy();
+                } else if (section && section.classList.contains('active')) {
+                    loadRABPOClaimsForSelect();
+                }
+            }
 
             // Make loadRABClaims available globally for the refresh button
             window.loadRABClaims = loadRABClaims;
