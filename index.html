@@ -2331,10 +2331,13 @@
         };
 
         // Akun yang hak aksesnya disamakan dengan crenata (notifikasi, menu, admin)
-        const CRENATA_EQUIVALENTS = ['Caecilia Renata', 'Satrio PK'];
+        const CRENATA_EQUIVALENTS = ['Caecilia Renata', 'Satrio PK', 'Agoes DH'];
 
-        // Alias slot (satu box dipakai bersama) - saat ini tidak dipakai, tiap orang punya box sendiri
-        const APPROVER_ALIASES = {};
+        // Alias slot: SATU box dipakai bersama, cukup salah satu yang approve.
+        // Box "Satrio PK / Agoes DH": Satrio ATAU Agoes.
+        const APPROVER_ALIASES = {
+            'Satrio PK': ['Satrio PK', 'Agoes DH']
+        };
 
         function expandPairedApprovers(list) {
             const result = [];
@@ -2346,7 +2349,7 @@
         }
 
         // Email admin GA (hak penuh: lihat semua request, hapus, dll)
-        const ADMIN_EMAILS = ['crenata@genetek.co.id', 'ulandari@genetek.co.id', 'satriopk@genetek.co.id'];
+        const ADMIN_EMAILS = ['crenata@genetek.co.id', 'ulandari@genetek.co.id', 'satriopk@genetek.co.id', 'agoesdh@genetek.co.id'];
 
         function getSlotMembers(slot) {
             return APPROVER_ALIASES[slot] || [slot];
@@ -2585,6 +2588,7 @@
                 'galih@genetek.co.id': 'Galih',
                 'crenata@genetek.co.id': 'Caecilia Renata',
                 'satriopk@genetek.co.id': 'Satrio PK',
+                'agoesdh@genetek.co.id': 'Agoes DH',
                 'rossiana.yl@genetek.co.id': 'Rossiana Y.L',
                 'maida@genetek.co.id': 'Maida',
                 'netia@genetek.co.id': 'Netia',
@@ -2610,6 +2614,10 @@
                 },
                 'satriopk@genetek.co.id': {
                     name: 'Satrio PK',
+                    allowedForms: ['atk', 'idcard', 'konsumsi', 'laptop', 'feedback', 'kartunama', 'rab']
+                },
+                'agoesdh@genetek.co.id': {
+                    name: 'Agoes DH',
                     allowedForms: ['atk', 'idcard', 'konsumsi', 'laptop', 'feedback', 'kartunama', 'rab']
                 },
                 'galih@genetek.co.id': {
@@ -4048,7 +4056,7 @@
                     const password = loginPassword.value;
 
                     const allowedLoginEmails = [
-                        "crenata@genetek.co.id", "satriopk@genetek.co.id", "rossiana.yl@genetek.co.id", "galih@genetek.co.id",
+                        "crenata@genetek.co.id", "satriopk@genetek.co.id", "agoesdh@genetek.co.id", "rossiana.yl@genetek.co.id", "galih@genetek.co.id",
                         "maida@genetek.co.id", "netia@genetek.co.id", "anggita-s@genetek.co.id", "wahyu_yib@genetek.co.id",
                         "david@genetek.co.id", "m_husni@genetek.co.id", "ulandari@genetek.co.id",
                         "edwin@genetek.co.id", "heksi@genetek.co.id", "fikihernawan@genetek.co.id",
@@ -4729,7 +4737,7 @@
             }
 
             // Approve / batal approve dengan TRANSAKSI Firestore:
-            // - tiap approver hanya bisa approve sekali (tidak ada nama ganda)
+            // - tiap box hanya bisa di-approve sekali (box Satrio PK / Agoes DH: salah satu saja)
             // - aman dari klik ganda / dua orang approve bersamaan
             // - status otomatis 'approved' bila semua slot terpenuhi
             function updateApprovalStatus(formType, requestId, approverName, isApproved) {
