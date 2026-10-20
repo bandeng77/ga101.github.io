@@ -2323,13 +2323,27 @@
             }
         }
 
-        // ==================== APPROVER ALIAS (SLOT) ====================
-        // Satu "slot" approver bisa diisi oleh beberapa akun.
-        // Cukup SALAH SATU anggota slot yang approve -> slot dianggap selesai,
-        // sehingga tidak ada approval ganda (mis. Caecilia Renata + Satrio PK).
-        const APPROVER_ALIASES = {
-            'Caecilia Renata': ['Caecilia Renata', 'Satrio PK']
+        // ==================== APPROVER PENDAMPING ====================
+        // Setiap kali "Caecilia Renata" menjadi approver, "Satrio PK" ikut menjadi
+        // approver TERPISAH (box sendiri, keduanya wajib approve).
+        const PAIRED_APPROVERS = {
+            'Caecilia Renata': ['Satrio PK']
         };
+
+        // Akun yang hak aksesnya disamakan dengan crenata (notifikasi, menu, admin)
+        const CRENATA_EQUIVALENTS = ['Caecilia Renata', 'Satrio PK'];
+
+        // Alias slot (satu box dipakai bersama) - saat ini tidak dipakai, tiap orang punya box sendiri
+        const APPROVER_ALIASES = {};
+
+        function expandPairedApprovers(list) {
+            const result = [];
+            (list || []).forEach(name => {
+                result.push(name);
+                (PAIRED_APPROVERS[name] || []).forEach(p => result.push(p));
+            });
+            return result;
+        }
 
         // Email admin GA (hak penuh: lihat semua request, hapus, dll)
         const ADMIN_EMAILS = ['crenata@genetek.co.id', 'ulandari@genetek.co.id', 'satriopk@genetek.co.id'];
@@ -2389,15 +2403,15 @@
         }
 
         function isCrenataGroup(userName) {
-            return getSlotMembers('Caecilia Renata').includes(userName);
+            return CRENATA_EQUIVALENTS.includes(userName);
         }
 
         function getApprovedByForRequest(employeeName, nilaiRequest) {
-            return uniqueApprovers(buildApproversATK(employeeName, nilaiRequest));
+            return uniqueApprovers(expandPairedApprovers(buildApproversATK(employeeName, nilaiRequest)));
         }
 
         function getApprovedByForITRequest(employeeName) {
-            return uniqueApprovers(buildApproversIT(employeeName));
+            return uniqueApprovers(expandPairedApprovers(buildApproversIT(employeeName)));
         }
 
         function getApproversForForm(formType, request) {
@@ -4715,7 +4729,7 @@
             }
 
             // Approve / batal approve dengan TRANSAKSI Firestore:
-            // - satu slot hanya bisa di-approve sekali (Caecilia Renata ATAU Satrio PK)
+            // - tiap approver hanya bisa approve sekali (tidak ada nama ganda)
             // - aman dari klik ganda / dua orang approve bersamaan
             // - status otomatis 'approved' bila semua slot terpenuhi
             function updateApprovalStatus(formType, requestId, approverName, isApproved) {
