@@ -2281,7 +2281,7 @@
         }
 
         // ✅ MODIFIKASI: tambah Hadi untuk David (ATK)
-        function getApprovedByForRequest(employeeName, nilaiRequest) {
+        function buildApproversATK(employeeName, nilaiRequest) {
             const atasanLangsung = getAtasanLangsungByName(employeeName);
             const department = getDepartmentByName(employeeName);
             
@@ -2304,7 +2304,7 @@
         }
 
         // ✅ MODIFIKASI: tambah Hadi untuk David (IT)
-        function getApprovedByForITRequest(employeeName) {
+        function buildApproversIT(employeeName) {
             const atasanLangsung = getAtasanLangsungByName(employeeName);
             const department = getDepartmentByName(employeeName);
             const fixedApprovers = ["Galih", "Maida", "Caecilia Renata", "Rossiana Y.L"];
@@ -2321,6 +2321,93 @@
             } else {
                 return [atasanLangsung, ...fixedApprovers, ...hadiApprover];
             }
+        }
+
+        // ==================== APPROVER ALIAS (SLOT) ====================
+        // Satu "slot" approver bisa diisi oleh beberapa akun.
+        // Cukup SALAH SATU anggota slot yang approve -> slot dianggap selesai,
+        // sehingga tidak ada approval ganda (mis. Caecilia Renata + Satrio PK).
+        const APPROVER_ALIASES = {
+            'Caecilia Renata': ['Caecilia Renata', 'Satrio PK']
+        };
+
+        // Email admin GA (hak penuh: lihat semua request, hapus, dll)
+        const ADMIN_EMAILS = ['crenata@genetek.co.id', 'ulandari@genetek.co.id', 'satriopk@genetek.co.id'];
+
+        function getSlotMembers(slot) {
+            return APPROVER_ALIASES[slot] || [slot];
+        }
+
+        // Nama apapun -> nama slot utamanya ("Satrio PK" -> "Caecilia Renata")
+        function getCanonicalSlot(name) {
+            for (const slot in APPROVER_ALIASES) {
+                if (APPROVER_ALIASES[slot].includes(name)) return slot;
+            }
+            return name;
+        }
+
+        function getSlotLabel(slot) {
+            return getSlotMembers(slot).join(' / ');
+        }
+
+        // Hapus approver kosong & duplikat (berdasarkan slot)
+        function uniqueApprovers(list) {
+            const seen = new Set();
+            const result = [];
+            (list || []).forEach(name => {
+                if (!name) return;
+                const slot = getCanonicalSlot(name);
+                if (seen.has(slot)) return;
+                seen.add(slot);
+                result.push(slot);
+            });
+            return result;
+        }
+
+        function getSlotForUser(approvers, userName) {
+            if (!userName) return null;
+            return uniqueApprovers(approvers).find(slot => getSlotMembers(slot).includes(userName)) || null;
+        }
+
+        function isApproverFor(approvers, userName) {
+            return !!getSlotForUser(approvers, userName);
+        }
+
+        function getSlotApprovedName(slot, approvedBy) {
+            const list = approvedBy || [];
+            return getSlotMembers(slot).find(m => list.includes(m)) || null;
+        }
+
+        function isSlotApproved(slot, approvedBy) {
+            return !!getSlotApprovedName(slot, approvedBy);
+        }
+
+        function getApprovalProgress(approvers, approvedBy) {
+            const slots = uniqueApprovers(approvers);
+            const done = slots.filter(slot => isSlotApproved(slot, approvedBy)).length;
+            return { slots, done, total: slots.length, allApproved: slots.length > 0 && done === slots.length };
+        }
+
+        function isCrenataGroup(userName) {
+            return getSlotMembers('Caecilia Renata').includes(userName);
+        }
+
+        function getApprovedByForRequest(employeeName, nilaiRequest) {
+            return uniqueApprovers(buildApproversATK(employeeName, nilaiRequest));
+        }
+
+        function getApprovedByForITRequest(employeeName) {
+            return uniqueApprovers(buildApproversIT(employeeName));
+        }
+
+        function getApproversForForm(formType, request) {
+            if (formType === 'atk') return getApprovedByForRequest(request.nama, request.nilai);
+            if (formType === 'laptop') return getApprovedByForITRequest(request.nama);
+            return [];
+        }
+
+        function safeDomId(str) {
+            return String(str).replace(/[^a-zA-Z0-9_-]/g, '');
         }
 
         // Approver RAB (PO dari RAB Monitoring): Heksi & Rossiana
@@ -2483,6 +2570,7 @@
             const emailToNameMap = {
                 'galih@genetek.co.id': 'Galih',
                 'crenata@genetek.co.id': 'Caecilia Renata',
+                'satriopk@genetek.co.id': 'Satrio PK',
                 'rossiana.yl@genetek.co.id': 'Rossiana Y.L',
                 'maida@genetek.co.id': 'Maida',
                 'netia@genetek.co.id': 'Netia',
@@ -2504,6 +2592,10 @@
                 },
                 'crenata@genetek.co.id': {
                     name: 'Caecilia Renata',
+                    allowedForms: ['atk', 'idcard', 'konsumsi', 'laptop', 'feedback', 'kartunama', 'rab']
+                },
+                'satriopk@genetek.co.id': {
+                    name: 'Satrio PK',
                     allowedForms: ['atk', 'idcard', 'konsumsi', 'laptop', 'feedback', 'kartunama', 'rab']
                 },
                 'galih@genetek.co.id': {
@@ -2680,7 +2772,7 @@
                         })
                         .then(({ claims, projects }) => {
                             const userPermission = userPermissions[userEmail];
-                            const isAdmin = userEmail === 'crenata@genetek.co.id' || userEmail === 'ulandari@genetek.co.id';
+                            const isAdmin = ADMIN_EMAILS.includes(userEmail);
                             const isViewOnly = isViewOnlyUser(userEmail);
                             
                             let filteredClaims = claims;
@@ -3563,13 +3655,15 @@
                     iconClass = 'pending';
                     if (formType === 'atk') {
                         const approvers = getApprovedByForRequest(request.nama, request.nilai);
-                        const approverNames = approvers.join(' & ');
+                        const approverNames = approvers
+                            .filter(slot => !isSlotApproved(slot, request.approvedBy))
+                            .map(getSlotLabel).join(' & ');
                         message = `<strong>Request ATK Menunggu Persetujuan ${approverNames}</strong><br>Dari: ${request.nama} (${request.department})`;
                         isImportant = true;
                     } else if (formType === 'laptop') {
-                        const approvers = getApprovedByForITRequest(request.nama);
-                        const approvedCount = request.approvedBy ? request.approvedBy.length : 0;
-                        const totalApprovers = approvers.length;
+                        const progressIT = getApprovalProgress(getApprovedByForITRequest(request.nama), request.approvedBy);
+                        const approvedCount = progressIT.done;
+                        const totalApprovers = progressIT.total;
                         message = `<strong>Request IT Menunggu (${approvedCount}/${totalApprovers})</strong><br>Dari: ${request.nama}`;
                         isImportant = (approvedCount >= 3);
                     } else if (formType === 'kartunama' || formType === 'idcard' || formType === 'konsumsi') {
@@ -3692,7 +3786,7 @@
                 if (userPermission && userPermission.allowedForms.includes(request.formType)) {
                     if (request.formType === 'atk') {
                         const approvers = getApprovedByForRequest(request.nama, request.nilai);
-                        if (approvers.includes(userName)) {
+                        if (isApproverFor(approvers, userName)) {
                             return true;
                         }
                     }
@@ -3702,15 +3796,15 @@
                             return true;
                         }
                         const approvers = getApprovedByForITRequest(request.nama);
-                        if (approvers.includes(userName)) {
+                        if (isApproverFor(approvers, userName)) {
                             return true;
                         }
                     }
                     if (['kartunama', 'idcard', 'konsumsi'].includes(request.formType) && 
-                        ['Ulan', 'Caecilia Renata'].includes(userName)) {
+                        (userName === 'Ulan' || isCrenataGroup(userName))) {
                         return true;
                     }
-                    if (request.formType === 'feedback' && userName === 'Caecilia Renata') {
+                    if (request.formType === 'feedback' && isCrenataGroup(userName)) {
                         return true;
                     }
                 }
@@ -3940,7 +4034,7 @@
                     const password = loginPassword.value;
 
                     const allowedLoginEmails = [
-                        "crenata@genetek.co.id", "rossiana.yl@genetek.co.id", "galih@genetek.co.id",
+                        "crenata@genetek.co.id", "satriopk@genetek.co.id", "rossiana.yl@genetek.co.id", "galih@genetek.co.id",
                         "maida@genetek.co.id", "netia@genetek.co.id", "anggita-s@genetek.co.id", "wahyu_yib@genetek.co.id",
                         "david@genetek.co.id", "m_husni@genetek.co.id", "ulandari@genetek.co.id",
                         "edwin@genetek.co.id", "heksi@genetek.co.id", "fikihernawan@genetek.co.id",
@@ -4226,7 +4320,7 @@
                         });
 
                         const filteredRequests = requests.filter(request => {
-                            if (['ulandari@genetek.co.id', 'crenata@genetek.co.id'].includes(userEmail)) {
+                            if (ADMIN_EMAILS.includes(userEmail)) {
                                 if (['kartunama', 'idcard', 'konsumsi'].includes(formType)) {
                                     return true;
                                 }
@@ -4237,7 +4331,7 @@
                             
                             if (formType === 'atk') {
                                 const approvers = getApprovedByForRequest(request.nama, request.nilai);
-                                return approvers.includes(userName);
+                                return isApproverFor(approvers, userName);
                             }
                             
                             if (formType === 'laptop') {
@@ -4246,7 +4340,7 @@
                                     return true;
                                 }
                                 const approvers = getApprovedByForITRequest(request.nama);
-                                return approvers.includes(userName);
+                                return isApproverFor(approvers, userName);
                             }
                             
                             const userPermission = userPermissions[userEmail];
@@ -4269,45 +4363,25 @@
                             let statusClass = 'pending';
                             let statusText = 'Menunggu';
                             
-                            if (formType === 'atk') {
-                                const approvers = getApprovedByForRequest(request.nama, request.nilai);
-                                const isAllApproved = approvers.every(approver => 
-                                    request.approvedBy && request.approvedBy.includes(approver)
-                                );
-                                
-                                if (isAllApproved) {
+                            if (formType === 'atk' || formType === 'laptop') {
+                                const approvers = getApproversForForm(formType, request);
+                                const progress = getApprovalProgress(approvers, request.approvedBy);
+
+                                if (request.status === 'rejected') {
+                                    status = 'rejected';
+                                    statusClass = 'rejected';
+                                    statusText = 'Ditolak';
+                                } else if (progress.allApproved || request.status === 'approved') {
                                     status = 'approved';
                                     statusClass = 'approved';
                                     statusText = 'Disetujui';
-                                } else if (request.status === 'approved') {
-                                    statusClass = 'approved';
-                                    statusText = 'Disetujui';
-                                } else if (request.status === 'rejected') {
-                                    statusClass = 'rejected';
-                                    statusText = 'Ditolak';
+                                } else if (formType === 'atk') {
+                                    const sisa = progress.slots
+                                        .filter(slot => !isSlotApproved(slot, request.approvedBy))
+                                        .map(getSlotLabel);
+                                    statusText = `Menunggu ${sisa.join(' & ')}`;
                                 } else {
-                                    statusText = `Menunggu ${approvers.join(' & ')}`;
-                                }
-                            } else if (formType === 'laptop') {
-                                const approvers = getApprovedByForITRequest(request.nama);
-                                const isAllApproved = approvers.every(approver => 
-                                    request.approvedBy && request.approvedBy.includes(approver)
-                                );
-                                
-                                if (isAllApproved) {
-                                    status = 'approved';
-                                    statusClass = 'approved';
-                                    statusText = 'Disetujui';
-                                } else if (request.status === 'approved') {
-                                    statusClass = 'approved';
-                                    statusText = 'Disetujui';
-                                } else if (request.status === 'rejected') {
-                                    statusClass = 'rejected';
-                                    statusText = 'Ditolak';
-                                } else {
-                                    const approvedCount = request.approvedBy ? request.approvedBy.length : 0;
-                                    const totalApprovers = approvers.length;
-                                    statusText = `Menunggu (${approvedCount}/${totalApprovers})`;
+                                    statusText = `Menunggu (${progress.done}/${progress.total})`;
                                 }
                             } else {
                                 if (request.status === 'approved') {
@@ -4461,18 +4535,12 @@
                         const currentUserName = currentUserEmail ? emailToNameMap[currentUserEmail] : null;
                         const viewOnly = isViewOnlyUser(currentUserEmail);
 
-                        const pendingRequests = allRequests.filter(request => {
-                            if (formType === 'atk') {
-                                const approvers = getApprovedByForRequest(request.nama, request.nilai);
-                                return approvers.includes(currentUserName);
-                            } else if (formType === 'laptop') {
-                                const approvers = getApprovedByForITRequest(request.nama);
-                                return approvers.includes(currentUserName);
-                            }
-                            return false;
+                        const relevantRequests = allRequests.filter(request => {
+                            if (formType !== 'atk' && formType !== 'laptop') return false;
+                            return isApproverFor(getApproversForForm(formType, request), currentUserName);
                         });
 
-                        if (pendingRequests.length === 0) {
+                        if (relevantRequests.length === 0) {
                             approvedByListContainer.innerHTML = `
                                 <div class="empty-state">
                                     <i class="fas fa-check-double"></i>
@@ -4483,49 +4551,39 @@
                         }
 
                         approvedByListContainer.innerHTML = '';
-                        
-                        pendingRequests.forEach((request, index) => {
-                            let isApproved = false;
-                            let approvalText = '';
-                            let approvers = [];
-                            
-                            if (formType === 'laptop') {
-                                approvers = getApprovedByForITRequest(request.nama);
-                                const isAllApproved = approvers.every(approver => 
-                                    request.approvedBy && request.approvedBy.includes(approver)
-                                );
-                                
-                                isApproved = isAllApproved;
-                                const approvedCount = request.approvedBy ? request.approvedBy.length : 0;
-                                approvalText = isAllApproved ? 'Sudah disetujui semua' : `Menunggu (${approvedCount}/${approvers.length})`;
-                                
-                                if (isApproved && request.status !== 'approved') {
-                                    db.collection(`requests_${formType}`).doc(request.id).update({
-                                        status: 'approved'
-                                    });
-                                }
+
+                        relevantRequests.forEach((request) => {
+                            const approvers = getApproversForForm(formType, request);
+                            const progress = getApprovalProgress(approvers, request.approvedBy);
+                            const mySlot = getSlotForUser(approvers, currentUserName);
+                            const mySlotDoneBy = mySlot ? getSlotApprovedName(mySlot, request.approvedBy) : null;
+                            const isPending = (request.status || 'pending') === 'pending';
+
+                            let approvalText;
+                            if (progress.allApproved) {
+                                approvalText = formType === 'atk' ? 'Sudah disetujui' : 'Sudah disetujui semua';
                             } else if (formType === 'atk') {
-                                approvers = getApprovedByForRequest(request.nama, request.nilai);
-                                const isAllApproved = approvers.every(approver => 
-                                    request.approvedBy && request.approvedBy.includes(approver)
-                                );
-                                
-                                isApproved = isAllApproved;
-                                approvalText = isAllApproved ? 'Sudah disetujui' : `Menunggu ${approvers.join(' & ')}`;
-                                
-                                if (isApproved && request.status !== 'approved') {
-                                    db.collection(`requests_${formType}`).doc(request.id).update({
-                                        status: 'approved'
-                                    });
-                                }
+                                approvalText = 'Menunggu ' + progress.slots
+                                    .filter(slot => !isSlotApproved(slot, request.approvedBy))
+                                    .map(getSlotLabel).join(' & ');
+                            } else {
+                                approvalText = `Menunggu (${progress.done}/${progress.total})`;
                             }
-                            
+
+                            // Self-heal: semua slot sudah approve tapi status belum approved
+                            if (progress.allApproved && request.status !== 'approved' && !viewOnly) {
+                                db.collection(`requests_${formType}`).doc(request.id).update({
+                                    status: 'approved'
+                                }).catch(err => console.warn('Gagal sinkron status approved:', err));
+                            }
+
                             const requestElement = document.createElement('div');
                             requestElement.className = 'request-item';
+                            requestElement.dataset.requestId = request.id;
                             requestElement.style.flexDirection = 'column';
                             requestElement.style.alignItems = 'flex-start';
                             requestElement.style.gap = '10px';
-                            
+
                             let requestDetails = '';
                             if (formType === 'atk') {
                                 requestDetails = `
@@ -4550,66 +4608,47 @@
                                     <div>Status Persetujuan: ${approvalText}</div>
                                 `;
                             }
-                            
-                            // VIEW-ONLY: Sembunyikan checkbox & tombol approve/reject
-                            let approvalControls = '';
-                            if (!viewOnly) {
-                                approvalControls = `
-                                    <div class="approved-by-options" style="width: 100%; border-top: 1px solid var(--border); padding-top: 10px; margin-top: 10px;">
-                                        <label style="font-weight: 600; margin-bottom: 5px;">Status Persetujuan:</label>
-                                        <div class="approver-checkboxes">
-                                            ${approvers.map(approver => {
-                                                const isCurrentUserApprover = (currentUserName === approver);
-                                                const isChecked = request.approvedBy && request.approvedBy.includes(approver);
 
-                                                return `
-                                                    <div class="approver-option">
-                                                        <input type="checkbox" id="approve-${request.id}-${approver}"
-                                                            data-request-id="${request.id}"
-                                                            data-approver="${approver}"
-                                                            ${isChecked ? 'checked' : ''}
-                                                            ${!isCurrentUserApprover ? 'disabled' : ''}>
-                                                        <label for="approve-${request.id}-${approver}" style="margin-bottom: 0;">${approver}</label>
-                                                    </div>
-                                                `;
-                                            }).join('')}
-                                        </div>
-                                        <div class="action-buttons">
-                                            <button class="btn btn-primary btn-sm approve-btn" data-request-id="${request.id}" ${!currentUserName ? 'disabled' : ''}>
-                                                <i class="fas fa-check"></i> Setujui
-                                            </button>
-                                            <button class="btn btn-danger btn-sm reject-btn" data-request-id="${request.id}" ${!currentUserName ? 'disabled' : ''}>
-                                                <i class="fas fa-times"></i> Tolak
-                                            </button>
-                                        </div>
+                            // Satu checkbox per SLOT (Caecilia Renata / Satrio PK = 1 slot)
+                            const checkboxesHtml = progress.slots.map(slot => {
+                                const doneBy = getSlotApprovedName(slot, request.approvedBy);
+                                const cbId = `approve-${safeDomId(request.id)}-${safeDomId(slot)}`;
+                                const label = doneBy && getSlotMembers(slot).length > 1
+                                    ? `${getSlotLabel(slot)} <small style="color:#059669;">(oleh ${doneBy})</small>`
+                                    : getSlotLabel(slot);
+                                return `
+                                    <div class="approver-option">
+                                        <input type="checkbox" id="${cbId}" ${doneBy ? 'checked' : ''} disabled>
+                                        <label for="${cbId}" style="margin-bottom: 0;">${label}</label>
                                     </div>
                                 `;
+                            }).join('');
+
+                            let actionHtml;
+                            if (viewOnly) {
+                                actionHtml = `
+                                    <div class="view-only-badge">
+                                        <i class="fas fa-eye"></i> View Only - Tidak dapat approve
+                                    </div>
+                                `;
+                            } else if (!isPending) {
+                                actionHtml = `<div class="view-only-badge"><i class="fas fa-check-circle"></i> Request sudah disetujui</div>`;
                             } else {
-                                approvalControls = `
-                                    <div class="approved-by-options" style="width: 100%; border-top: 1px solid var(--border); padding-top: 10px; margin-top: 10px;">
-                                        <label style="font-weight: 600; margin-bottom: 5px;">Status Persetujuan:</label>
-                                        <div class="approver-checkboxes">
-                                            ${approvers.map(approver => {
-                                                const isChecked = request.approvedBy && request.approvedBy.includes(approver);
-                                                return `
-                                                    <div class="approver-option">
-                                                        <input type="checkbox" id="approve-${request.id}-${approver}"
-                                                            data-request-id="${request.id}"
-                                                            data-approver="${approver}"
-                                                            ${isChecked ? 'checked' : ''}
-                                                            disabled>
-                                                        <label for="approve-${request.id}-${approver}" style="margin-bottom: 0;">${approver}</label>
-                                                    </div>
-                                                `;
-                                            }).join('')}
-                                        </div>
-                                        <div class="view-only-badge">
-                                            <i class="fas fa-eye"></i> View Only - Tidak dapat approve
-                                        </div>
+                                const approveLabel = mySlotDoneBy
+                                    ? (mySlotDoneBy === currentUserName ? 'Sudah Anda setujui' : `Sudah disetujui ${mySlotDoneBy}`)
+                                    : 'Setujui';
+                                actionHtml = `
+                                    <div class="action-buttons">
+                                        <button class="btn btn-primary btn-sm approve-btn" data-request-id="${request.id}" ${mySlotDoneBy ? 'disabled' : ''}>
+                                            <i class="fas fa-check"></i> ${approveLabel}
+                                        </button>
+                                        <button class="btn btn-danger btn-sm reject-btn" data-request-id="${request.id}">
+                                            <i class="fas fa-times"></i> Tolak
+                                        </button>
                                     </div>
                                 `;
                             }
-                            
+
                             requestElement.innerHTML = `
                                 <div class="request-info" style="width: 100%;">
                                     <div class="request-title">${request.judul || getRequestTitle(formType, request)}</div>
@@ -4617,7 +4656,11 @@
                                         ${requestDetails}
                                     </div>
                                 </div>
-                                ${approvalControls}
+                                <div class="approved-by-options" style="width: 100%; border-top: 1px solid var(--border); padding-top: 10px; margin-top: 10px;">
+                                    <label style="font-weight: 600; margin-bottom: 5px;">Status Persetujuan:</label>
+                                    <div class="approver-checkboxes">${checkboxesHtml}</div>
+                                    ${actionHtml}
+                                </div>
                             `;
 
                             approvedByListContainer.appendChild(requestElement);
@@ -4629,55 +4672,32 @@
                                     const requestId = this.dataset.requestId;
                                     const currentUserEmail = auth.currentUser ? auth.currentUser.email : null;
                                     const currentUserName = currentUserEmail ? emailToNameMap[currentUserEmail] : null;
-                                    
-                                    if (currentUserName) {
-                                        updateApprovalStatus(formType, requestId, currentUserName, true);
-                                        
-                                        db.collection(`requests_${formType}`).doc(requestId).get()
-                                            .then((doc) => {
-                                                if (doc.exists) {
-                                                    const request = doc.data();
-                                                    
-                                                    if (formType === 'laptop') {
-                                                        const approvers = getApprovedByForITRequest(request.nama);
-                                                        const isAllApproved = approvers.every(approver => 
-                                                            request.approvedBy && request.approvedBy.includes(approver)
-                                                        );
-                                                        
-                                                        if (isAllApproved) {
-                                                            db.collection(`requests_${formType}`).doc(requestId).update({
-                                                                status: 'approved'
-                                                            });
-                                                            showAlert('Request telah disetujui oleh semua approver!', 'success');
-                                                        } else {
-                                                            showAlert('Anda telah menyetujui request ini!', 'success');
-                                                        }
-                                                    } else if (formType === 'atk') {
-                                                        const approvers = getApprovedByForRequest(request.nama, request.nilai);
-                                                        const isAllApproved = approvers.every(approver => 
-                                                            request.approvedBy && request.approvedBy.includes(approver)
-                                                        );
-                                                        
-                                                        if (isAllApproved) {
-                                                            db.collection(`requests_${formType}`).doc(requestId).update({
-                                                                status: 'approved'
-                                                            });
-                                                            showAlert('Request telah disetujui oleh semua approver!', 'success');
-                                                        } else {
-                                                            showAlert('Anda telah menyetujui request ini!', 'success');
-                                                        }
-                                                    }
-                                                }
-                                            });
-                                    }
+                                    if (!currentUserName) return;
+
+                                    // Cegah klik ganda
+                                    this.disabled = true;
+                                    this.innerHTML = '<div class="loading"></div> Memproses...';
+
+                                    updateApprovalStatus(formType, requestId, currentUserName, true)
+                                        .then(result => {
+                                            if (!result) return;
+                                            showAlert(result.allApproved
+                                                ? 'Request telah disetujui oleh semua approver!'
+                                                : 'Anda telah menyetujui request ini!', 'success');
+                                        });
                                 });
                             });
 
                             approvedByListContainer.querySelectorAll('.reject-btn').forEach(button => {
                                 button.addEventListener('click', function() {
+                                    if (!confirm('Tolak request ini?')) return;
                                     const requestId = this.dataset.requestId;
                                     updateRequestStatus(formType, requestId, 'rejected');
                                     showAlert('Request telah ditolak!', 'danger');
+                                    setTimeout(() => {
+                                        loadApprovedByRequests(formType);
+                                        loadRequests(formType);
+                                    }, 500);
                                 });
                             });
                         }
@@ -4694,49 +4714,69 @@
                     });
             }
 
+            // Approve / batal approve dengan TRANSAKSI Firestore:
+            // - satu slot hanya bisa di-approve sekali (Caecilia Renata ATAU Satrio PK)
+            // - aman dari klik ganda / dua orang approve bersamaan
+            // - status otomatis 'approved' bila semua slot terpenuhi
             function updateApprovalStatus(formType, requestId, approverName, isApproved) {
-                return db.collection(`requests_${formType}`).doc(requestId).get()
-                    .then((doc) => {
-                        if (doc.exists) {
-                            const request = doc.data();
-                            const approvedBy = request.approvedBy || [];
-                            
-                            if (isApproved) {
-                                if (!approvedBy.includes(approverName)) {
-                                    approvedBy.push(approverName);
-                                }
-                            } else {
-                                const index = approvedBy.indexOf(approverName);
-                                if (index > -1) {
-                                    approvedBy.splice(index, 1);
-                                }
-                            }
-                            
-                            return db.collection(`requests_${formType}`).doc(requestId).update({
-                                approvedBy: approvedBy
-                            }).then(() => {
-                                if (isApproved && approverName === 'Caecilia Renata' && formType === 'atk') {
-                                    return db.collection(`requests_${formType}`).doc(requestId).get()
-                                        .then((updatedDoc) => {
-                                            if (updatedDoc.exists) {
-                                                const updatedRequest = updatedDoc.data();
-                                                sendApprovalNotificationToUlan(formType, requestId, updatedRequest);
-                                            }
-                                        });
-                                }
-                                return { approvedBy: approvedBy };
-                            });
+                const docRef = db.collection(`requests_${formType}`).doc(requestId);
+                let outcome = null;
+
+                return db.runTransaction(tx => tx.get(docRef).then(doc => {
+                    if (!doc.exists) throw new Error('Request tidak ditemukan');
+                    const data = doc.data();
+                    const status = data.status || 'pending';
+                    if (status === 'rejected') throw new Error('Request sudah ditolak');
+
+                    const approvers = getApproversForForm(formType, data);
+                    const slot = getSlotForUser(approvers, approverName);
+                    if (!slot) throw new Error('Anda bukan approver untuk request ini');
+
+                    // Bersihkan duplikat lama di approvedBy
+                    let approvedBy = Array.from(new Set(data.approvedBy || []));
+
+                    if (isApproved) {
+                        const doneBy = getSlotApprovedName(slot, approvedBy);
+                        if (doneBy) {
+                            throw new Error(doneBy === approverName
+                                ? 'Anda sudah menyetujui request ini'
+                                : `Sudah disetujui oleh ${doneBy}`);
                         }
-                    })
-                    .then((result) => {
-                        loadApprovedByRequests(formType);
-                        loadRequests(formType);
-                        return result;
-                    })
-                    .catch((error) => {
-                        console.error("Error updating approval status:", error);
-                        showAlert('Gagal memperbarui status persetujuan', 'danger');
-                    });
+                        approvedBy.push(approverName);
+                    } else {
+                        approvedBy = approvedBy.filter(n => n !== approverName);
+                    }
+
+                    const progress = getApprovalProgress(approvers, approvedBy);
+                    const update = {
+                        approvedBy: approvedBy,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    };
+                    if (progress.allApproved) {
+                        update.status = 'approved';
+                    }
+
+                    tx.update(docRef, update);
+                    outcome = {
+                        approvedBy,
+                        allApproved: progress.allApproved,
+                        becameApproved: progress.allApproved && status !== 'approved',
+                        request: { ...data, approvedBy, status: update.status || status }
+                    };
+                })).then(() => {
+                    // Notifikasi ke Ulan sekali saja, saat request ATK baru disetujui penuh
+                    if (outcome && outcome.becameApproved && formType === 'atk') {
+                        sendApprovalNotificationToUlan(formType, requestId, outcome.request);
+                    }
+                    loadApprovedByRequests(formType);
+                    loadRequests(formType);
+                    return outcome;
+                }).catch((error) => {
+                    console.error("Error updating approval status:", error);
+                    showAlert('Gagal memproses persetujuan: ' + error.message, 'warning');
+                    loadApprovedByRequests(formType);
+                    return null;
+                });
             }
 
             function updateRequestStatus(formType, requestId, newStatus) {
@@ -5451,7 +5491,7 @@
                 container.innerHTML = '<div class="empty-state"><div class="loading"></div><p>Memuat data request...</p></div>';
 
                 fetchRABRequests().then(requests => {
-                    const isAdmin = ['crenata@genetek.co.id', 'ulandari@genetek.co.id'].includes(userEmail);
+                    const isAdmin = ADMIN_EMAILS.includes(userEmail);
                     const viewOnly = isViewOnlyUser(userEmail);
                     const filtered = requests.filter(r => {
                         if (isAdmin || viewOnly) return true;
