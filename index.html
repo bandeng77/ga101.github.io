@@ -10,6 +10,8 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
+    <!-- [BARU] Screenshot kartu request untuk draft email otomatis (n8n) -->
+    <script defer src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js"></script>
 
     <style>
         :root {
@@ -4795,6 +4797,15 @@
                     if (outcome && outcome.becameApproved && formType === 'atk') {
                         sendApprovalNotificationToUlan(formType, requestId, outcome.request);
                     }
+                    // [BARU] Request IT baru disetujui penuh → draft email otomatis di Carbonio (via n8n)
+                    if (outcome && outcome.becameApproved && formType === 'laptop' && window.kirimDraftRequestIT) {
+                        window.kirimDraftRequestIT(requestId, outcome.request).then(r => {
+                            const me = auth.currentUser ? auth.currentUser.email : '';
+                            if (r && r.ok && me === 'galih@genetek.co.id') {
+                                showAlert('📧 Draft email request IT sudah dibuat di Carbonio', 'success');
+                            }
+                        });
+                    }
                     loadApprovedByRequests(formType);
                     loadRequests(formType);
                     return outcome;
@@ -5753,6 +5764,97 @@
             // Make loadRABClaims available globally for the refresh button
             window.loadRABClaims = loadRABClaims;
         });
+    </script>
+
+    <!-- ==================== [BARU] DRAFT EMAIL OTOMATIS REQUEST IT (n8n → Carbonio) ==================== -->
+    <script>
+        (function () {
+            const N8N_DRAFT_URL = 'https://n8n.genetek.co.id/webhook/ga-it-approved';
+            const N8N_DRAFT_KEY = 'ga_AGrgm1KPZ90jHVPCi6upaNWhk5PjXKRI'; // sama dengan GA_KEY di n8n
+
+            const esc = (v) => String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            const judulIT = (r) => r.judul || `Permintaan ${r['jenis-request'] || ''} IT`.replace(/\s+/g, ' ');
+
+            // Kartu dibuat sama persis dengan tampilan "Daftar Request IT", status Disetujui
+            function buatKartuIT(r) {
+                const approvedBy = Array.isArray(r.approvedBy) ? r.approvedBy : [];
+                const el = document.createElement('div');
+                el.className = 'request-item';
+                el.style.cssText = 'animation:none;transform:none;margin:0;width:820px;box-shadow:none;';
+                el.innerHTML = `
+                    <div class="request-info">
+                        <div class="request-title">${esc(judulIT(r))}</div>
+                        <div class="request-details">
+                            <div>Oleh: ${esc(r.nama)} • ${esc(r.department)}</div>
+                            <div>Tanggal: ${esc(r.tanggal)}</div>
+                            <div>Jenis Request: ${esc(r['jenis-request'])}</div>
+                            ${r.spesifikasi ? `<div>Spesifikasi: ${esc(r.spesifikasi)}</div>` : ''}
+                            ${r['merk-model'] ? `<div>Merk/Model: ${esc(r['merk-model'])}</div>` : ''}
+                            ${r['so-ada'] ? `<div>SO: ${esc(r['so-ada'])}</div>` : ''}
+                            ${r['so-ada'] === 'Ya' && r['no-so'] ? `<div>No. SO: ${esc(r['no-so'])}</div>` : ''}
+                            ${approvedBy.length ? `<div>Disetujui oleh: ${esc(approvedBy.join(', '))}</div>` : ''}
+                        </div>
+                    </div>
+                    <div class="request-status status-approved">Disetujui</div>`;
+                return el;
+            }
+
+            async function kirimDraftRequestIT(requestId, r) {
+                const host = document.createElement('div');
+                host.style.cssText = 'position:fixed;left:-10000px;top:0;padding:0;background:#fff;pointer-events:none;';
+                try {
+                    if (!window.htmlToImage) throw new Error('Library html-to-image belum termuat');
+                    const el = buatKartuIT(r || {});
+                    host.appendChild(el);
+                    document.body.appendChild(host);
+                    await new Promise((ok) => requestAnimationFrame(() => setTimeout(ok, 50)));
+
+                    const image = await htmlToImage.toPng(el, { pixelRatio: 2, backgroundColor: '#ffffff', skipFonts: true });
+
+                    // form-urlencoded = "simple request" → tidak kena CORS preflight
+                    const res = await fetch(N8N_DRAFT_URL, {
+                        method: 'POST',
+                        body: new URLSearchParams({ payload: JSON.stringify({
+                            key: N8N_DRAFT_KEY,
+                            id: String(requestId),
+                            nomor: String(requestId),
+                            pemohon: r.nama || '',                 // subjek: "<Oleh> - <Judul>"
+                            judul: judulIT(r),                      // "Permintaan Pengadaan Baru IT"
+                            disetujuiOleh: (r.approvedBy || []).join(', '),
+                            pixelRatio: 2,
+                            image,
+                        }) }),
+                    });
+                    const out = await res.json().catch(() => ({ ok: false, message: 'HTTP ' + res.status }));
+                    if (!res.ok || !out.ok) throw new Error(out.message || ('HTTP ' + res.status));
+                    console.log('[Draft email]', out.message);
+                    return out;
+                } catch (err) {
+                    console.warn('[Draft email] gagal:', err);
+                    return { ok: false, message: String(err && err.message || err) };
+                } finally {
+                    host.remove();
+                }
+            }
+
+            // Untuk request yang SUDAH disetujui sebelum fitur ini dipasang.
+            // Jalankan di Console: kirimDraftDisetujui(3)  → 3 request IT disetujui terakhir.
+            // Aman diulang: n8n tidak membuat draft dobel untuk request yang sama.
+            async function kirimDraftDisetujui(jumlah = 1) {
+                const snap = await firebase.firestore().collection('requests_laptop').where('status', '==', 'approved').get();
+                const ts = (d) => (d.updatedAt && d.updatedAt.toMillis ? d.updatedAt.toMillis() : 0);
+                const list = snap.docs.map((d) => ({ id: d.id, data: d.data() }))
+                    .sort((a, b) => ts(b.data) - ts(a.data)).slice(0, jumlah);
+                for (const { id, data } of list) {
+                    const r = await kirimDraftRequestIT(id, data);
+                    console.log(`${data.nama} - ${judulIT(data)}:`, r.message);
+                }
+                return `${list.length} request diproses`;
+            }
+
+            window.kirimDraftRequestIT = kirimDraftRequestIT;
+            window.kirimDraftDisetujui = kirimDraftDisetujui;
+        })();
     </script>
 </body>
 </html>
