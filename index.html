@@ -2323,15 +2323,16 @@
             }
         }
 
-        // ==================== APPROVER PENDAMPING ====================
-        // Setiap kali "Caecilia Renata" menjadi approver, "Satrio PK" ikut menjadi
-        // approver TERPISAH (box sendiri, keduanya wajib approve).
-        const PAIRED_APPROVERS = {
-            'Caecilia Renata': ['Satrio PK']
+        // ==================== PENGGANTI APPROVER ====================
+        // Caecilia Renata (crenata) TIDAK lagi menjadi approver.
+        // Setiap posisi "Caecilia Renata" (sebagai atasan langsung maupun approver tetap)
+        // digantikan oleh box "Satrio PK / Agoes DH".
+        const REPLACED_APPROVERS = {
+            'Caecilia Renata': 'Satrio PK'
         };
 
-        // Akun yang hak aksesnya disamakan dengan crenata (notifikasi, menu, admin)
-        const CRENATA_EQUIVALENTS = ['Caecilia Renata', 'Satrio PK', 'Agoes DH'];
+        // Akun yang mengambil alih peran crenata (notifikasi feedback, menu, admin)
+        const CRENATA_EQUIVALENTS = ['Satrio PK', 'Agoes DH'];
 
         // Alias slot: SATU box dipakai bersama, cukup salah satu yang approve.
         // Box "Satrio PK / Agoes DH": Satrio ATAU Agoes.
@@ -2340,16 +2341,11 @@
         };
 
         function expandPairedApprovers(list) {
-            const result = [];
-            (list || []).forEach(name => {
-                result.push(name);
-                (PAIRED_APPROVERS[name] || []).forEach(p => result.push(p));
-            });
-            return result;
+            return (list || []).map(name => REPLACED_APPROVERS[name] || name);
         }
 
         // Email admin GA (hak penuh: lihat semua request, hapus, dll)
-        const ADMIN_EMAILS = ['crenata@genetek.co.id', 'ulandari@genetek.co.id', 'satriopk@genetek.co.id', 'agoesdh@genetek.co.id'];
+        const ADMIN_EMAILS = ['ulandari@genetek.co.id', 'satriopk@genetek.co.id', 'agoesdh@genetek.co.id'];
 
         function getSlotMembers(slot) {
             return APPROVER_ALIASES[slot] || [slot];
@@ -2671,8 +2667,10 @@
             };
 
             // ==================== VIEW-ONLY USER CHECK ====================
+            // crenata sudah bukan approver -> hanya bisa melihat
+            const VIEW_ONLY_EMAILS = ['netia@genetek.co.id', 'crenata@genetek.co.id'];
             function isViewOnlyUser(email) {
-                return email === 'netia@genetek.co.id';
+                return VIEW_ONLY_EMAILS.includes(email);
             }
 
             // ==================== RAB MONITORING FUNCTIONS ====================
@@ -4342,7 +4340,7 @@
                         });
 
                         const filteredRequests = requests.filter(request => {
-                            if (ADMIN_EMAILS.includes(userEmail)) {
+                            if (ADMIN_EMAILS.includes(userEmail) || userEmail === 'crenata@genetek.co.id') {
                                 if (['kartunama', 'idcard', 'konsumsi'].includes(formType)) {
                                     return true;
                                 }
@@ -4352,6 +4350,11 @@
                             }
                             
                             if (formType === 'atk') {
+                                // VIEW-ONLY dengan akses ATK (crenata): lihat semua request ATK
+                                if (viewOnly && userPermissions[userEmail] &&
+                                    userPermissions[userEmail].allowedForms.includes('atk')) {
+                                    return true;
+                                }
                                 const approvers = getApprovedByForRequest(request.nama, request.nilai);
                                 return isApproverFor(approvers, userName);
                             }
@@ -4559,6 +4562,8 @@
 
                         const relevantRequests = allRequests.filter(request => {
                             if (formType !== 'atk' && formType !== 'laptop') return false;
+                            if (viewOnly && userPermissions[currentUserEmail] &&
+                                userPermissions[currentUserEmail].allowedForms.includes(formType)) return true;
                             return isApproverFor(getApproversForForm(formType, request), currentUserName);
                         });
 
